@@ -272,7 +272,7 @@
 
   <header role="banner">
     <div class="logo-block">
-      <div class="logo-top">◈ PHOTON CAPTURES</div>
+      <div class="logo-top">◈ CAPTURES</div>
       <div class="logo-sub" aria-hidden="true">// NODE TELEMETRY DASHBOARD v4.1</div>
     </div>
     <div class="header-right">
@@ -917,7 +917,7 @@ async function executeDelete() {
       const res = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', id })
+        body: JSON.stringify({ action: 'delete', id: parseInt(id) })  // ← Fixed: parseInt for ID
       });
 
       let body = null;
@@ -936,6 +936,9 @@ async function executeDelete() {
   loader.classList.remove('active');
   applyFilter();
   updateStats(allData);
+
+  // Reset pending delete IDs
+  pendingDeleteIds = [];  // ← Added: reset array
 
   if (ok) toast(`✓ ${ok} record${ok > 1 ? 's' : ''} deleted`, 't-green');
   if (errors.length) toast(`⚠ Delete failed — ${errors[0]}`, 't-red', 6000);
@@ -1039,7 +1042,7 @@ async function saveEdit() {
     const res = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'update', id: editingId, fields: patch })
+      body: JSON.stringify({ action: 'update', id: parseInt(editingId), fields: patch })  // ← Fixed: parseInt for ID
     });
 
     if (!res.ok) {
@@ -1052,11 +1055,12 @@ async function saveEdit() {
     if (idx >= 0) allData[idx] = { ...allData[idx], ...patch };
 
     toast(`✓ Record #${editingId} saved`, 't-green');
+    closeModal('editModal');  // ← Moved inside success path
   } catch (e) {
     toast(`⚠ Save failed: ${e.message}`, 't-amber', 4000);
+    // Don't close modal on failure - user can retry
   }
 
-  closeModal('editModal');
   applyFilter();
   updateStats(allData);
 }
@@ -1243,6 +1247,7 @@ function renderQueryHistory() {
   });
 }
 
+// ── FIXED runQuery() ─────────────────────────────────────────────────────
 async function runQuery() {
   const sql = document.getElementById('sqlEditor').value.trim();
   if (!sql) { toast('Enter a SQL query first', 't-amber'); return; }
@@ -1255,32 +1260,33 @@ async function runQuery() {
   statusEl.textContent = 'EXECUTING…';
   resultWrap.style.display = 'none';
 
-  // save to history (max 20)
+  // Save to history
   queryHistory = queryHistory.filter(q => q !== sql);
   queryHistory.push(sql);
   if (queryHistory.length > 20) queryHistory.shift();
-  try { localStorage.setItem('qhist', JSON.stringify(queryHistory)); } catch {}
+  try { localStorage.setItem('qhist', JSON.stringify(queryHistory)); } catch(e) {}
 
   try {
+    const startTime = Date.now();
     const res = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'query', sql })
     });
 
-    let body = null;
-    try { body = await res.json(); } catch {}
-    if (!res.ok) throw new Error(body?.error || body?.detail || `HTTP ${res.status}`);
-    if (body?.error) throw new Error(body.error);
+    const body = await res.json().catch(() => ({}));
 
-    const t = Date.now();
-    statusEl.textContent = `DONE — ${Date.now() - t}ms`;
+    if (!res.ok || body.error) {
+      throw new Error(body.error || `HTTP ${res.status}`);
+    }
+
+    const elapsed = Date.now() - startTime;
+    statusEl.textContent = `DONE — ${elapsed}ms`;
     resultWrap.style.display = 'block';
 
-    // Handle SELECT (rows array) vs mutation (changes count)
     if (Array.isArray(body?.results) || Array.isArray(body)) {
       const rows = Array.isArray(body) ? body : body.results;
-      if (!rows.length) {
+      if (!rows || rows.length === 0) {
         labelEl.textContent = 'RESULTS — 0 rows';
         contentEl.innerHTML = '<div class="sql-result-empty">// empty result set</div>';
       } else {
@@ -1295,11 +1301,10 @@ async function runQuery() {
           </div>`;
       }
     } else {
-      const changes = body?.changes ?? body?.rowsAffected ?? '?';
+      const changes = body?.changes ?? body?.rowsAffected ?? 0;
       labelEl.textContent = 'RESULT';
       contentEl.innerHTML = `<div class="sql-affected">✓ Query executed — ${changes} row(s) affected</div>`;
     }
-    statusEl.textContent = `OK — ${rows?.length ?? '?'} rows`;
   } catch (e) {
     resultWrap.style.display = 'block';
     labelEl.textContent = 'ERROR';
