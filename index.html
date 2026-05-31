@@ -263,84 +263,43 @@
       .refresh-countdown { display:none; }
     }
 
-    /* ── AUTH GUARD OVERLAY ── */
-    #auth-guard {
-      display: flex;
-      position: fixed; inset: 0; z-index: 99999;
-      background: #030a0f;
-      align-items: center; justify-content: center;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: .82rem; color: var(--cyan);
-      letter-spacing: .15em;
-      flex-direction: column; gap: 14px;
-    }
-    #auth-guard.hidden { display: none; }
-    #auth-guard .ag-spinner {
-      width: 28px; height: 28px;
-      border: 2px solid var(--border);
-      border-top-color: var(--cyan);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-    }
-
-    /* ── SESSION BANNER ── */
-    #session-banner {
-      display: none;
-      background: rgba(255,59,92,.08);
-      border: 1px solid var(--red-dim);
-      border-radius: 3px;
-      color: var(--red);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: .72rem;
-      padding: 8px 14px;
-      margin-bottom: 10px;
-      letter-spacing: .08em;
-    }
-    #session-banner.show { display: flex; align-items: center; gap: 10px; }
-
-    /* ── LOGOUT BUTTON ── */
-    .btn-logout {
-      background: transparent;
-      border: 1px solid var(--red-dim);
-      border-radius: 3px;
-      padding: 6px 12px;
-      font-family: 'Orbitron', monospace;
-      font-size: .55rem;
-      font-weight: 700;
-      letter-spacing: .15em;
-      color: var(--red);
-      cursor: pointer;
-      transition: all .2s;
-      clip-path: polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,0 100%);
-    }
-    .btn-logout:hover {
-      background: rgba(255,59,92,.1);
-      border-color: var(--red);
-      box-shadow: var(--glow-r);
-    }
-
-    /* ── SESSION INFO ── */
-    .session-info {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: .62rem;
-      color: var(--text-dim);
-      display: flex; align-items: center; gap: 6px;
-    }
-    .session-info .si-user { color: var(--cyan); }
-    .session-info .si-exp  { color: var(--amber); }
+    /* ── LOGIN OVERLAY ── */
+    #loginOverlay { display:none; position:fixed; inset:0; z-index:10000; background:var(--bg); align-items:center; justify-content:center; }
+    #loginOverlay.open { display:flex; }
+    .login-box { background:var(--panel); border:1px solid var(--cyan-dim); border-radius:6px; width:min(380px,92vw); padding:36px 32px; box-shadow:0 24px 64px rgba(0,0,0,.9),var(--glow-c); animation:modalIn .25s ease; }
+    .login-title { font-family:'Orbitron',monospace; font-weight:900; font-size:1.1rem; color:var(--cyan); text-shadow:var(--glow-c); letter-spacing:.2em; margin-bottom:4px; }
+    .login-sub { font-family:'Share Tech Mono',monospace; font-size:.65rem; color:var(--text-dim); letter-spacing:.25em; margin-bottom:28px; }
+    .login-field { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+    .login-label { font-family:'Share Tech Mono',monospace; font-size:.62rem; color:var(--cyan-dim); letter-spacing:.15em; }
+    .login-input { background:var(--bg2); border:1px solid var(--border); border-radius:3px; padding:10px 12px; color:var(--text); font-family:'Share Tech Mono',monospace; font-size:.82rem; outline:none; transition:border-color .2s; width:100%; }
+    .login-input:focus { border-color:var(--cyan); box-shadow:0 0 0 2px rgba(0,229,255,.1); }
+    #loginError { display:none; background:rgba(255,59,92,.08); border:1px solid var(--red-dim); border-radius:3px; color:var(--red); font-family:'Share Tech Mono',monospace; font-size:.72rem; padding:8px 12px; margin-bottom:14px; }
+    #loginBtn { width:100%; margin-top:6px; padding:11px; font-size:.68rem; letter-spacing:.2em; }
   </style>
 </head>
 <body>
 
-<!-- AUTH GUARD (hidden once verified) -->
-<div id="auth-guard">
-  <div class="ag-spinner"></div>
-  <span>VERIFYING SESSION...</span>
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay" role="dialog" aria-modal="true" aria-label="Authentication required">
+  <div class="login-box">
+    <div class="login-title">◈ CAPTURES</div>
+    <div class="login-sub">// AUTHENTICATE TO CONTINUE</div>
+    <div id="loginError" role="alert"></div>
+    <div class="login-field">
+      <label class="login-label" for="loginUser">USERNAME</label>
+      <input class="login-input" id="loginUser" type="text" autocomplete="username" spellcheck="false">
+    </div>
+    <div class="login-field">
+      <label class="login-label" for="loginPass">PASSWORD</label>
+      <input class="login-input" id="loginPass" type="password" autocomplete="current-password">
+    </div>
+    <button class="btn btn-cyan" id="loginBtn">▶ AUTHENTICATE</button>
+  </div>
 </div>
 
 <a href="#main-content" class="skip-link">SKIP TO CONTENT</a>
 
-<div class="layout" id="main-layout" style="display:none">
+<div class="layout">
 
   <header role="banner">
     <div class="logo-block">
@@ -355,24 +314,11 @@
         <div class="countdown-bar-wrap"><div class="countdown-bar" id="countdownBar" style="width:100%"></div></div>
         <span id="countdownSec">30s</span>
       </div>
-      <div class="session-info">
-        <span>USER:</span>
-        <span class="si-user" id="sessionUser">—</span>
-        <span>|</span>
-        <span>EXP:</span>
-        <span class="si-exp" id="sessionExp">—</span>
-      </div>
       <div class="status-time" id="statusTime" aria-live="polite">—</div>
       <div class="loader" id="loader" role="status" aria-label="Loading data"></div>
-      <button class="btn-logout" onclick="doLogout()" title="End session">⏻ LOGOUT</button>
+      <button class="btn btn-red btn-sm" id="logoutBtn" title="End session">⏻ DISCONNECT</button>
     </div>
   </header>
-
-  <!-- Session expiry banner -->
-  <div id="session-banner">
-    <span>⚠ SESSION EXPIRING SOON — </span>
-    <a href="/login.html" style="color:var(--red);font-family:'Share Tech Mono',monospace;font-size:.72rem;">RE-AUTHENTICATE</a>
-  </div>
 
   <nav class="nav-tabs" role="tablist" aria-label="Dashboard sections">
     <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="tab-records" id="btn-records" onclick="switchTab('records')">⊞ RECORDS</button>
@@ -568,122 +514,8 @@
 "use strict";
 
 // ── CONFIG ───────────────────────────────────────────────────────────────
-const WORKER_URL  = "https://photon-dashboard.23amtics322.workers.dev";
-const LOGIN_URL   = "/login.html";   // redirect target if not authenticated
+const WORKER_URL = "https://snowy-fog-b0d1.23amtics322.workers.dev/";
 const CACHE_BUST  = () => '_=' + Date.now();
-
-// ── AUTH HELPERS ─────────────────────────────────────────────────────────
-function getToken() {
-  return sessionStorage.getItem('_jwt') || '';
-}
-
-function authHeaders() {
-  const tok = getToken();
-  return tok
-    ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tok}` }
-    : { 'Content-Type': 'application/json' };
-}
-
-function parseJWTPayload(token) {
-  try {
-    const b64 = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-    return JSON.parse(atob(b64));
-  } catch { return null; }
-}
-
-function expLabel(exp) {
-  const diff = exp - Math.floor(Date.now() / 1000);
-  if (diff <= 0) return 'EXPIRED';
-  if (diff < 3600) return `${Math.ceil(diff/60)}m`;
-  return `${Math.ceil(diff/3600)}h`;
-}
-
-async function verifySession() {
-  const token = getToken();
-  if (!token) return null;
-
-  // Quick local expiry check first
-  const payload = parseJWTPayload(token);
-  if (!payload || payload.exp < Math.floor(Date.now() / 1000)) return null;
-
-  // Confirm with Worker /api/me
-  try {
-    const res = await fetch(
-      WORKER_URL.replace(/\/$/, '') + '/api/me',
-      { headers: { 'Authorization': `Bearer ${token}` } }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    return { ...data, exp: payload.exp };
-  } catch {
-    // Worker unreachable — trust local token for now
-    return { user: payload.user, role: payload.role, exp: payload.exp };
-  }
-}
-
-async function doLogout() {
-  const token = getToken();
-  if (token) {
-    try {
-      await fetch(WORKER_URL.replace(/\/$/, '') + '/api/logout', {
-        method: 'POST',
-        credentials: 'include',
-        headers: authHeaders()
-      });
-    } catch {}
-  }
-  sessionStorage.removeItem('_jwt');
-  sessionStorage.removeItem('_csrf');
-  window.location.href = LOGIN_URL;
-}
-
-function redirectToLogin() {
-  sessionStorage.removeItem('_jwt');
-  window.location.href = LOGIN_URL + '?reason=session_expired';
-}
-
-// ── BOOT — run auth check before showing anything ─────────────────────────
-(async () => {
-  const session = await verifySession();
-
-  if (!session) {
-    redirectToLogin();
-    return;
-  }
-
-  // Show dashboard
-  document.getElementById('auth-guard').classList.add('hidden');
-  document.getElementById('main-layout').style.display = '';
-
-  // Populate session info
-  document.getElementById('sessionUser').textContent = (session.user || '—').toUpperCase();
-  document.getElementById('sessionExp').textContent  = expLabel(session.exp);
-
-  // Warn if < 15 min left
-  const remaining = session.exp - Math.floor(Date.now() / 1000);
-  if (remaining < 900) {
-    document.getElementById('session-banner').classList.add('show');
-  }
-
-  // Refresh exp label every minute
-  setInterval(() => {
-    const tok = getToken();
-    if (!tok) return;
-    const p = parseJWTPayload(tok);
-    if (!p) return;
-    document.getElementById('sessionExp').textContent = expLabel(p.exp);
-    if (p.exp < Math.floor(Date.now() / 1000)) redirectToLogin();
-    if ((p.exp - Math.floor(Date.now() / 1000)) < 900) {
-      document.getElementById('session-banner').classList.add('show');
-    }
-  }, 60_000);
-
-  // Kick off the dashboard
-  initDashboard();
-})();
-
-// ── ALL DASHBOARD CODE wrapped so it runs only after auth ─────────────────
-function initDashboard() {
 
 // ── STATE ────────────────────────────────────────────────────────────────
 let allData = [];
@@ -1066,8 +898,7 @@ async function loadData() {
 
   try {
     const url = WORKER_URL + (WORKER_URL.includes('?') ? '&' : '?') + CACHE_BUST();
-    const res = await fetch(url, { cache: 'no-store', headers: authHeaders() });
-    if (res.status === 401) { redirectToLogin(); return; }
+    const res = await fetch(url, { cache: 'no-store', credentials: 'include' });
 
     if (!res.ok) {
       throw new Error(`HTTP ${res.status} ${res.statusText}`);
@@ -1117,7 +948,8 @@ async function executeDelete() {
     try {
       const res = await fetch(WORKER_URL, {
         method: 'POST',
-        headers: authHeaders(),
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', id: parseInt(id) })  // ← Fixed: parseInt for ID
       });
 
@@ -1242,7 +1074,8 @@ async function saveEdit() {
   try {
     const res = await fetch(WORKER_URL, {
       method: 'POST',
-      headers: authHeaders(),
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'update', id: parseInt(editingId), fields: patch })  // ← Fixed: parseInt for ID
     });
 
@@ -1471,7 +1304,8 @@ async function runQuery() {
     const startTime = Date.now();
     const res = await fetch(WORKER_URL, {
       method: 'POST',
-      headers: authHeaders(),
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'query', sql })
     });
 
@@ -1522,10 +1356,94 @@ document.getElementById('sqlEditor').addEventListener('keydown', e => {
   }
 });
 
+// ── AUTH ─────────────────────────────────────────────────────────────────
+const BASE_URL = new URL(WORKER_URL).origin;
+
+function showLogin(errMsg) {
+  document.getElementById('loginOverlay').classList.add('open');
+  document.querySelector('.layout').style.visibility = 'hidden';
+  if (errMsg) {
+    const el = document.getElementById('loginError');
+    el.textContent = errMsg;
+    el.style.display = 'block';
+  }
+}
+
+function hideLogin() {
+  document.getElementById('loginOverlay').classList.remove('open');
+  document.querySelector('.layout').style.visibility = 'visible';
+}
+
+async function checkSession() {
+  try {
+    const res = await fetch(`${BASE_URL}/auth/me`, { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.authenticated) { hideLogin(); return true; }
+    }
+  } catch (e) { /* network error — fall through to login */ }
+  showLogin();
+  return false;
+}
+
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('loginBtn');
+  if (!username || !password) { errEl.textContent = 'Enter username and password.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true;
+  btn.textContent = 'AUTHENTICATING…';
+  errEl.style.display = 'none';
+  try {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      document.getElementById('loginPass').value = '';
+      hideLogin();
+      loadData();
+    } else {
+      showLogin(data.error || `Auth failed (${res.status})`);
+    }
+  } catch (e) {
+    showLogin('Network error — ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '▶ AUTHENTICATE';
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  try {
+    await fetch(`${BASE_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
+  } catch (e) { /* ignore network errors on logout */ }
+  allData = [];
+  filteredData = [];
+  renderTable();
+  updateStats([]);
+  clearInterval(countdownTimer);
+  showLogin();
+  toast('Session terminated', 't-amber');
+});
+
 // ── INIT ─────────────────────────────────────────────────────────────────
 buildHeader();
 buildColDropdown();
-loadData();
+
+// Check session first; load data only if authenticated
+(async () => {
+  const authed = await checkSession();
+  if (authed) loadData();
+})();
 
 // Optional: auto-refresh only when tab is visible
 document.addEventListener('visibilitychange', () => {
@@ -1536,8 +1454,6 @@ document.addEventListener('visibilitychange', () => {
     clearInterval(countdownTimer);
   }
 });
-
-} // end initDashboard()
 </script>
 </body>
 </html>
