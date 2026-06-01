@@ -8,6 +8,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -911,8 +913,8 @@ async function loadData() {
     const res = await fetch(url, { cache: 'no-store', credentials: 'include' });
 
     if (res.status === 401 || res.status === 403) {
-      // Session expired — redirect to login
-      window.location.href = 'index.html';
+      // Session expired — redirect to login (replace removes dashboard from history)
+      window.location.replace('index.html');
       return;
     }
 
@@ -1366,7 +1368,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   updateStats([]);
   clearInterval(countdownTimer);
   toast('Session terminated', 't-amber');
-  setTimeout(() => { window.location.href = 'index.html'; }, 600);
+  setTimeout(() => { window.location.replace('index.html'); }, 600);
 });
 
 // ── SETTINGS / CHANGE CREDENTIALS ────────────────────────────────────────
@@ -1399,6 +1401,8 @@ async function saveCredentials() {
   if (!currentPass) { showMsg('⚠ Current password is required.', 'err'); return; }
   if (!newUser && !newPass) { showMsg('⚠ Enter a new username, new password, or both.', 'err'); return; }
   if (newPass && newPass.length < 8) { showMsg('⚠ New password must be at least 8 characters.', 'err'); return; }
+  if (newPass && newPass.length > 128) { showMsg('⚠ New password too long (max 128 chars).', 'err'); return; }
+  if (newUser && newUser.length > 64) { showMsg('⚠ New username too long (max 64 chars).', 'err'); return; }
   if (newPass && newPass !== newPassConfirm) { showMsg('⚠ New passwords do not match.', 'err'); return; }
 
   btn.disabled = true;
@@ -1426,9 +1430,16 @@ async function saveCredentials() {
       document.getElementById('credNewPassConfirm').value = '';
       toast('✓ Credentials updated', 't-green');
     } else {
+      // Clear password fields on failure too — don't leave them in the DOM
+      document.getElementById('credCurrentPass').value = '';
+      document.getElementById('credNewPass').value = '';
+      document.getElementById('credNewPassConfirm').value = '';
       showMsg(`⚠ ${data.error || 'Update failed (' + res.status + ')'}`, 'err');
     }
   } catch (e) {
+    document.getElementById('credCurrentPass').value = '';
+    document.getElementById('credNewPass').value = '';
+    document.getElementById('credNewPassConfirm').value = '';
     showMsg(`⚠ Network error — ${e.message}`, 'err');
   } finally {
     btn.disabled = false;
@@ -1442,23 +1453,28 @@ buildColDropdown();
 
 // Check session first; redirect to login if not authenticated
 (async () => {
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), 6000);
   try {
-    const res = await fetch(`${BASE_URL}/auth/me`, { credentials: 'include' });
+    const res = await fetch(`${BASE_URL}/auth/me`, { credentials: 'include', signal: ctrl.signal });
+    clearTimeout(tid);
     if (res.ok) {
-      const data = await res.json();
-      if (data.authenticated) { loadData(); return; }
+      const data = await res.json().catch(() => ({}));
+      if (data.authenticated === true) { loadData(); return; }
     }
-  } catch (e) { /* fall through */ }
-  window.location.href = 'index.html';
+  } catch (e) { clearTimeout(tid); }
+  window.location.replace('index.html');
 })();
 
 // Auto-refresh only when tab is visible
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
-    fetch(`${BASE_URL}/auth/me`, { credentials: 'include' })
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.authenticated) { loadData(); startCountdown(); } else { window.location.href = 'index.html'; } })
-      .catch(() => {});
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 6000);
+    fetch(`${BASE_URL}/auth/me`, { credentials: 'include', signal: ctrl.signal })
+      .then(r => { clearTimeout(tid); return r.ok ? r.json() : null; })
+      .then(d => { if (d?.authenticated) { loadData(); startCountdown(); } else { window.location.replace('index.html'); } })
+      .catch(() => { clearTimeout(tid); });
   } else {
     clearInterval(countdownTimer);
   }
