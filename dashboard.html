@@ -429,7 +429,7 @@
         <div class="cred-section-title">// VERIFY IDENTITY</div>
         <div class="field-group">
           <label class="field-label" for="credCurrentPass">CURRENT PASSWORD <span style="color:var(--red)">*</span></label>
-          <input class="field-input" id="credCurrentPass" type="password" autocomplete="current-password" placeholder="Required to save any change">
+          <input class="field-input" id="credCurrentPass" type="password" autocomplete="current-password" maxlength="128" placeholder="Required to save any change">
         </div>
         <div class="cred-section-title" style="margin-top:16px;">// NEW VALUES (leave blank to keep current)</div>
         <div class="field-group">
@@ -438,11 +438,11 @@
         </div>
         <div class="field-group">
           <label class="field-label" for="credNewPass">NEW PASSWORD</label>
-          <input class="field-input" id="credNewPass" type="password" autocomplete="new-password" placeholder="Leave blank to keep current">
+          <input class="field-input" id="credNewPass" type="password" autocomplete="new-password" maxlength="128" placeholder="Leave blank to keep current">
         </div>
         <div class="field-group">
           <label class="field-label" for="credNewPassConfirm">CONFIRM NEW PASSWORD</label>
-          <input class="field-input" id="credNewPassConfirm" type="password" autocomplete="new-password" placeholder="Repeat new password">
+          <input class="field-input" id="credNewPassConfirm" type="password" autocomplete="new-password" maxlength="128" placeholder="Repeat new password">
         </div>
         <div id="credMsg" role="alert"></div>
         <p class="cred-hint">// Other active sessions will be signed out automatically when credentials change.</p>
@@ -1232,6 +1232,9 @@ function openLightbox(src, label) {
   const lb  = document.getElementById('lightbox');
   const img = document.getElementById('lightboxImg');
   const lbl = document.getElementById('lightbox-label');
+  // Re-validate before setting src — the column render already checks, but re-check here
+  // since openLightbox can be called from anywhere
+  if (!src || !/^data:image\//i.test(src)) return;
   img.src = src;
   if (lbl) lbl.textContent = label || '';
   lb.classList.add('open');
