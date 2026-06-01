@@ -234,7 +234,7 @@ function startLockoutCountdown() {
 }
 
 // ── Session pre-check (with timeout) ────────────────────────────────────
-(async () => {
+async function checkExistingSession() {
   const ctrl = new AbortController();
   const tid  = setTimeout(() => ctrl.abort(), 5000);
   try {
@@ -247,11 +247,14 @@ function startLockoutCountdown() {
       }
     }
   } catch { clearTimeout(tid); }
-})();
+}
 
-// Resume lockout countdown after page refresh
+// ── Init — runs after DOM is ready ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // Resume lockout countdown if page was refreshed mid-lockout
   if (getLockoutRemaining() > 0) startLockoutCountdown();
+  // Then check if already authenticated (skip if locked out to save a round-trip)
+  else checkExistingSession();
 });
 
 // ── Login handler ────────────────────────────────────────────────────────
@@ -314,7 +317,11 @@ async function doLogin() {
     // Server-side rate limit
     if (res.status === 429) {
       const wait = parseInt(res.headers.get('Retry-After') || '30', 10);
-      recordFailure();
+      // Force sessionStorage lockout to match the server's window, not our shorter local one
+      const s = getAttemptState();
+      s.count = Math.max(s.count + 1, MAX_ATTEMPTS);
+      s.until = Math.max(s.until, Date.now() + wait * 1000);
+      saveAttemptState(s);
       errEl.textContent = 'Server rate limit — wait ' + wait + 's.';
       errEl.style.display = 'block';
       startLockoutCountdown();
@@ -341,6 +348,7 @@ async function doLogin() {
     errEl.style.display = 'block';
     btn.disabled = false;
     btn.textContent = '\u25BA AUTHENTICATE';
+    userEl.focus();
   }
 }
 
