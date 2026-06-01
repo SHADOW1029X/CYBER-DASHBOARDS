@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAPTURES // LOGIN</title>
+  <meta name="description" content="Capture Node Telemetry Dashboard — authentication.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #030a0f;
+      --bg2:       #060e16;
+      --panel:     #0a1520;
+      --border:    #0d3a52;
+      --cyan:      #00e5ff;
+      --cyan-dim:  #007a99;
+      --green:     #00ff9d;
+      --red:       #ff3b5c;
+      --red-dim:   #7a1a2a;
+      --text:      #b0d4e8;
+      --text-dim:  #3d6478;
+      --glow-c: 0 0 8px #00e5ff66, 0 0 20px #00e5ff22;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scrollbar-width: thin; scrollbar-color: var(--cyan-dim) var(--bg2); }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0,229,255,.012) 2px, rgba(0,229,255,.012) 4px
+      );
+    }
+
+    /* Grid background */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(0,229,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,.035) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .login-wrap {
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-box {
+      background: var(--panel);
+      border: 1px solid var(--cyan-dim);
+      border-radius: 6px;
+      width: min(380px, 92vw);
+      padding: 36px 32px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.9), var(--glow-c);
+      animation: fadeIn .25s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .login-logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 1.6rem;
+      color: var(--cyan);
+      text-shadow: var(--glow-c);
+      letter-spacing: .15em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .login-title {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 1.1rem;
+      color: var(--cyan);
+      text-shadow: var(--glow-c);
+      letter-spacing: .2em;
+      margin-bottom: 4px;
+    }
+
+    .login-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .65rem;
+      color: var(--text-dim);
+      letter-spacing: .25em;
+      margin-bottom: 28px;
+    }
+
+    .login-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 14px;
+    }
+
+    .login-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .62rem;
+      color: var(--cyan-dim);
+      letter-spacing: .15em;
+    }
+
+    .login-input {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .82rem;
+      outline: none;
+      transition: border-color .2s;
+      width: 100%;
+    }
+
+    .login-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 2px rgba(0,229,255,.1);
+    }
+
+    #loginError {
+      display: none;
+      background: rgba(255,59,92,.08);
+      border: 1px solid var(--red-dim);
+      border-radius: 3px;
+      color: var(--red);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+    }
+
+    .btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 8px 14px;
+      font-family: 'Orbitron', monospace;
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+    }
+
+    .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    .btn-cyan { color: var(--cyan); border-color: var(--cyan-dim); }
+    .btn-cyan:hover { background: rgba(0,229,255,.08); box-shadow: var(--glow-c); border-color: var(--cyan); }
+
+    #loginBtn {
+      width: 100%;
+      margin-top: 6px;
+      padding: 11px;
+      font-size: .68rem;
+      letter-spacing: .2em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">◈ CAPTURES</div>
+    <div class="login-sub">// NODE TELEMETRY DASHBOARD v4.1</div>
+    <div class="login-title">AUTHENTICATE</div>
+    <div class="login-sub" style="margin-bottom:24px;">// CREDENTIALS REQUIRED TO CONTINUE</div>
+    <div id="loginError" role="alert"></div>
+    <div class="login-field">
+      <label class="login-label" for="loginUser">USERNAME</label>
+      <input class="login-input" id="loginUser" type="text" autocomplete="username" spellcheck="false">
+    </div>
+    <div class="login-field">
+      <label class="login-label" for="loginPass">PASSWORD</label>
+      <input class="login-input" id="loginPass" type="password" autocomplete="current-password">
+    </div>
+    <button class="btn btn-cyan" id="loginBtn">▶ AUTHENTICATE</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const WORKER_URL = "https://snowy-fog-b0d1.23amtics322.workers.dev/";
+const BASE_URL   = new URL(WORKER_URL).origin;
+
+// If already authenticated, redirect straight to dashboard
+(async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/auth/me`, { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.authenticated) {
+        window.location.href = 'dashboard.html';
+        return;
+      }
+    }
+  } catch (e) { /* not authenticated — stay on login */ }
+})();
+
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('loginBtn');
+
+  if (!username || !password) {
+    errEl.textContent = 'Enter username and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'AUTHENTICATING…';
+  errEl.style.display = 'none';
+
+  try {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok && data.success) {
+      document.getElementById('loginPass').value = '';
+      window.location.href = 'dashboard.html';
+    } else {
+      errEl.textContent = data.error || `Auth failed (${res.status})`;
+      errEl.style.display = 'block';
+    }
+  } catch (e) {
+    errEl.textContent = 'Network error — ' + e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '▶ AUTHENTICATE';
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
+</script>
+</body>
+</html>
