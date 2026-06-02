@@ -196,6 +196,7 @@
       padding: clamp(24px, 4vw, 44px) clamp(20px, 4vw, 40px);
       transform-style: preserve-3d;
       transition: transform .06s ease-out, box-shadow .3s ease;
+      --card-scale: 1;
       box-shadow:
         0 0 0 1px rgba(0,229,255,.06),
         0 30px 80px rgba(0,0,0,.95),
@@ -897,17 +898,15 @@ function adaptToViewport() {
   const card = document.getElementById('loginCard');
   if (!card) return;
 
-  // On very small viewports, shrink the card proportionally
+  // Store scale in a CSS variable so the tilt transform can compose with it
+  // instead of overwriting it via style.transform directly
   if (vw < 440) {
     const scale = Math.max(0.72, vw / 440);
-    card.style.transform = `scale(${scale})`;
-    card.style.transformOrigin = 'center center';
+    card.style.setProperty('--card-scale', scale);
   } else {
-    card.style.transform = '';
-    card.style.transformOrigin = '';
+    card.style.setProperty('--card-scale', 1);
   }
 
-  // On tall / wide monitors bump up font-size root
   if (vw >= 1600 && vh >= 900) {
     document.documentElement.style.fontSize = '17px';
   } else if (vw >= 1200) {
@@ -932,7 +931,8 @@ document.addEventListener('mousemove', e => {
   const dy = (e.clientY - cy) / cy;
   const rx =  dy * -MAX_TILT;
   const ry =  dx *  MAX_TILT;
-  loginCard.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  const sc = parseFloat(loginCard.style.getPropertyValue('--card-scale') || 1);
+  loginCard.style.transform = `scale(${sc}) rotateX(${rx}deg) rotateY(${ry}deg)`;
   // Parallax shadow depth
   loginCard.style.boxShadow = `
     ${-ry * 2}px ${rx * 2}px 80px rgba(0,0,0,.95),
@@ -945,7 +945,9 @@ document.addEventListener('mousemove', e => {
 
 document.addEventListener('mouseleave', () => {
   loginCard.style.transition = 'transform .6s cubic-bezier(.23,1,.32,1), box-shadow .6s ease';
-  loginCard.style.transform  = '';
+  // Restore to scale-only (preserve adaptive scale, clear tilt)
+  const sc = parseFloat(loginCard.style.getPropertyValue('--card-scale') || 1);
+  loginCard.style.transform  = sc !== 1 ? `scale(${sc})` : '';
   loginCard.style.boxShadow  = '';
   setTimeout(() => { loginCard.style.transition = ''; }, 620);
 });
@@ -1066,7 +1068,10 @@ async function doLogin() {
     }
 
     recordFailure();
+    errEl.style.display = 'none';
     errEl.textContent = 'Invalid credentials.';
+    // Force reflow so the shake animation replays on every failure
+    void errEl.offsetWidth;
     errEl.style.display = 'block';
 
     // Shake card on failure
@@ -1086,6 +1091,13 @@ async function doLogin() {
   } catch (e) {
     clearTimeout(tid);
     passEl.value = '';
+    // Reset show-password state so the field goes back to type=password
+    if (pwVisible) {
+      pwVisible = false;
+      passEl.type = 'password';
+      pwIconWrap.classList.remove('revealed');
+      passEl.classList.remove('pw-visible');
+    }
     errEl.textContent = (e.name === 'AbortError') ? 'Request timed out.' : 'Network error.';
     errEl.style.display = 'block';
     btn.disabled = false;
@@ -1102,11 +1114,11 @@ document.getElementById('loginUser').addEventListener('keydown', e => {
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+(function init() {
   if (getLockoutRemaining() > 0) startLockoutCountdown();
   else checkExistingSession();
   document.getElementById('loginUser').focus();
-});
+})();
 </script>
 </body>
 </html>
