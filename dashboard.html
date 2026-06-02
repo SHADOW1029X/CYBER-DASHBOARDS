@@ -923,7 +923,7 @@
         <span class="logo-hex" aria-hidden="true"></span>
         CAPTURES
       </div>
-      <div class="logo-sub" aria-hidden="true">CYBER DASHBOARD v3.2</div>
+      <div class="logo-sub" aria-hidden="true">NODE TELEMETRY DASHBOARD v4.1</div>
     </div>
     <div class="header-right">
       <div class="live-badge" aria-live="polite">
@@ -1052,7 +1052,6 @@
             <button class="snippet-btn" onclick="insertSnippet('SELECT id, platform, user_agent FROM captures WHERE webdriver = 1;')">BOT DETECT</button>
             <button class="snippet-btn" onclick="insertSnippet('DELETE FROM captures WHERE id = ;')">DELETE ID</button>
             <button class="snippet-btn" onclick="insertSnippet('UPDATE captures SET public_ip = \'\' WHERE id = ;')">UPDATE</button>
-            <button class="snippet-btn" onclick="insertSnippet('DELETE FROM captures')">EMPTY TABLE</button>
           </div>
 
           <div class="sql-toolbar">
@@ -1102,7 +1101,7 @@
                  autocomplete="current-password" maxlength="128"
                  placeholder="Required to save any change">
         </div>
-        <div class="cred-section-title" style="margin-top:16px;">// NEW VALUES</div>
+        <div class="cred-section-title" style="margin-top:16px;">// NEW VALUES (leave blank to keep current)</div>
         <div class="field-group">
           <label class="field-label" for="credNewUser">NEW USERNAME</label>
           <input class="field-input" id="credNewUser" type="text"
@@ -1586,16 +1585,23 @@ async function executeDelete() {
   let ok = 0; const errors = [];
   for (const id of pendingDeleteIds) {
     try {
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 10_000);
       const res = await fetch(WORKER_URL, {
         method:'POST', credentials:'include',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({action:'delete', id:parseInt(id)})
+        body: JSON.stringify({action:'delete', id:parseInt(id)}),
+        signal: ctrl.signal
       });
+      clearTimeout(tid);
       let body = null; try { body = await res.json(); } catch {}
       if (!res.ok) throw new Error(body?.error || body?.detail || `HTTP ${res.status}`);
       if (body && (body.error || body.success === false)) throw new Error(body.error || 'Worker rejected delete');
       allData = allData.filter(r => String(r.id) !== String(id)); ok++;
-    } catch (e) { console.error(`Delete #${id} failed:`, e); errors.push(`#${id}: ${e.message}`); }
+    } catch (e) {
+      const msg = e.name === 'AbortError' ? 'Request timed out' : e.message;
+      console.error(`Delete #${id} failed:`, e); errors.push(`#${id}: ${msg}`);
+    }
   }
   loader.classList.remove('active'); applyFilter(); updateStats(allData); pendingDeleteIds = [];
   if (ok) toast(`✓ ${ok} record${ok>1?'s':''} deleted`, 't-green');
@@ -1668,16 +1674,23 @@ async function saveEdit() {
   const patch = {};
   EDIT_FIELDS.forEach(f => { const el = document.getElementById(`ef_${f.key}`); if (el) patch[f.key] = el.value.trim() || null; });
   try {
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 10_000);
     const res = await fetch(WORKER_URL, {
       method:'POST', credentials:'include',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:'update', id:parseInt(editingId), fields:patch})
+      body: JSON.stringify({action:'update', id:parseInt(editingId), fields:patch}),
+      signal: ctrl.signal
     });
+    clearTimeout(tid);
     if (!res.ok) { let b=null; try{b=await res.json();}catch{} throw new Error(b?.error||b?.detail||`HTTP ${res.status}`); }
     const idx = allData.findIndex(r => String(r.id)===String(editingId));
     if (idx >= 0) allData[idx] = {...allData[idx], ...patch};
     toast(`✓ Record #${editingId} saved`, 't-green'); closeModal('editModal');
-  } catch (e) { toast(`⚠ Save failed: ${e.message}`, 't-amber', 4000); }
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? 'Request timed out' : e.message;
+    toast(`⚠ Save failed: ${msg}`, 't-amber', 4000);
+  }
   applyFilter(); updateStats(allData);
 }
 
@@ -1831,11 +1844,15 @@ async function runQuery() {
   }
   try {
     const startTime = Date.now();
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 15_000);
     const res = await fetch(WORKER_URL, {
       method:'POST', credentials:'include',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:'query', sql})
+      body: JSON.stringify({action:'query', sql}),
+      signal: ctrl.signal
     });
+    clearTimeout(tid);
     const body = await res.json().catch(()=>({}));
     if (!res.ok || body.error) throw new Error(body.error || `HTTP ${res.status}`);
     const elapsed = Date.now()-startTime;
@@ -1860,7 +1877,8 @@ async function runQuery() {
     }
   } catch(e) {
     resultWrap.style.display = 'block'; labelEl.textContent = 'ERROR';
-    contentEl.innerHTML = `<div class="sql-result-error">⚠ ${esc(e.message)}</div>`;
+    const msg = e.name === 'AbortError' ? 'Query timed out (15s limit)' : e.message;
+    contentEl.innerHTML = `<div class="sql-result-error">⚠ ${esc(msg)}</div>`;
     statusEl.textContent = 'FAILED';
   }
 }
@@ -1901,6 +1919,8 @@ async function saveCredentials() {
   if (newPass && newPass !== newPassConfirm) { showMsg('⚠ New passwords do not match.','err'); return; }
   btn.disabled = true; btn.textContent = 'APPLYING…';
   showMsg('',''); msg.style.display = 'none';
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), 10_000);
   try {
     const payload = {current_password:currentPass};
     if (newUser) payload.new_username = newUser;
@@ -1908,8 +1928,10 @@ async function saveCredentials() {
     const res  = await fetch(`${BASE_URL}/auth/change-credentials`, {
       method:'POST', credentials:'include',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: ctrl.signal
     });
+    clearTimeout(tid);
     const data = await res.json().catch(()=>({}));
     if (res.ok && data.success) {
       showMsg('✓ Credentials updated. You will need to log in again on other devices.','ok');
@@ -1924,10 +1946,12 @@ async function saveCredentials() {
       showMsg(`⚠ ${data.error||'Update failed ('+res.status+')'}`, 'err');
     }
   } catch(e) {
+    clearTimeout(tid);
     document.getElementById('credCurrentPass').value = '';
     document.getElementById('credNewPass').value = '';
     document.getElementById('credNewPassConfirm').value = '';
-    showMsg(`⚠ Network error — ${e.message}`, 'err');
+    const msg2 = e.name === 'AbortError' ? 'Request timed out.' : `Network error — ${e.message}`;
+    showMsg(`⚠ ${msg2}`, 'err');
   } finally {
     btn.disabled = false; btn.textContent = '◈ APPLY CHANGES';
   }
@@ -1952,9 +1976,19 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     const ctrl = new AbortController(); const tid = setTimeout(() => ctrl.abort(), 6000);
     fetch(`${BASE_URL}/auth/me`, {credentials:'include', signal:ctrl.signal})
-      .then(r => { clearTimeout(tid); return r.ok ? r.json() : null; })
-      .then(d => { if (d?.authenticated) { loadData(); startCountdown(); } else { window.location.replace('index.html'); } })
-      .catch(() => { clearTimeout(tid); });
+      .then(r => {
+        clearTimeout(tid);
+        // Only treat explicit 401/403 as "not authenticated" — other errors (500, network)
+        // should NOT redirect; just leave the user on the dashboard.
+        if (r.status === 401 || r.status === 403) { window.location.replace('index.html'); return null; }
+        return r.ok ? r.json() : null;
+      })
+      .then(d => {
+        if (d === null) return; // already redirected or server error — do nothing
+        if (d?.authenticated === true) { loadData(); startCountdown(); }
+        else { window.location.replace('index.html'); }
+      })
+      .catch(() => { clearTimeout(tid); /* network error — stay on page */ });
   } else { clearInterval(countdownTimer); }
 });
 
