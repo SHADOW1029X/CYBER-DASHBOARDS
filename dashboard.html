@@ -11,6 +11,7 @@
   <meta http-equiv="Referrer-Policy" content="no-referrer">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
   <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020810'/%3E%3Cpolygon points='16,2 30,9 30,23 16,30 2,23 2,9' fill='none' stroke='%2300e5ff' stroke-width='1.5'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-size='13' font-weight='bold' fill='%2300e5ff'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     /* ══════════════════════════════════════════════════════════════
@@ -165,26 +166,14 @@
       display: flex; align-items: center; gap: 12px;
     }
 
-    /* Spinning hex before logo */
-    .logo-hex {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 30px; height: 30px;
-      border: 1.5px solid var(--cyan);
-      clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
-      background: rgba(0,229,255,.07);
-      box-shadow: var(--glow-c);
-      animation: hexPulse 3s ease-in-out infinite;
+    /* Favicon image before logo */
+    .logo-favicon {
+      display: inline-block;
+      width: 32px; height: 32px;
+      object-fit: contain;
       flex-shrink: 0;
-      position: relative;
-    }
-    .logo-hex::before {
-      content: '◈';
-      font-size: .7rem;
-      color: var(--cyan);
-    }
-    @keyframes hexPulse {
-      0%,100% { box-shadow: var(--glow-c); }
-      50%      { box-shadow: 0 0 16px #00e5ffcc, 0 0 40px #00e5ff44; }
+      filter: drop-shadow(0 0 6px rgba(0,229,255,.6));
+      image-rendering: crisp-edges;
     }
 
     .logo-sub {
@@ -201,7 +190,16 @@
 
     /* Header right cluster */
     .header-right {
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    /* Ensure header never wraps the right cluster off screen */
+    header { flex-wrap: nowrap; }
+    @media (max-width: 860px) {
+      header { flex-wrap: wrap; }
+      .header-right { gap: 7px; }
+      .refresh-countdown { display: none; }
+      .status-time { display: none; }
     }
 
     .live-badge {
@@ -291,6 +289,7 @@
     .btn-violet { color: var(--violet); border-color: var(--violet-dim); }
     .btn-violet:hover:not(:disabled) { background: rgba(191,127,255,.08); box-shadow: var(--glow-v); border-color: var(--violet); }
     .btn-sm { padding: 4px 10px; font-size: .52rem; }
+    .hdr-btn { padding: 6px 13px; font-size: .56rem; letter-spacing: .12em; }
 
     /* ══════════════════════════════════════════════════════════════
        NAV TABS
@@ -897,106 +896,51 @@
       .stats-row     { grid-template-columns: repeat(2,1fr); }
       .form-grid     { grid-template-columns: 1fr; }
       .toolbar       { gap: 6px; }
-      .refresh-countdown { display: none; }
       #bg-grid       { display: none; }
-      .storage-bar-row { grid-template-columns: 80px 1fr 80px; gap: 8px; }
-      .storage-bar-label { font-size: .58rem; }
+      .storage-card  { gap: 8px; }
+      .storage-track { min-width: 80px; }
       .export-dropdown { right: 0; left: auto; }
     }
     /* ══════════════════════════════════════════════════════════════
-       STORAGE WIDGET
+       STORAGE INDICATOR — compact inline bar
     ══════════════════════════════════════════════════════════════ */
     .storage-card {
-      background: linear-gradient(135deg, var(--panel2) 0%, rgba(4,13,24,.8) 100%);
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      background: rgba(7,17,30,.7);
       border: 1px solid var(--border);
       border-radius: 3px;
-      padding: 16px 20px 18px;
-      position: relative; overflow: hidden;
-      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
-      margin-bottom: 22px;
+      padding: 8px 14px;
+      margin-bottom: 16px;
+      font-family: 'Share Tech Mono', monospace;
     }
-    .storage-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--violet-dim), transparent);
-      opacity: .8;
-    }
-    .storage-card::after {
-      content: '';
-      position: absolute; top: 0; right: 0;
-      width: 14px; height: 14px;
-      background: var(--violet-dim);
-      clip-path: polygon(0 0, 100% 100%, 100% 0);
-      opacity: .5;
-    }
-    .storage-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
-    }
-    .storage-title {
-      font-family: 'Orbitron', monospace; font-size: .62rem; font-weight: 700;
-      color: var(--violet); letter-spacing: .2em;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .storage-title::before { content: '◈'; font-size: .7rem; }
-    .storage-meta {
-      font-family: 'Share Tech Mono', monospace; font-size: .65rem;
-      color: var(--text-dim); letter-spacing: .08em;
-    }
-    .storage-meta span { color: var(--violet); }
-    .storage-bars { display: flex; flex-direction: column; gap: 10px; }
-    .storage-bar-row {
-      display: grid; grid-template-columns: 110px 1fr 90px;
-      align-items: center; gap: 12px;
-    }
-    .storage-bar-label {
-      font-family: 'Share Tech Mono', monospace; font-size: .63rem;
-      color: var(--text-mid); letter-spacing: .1em; text-align: right;
-      white-space: nowrap;
+    .storage-label {
+      font-family: 'Orbitron', monospace; font-size: .55rem; font-weight: 700;
+      color: var(--text-dim); letter-spacing: .18em; white-space: nowrap;
     }
     .storage-track {
-      height: 8px; background: rgba(13,58,82,.7);
-      border-radius: 4px; overflow: hidden; position: relative;
-      border: 1px solid rgba(13,58,82,.9);
+      flex: 1; min-width: 120px; max-width: 340px;
+      height: 6px; background: rgba(13,58,82,.8);
+      border-radius: 3px; overflow: hidden; position: relative;
     }
     .storage-fill {
-      height: 100%; border-radius: 4px;
-      transition: width .8s cubic-bezier(.4,0,.2,1);
-      position: relative;
+      height: 100%; border-radius: 3px;
+      transition: width .7s cubic-bezier(.4,0,.2,1);
+      background: linear-gradient(90deg, var(--violet-dim), var(--violet));
+      box-shadow: 0 0 6px rgba(191,127,255,.4);
     }
-    .storage-fill::after {
-      content: '';
-      position: absolute; top: 0; right: 0; bottom: 0; width: 3px;
-      background: rgba(255,255,255,.35); border-radius: 0 4px 4px 0;
+    .storage-fill.warn { background: linear-gradient(90deg, var(--amber-dim), var(--amber)); box-shadow: 0 0 6px rgba(255,179,0,.4); }
+    .storage-fill.crit { background: linear-gradient(90deg, var(--red-dim), var(--red)); box-shadow: 0 0 6px rgba(255,59,92,.4); animation: sfCritPulse 1.2s ease-in-out infinite; }
+    @keyframes sfCritPulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+    .storage-stats {
+      font-size: .63rem; color: var(--text-mid); white-space: nowrap;
+      display: flex; gap: 10px; align-items: center;
     }
-    .sfill-used   { background: linear-gradient(90deg, var(--violet-dim), var(--violet)); box-shadow: 0 0 8px rgba(191,127,255,.35); }
-    .sfill-free   { background: linear-gradient(90deg, var(--green-dim), var(--green));  box-shadow: 0 0 8px rgba(0,255,157,.3); }
-    .sfill-photos { background: linear-gradient(90deg, var(--cyan-deep), var(--cyan));   box-shadow: 0 0 8px rgba(0,229,255,.3); }
-    .sfill-warn   { background: linear-gradient(90deg, #7a5500, var(--amber)); box-shadow: 0 0 8px rgba(255,179,0,.35); }
-    .sfill-crit   { background: linear-gradient(90deg, var(--red-dim), var(--red)); box-shadow: 0 0 8px rgba(255,59,92,.4);
-                    animation: sfillPulse 1.2s ease-in-out infinite; }
-    @keyframes sfillPulse { 0%,100%{opacity:1} 50%{opacity:.6} }
-    .storage-bar-val {
-      font-family: 'Share Tech Mono', monospace; font-size: .65rem;
-      letter-spacing: .05em; white-space: nowrap;
-    }
-    .sv-violet { color: var(--violet); }
-    .sv-green  { color: var(--green); }
-    .sv-cyan   { color: var(--cyan); }
-    .sv-amber  { color: var(--amber); }
-    .sv-red    { color: var(--red); }
-    .storage-divider {
-      margin: 10px 0 4px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border-hi) 30%, var(--border-hi) 70%, transparent);
-      opacity: .4;
-    }
-    .storage-estimate-note {
-      font-family: 'Share Tech Mono', monospace; font-size: .58rem;
-      color: var(--text-dim); margin-top: 10px; letter-spacing: .08em;
-      padding-left: 2px;
-    }
-    .storage-estimate-note::before { content: '// '; color: var(--cyan-dim); }
+    .storage-stats .sv { letter-spacing: .06em; }
+    .storage-stats .sv-used  { color: var(--violet); }
+    .storage-stats .sv-used.warn { color: var(--amber); }
+    .storage-stats .sv-used.crit { color: var(--red); }
+    .storage-stats .sv-free  { color: var(--green); }
+    .storage-sep { color: var(--text-dim); }
 
     /* ══════════════════════════════════════════════════════════════
        EXPORT DROPDOWN
@@ -1047,7 +991,7 @@
   <header role="banner">
     <div class="logo-block">
       <div class="logo-top">
-        <span class="logo-hex" aria-hidden="true"></span>
+        <img src="favicon.png" alt="" class="logo-favicon" aria-hidden="true" onerror="this.style.display='none'">
         CAPTURES
       </div>
       <div class="logo-sub" aria-hidden="true">NODE TELEMETRY DASHBOARD v4.1</div>
@@ -1064,8 +1008,8 @@
       </div>
       <div class="status-time" id="statusTime" aria-live="polite">—</div>
       <div class="loader" id="loader" role="status" aria-label="Loading data"></div>
-      <button class="btn btn-amber btn-sm" id="settingsBtn" title="Change credentials">⚙ SETTINGS</button>
-      <button class="btn btn-red   btn-sm" id="logoutBtn"   title="End session">⏻ DISCONNECT</button>
+      <button class="btn btn-amber hdr-btn" id="settingsBtn" title="Change credentials">⚙ SETTINGS</button>
+      <button class="btn btn-red   hdr-btn" id="logoutBtn"   title="End session">⏻ DISCONNECT</button>
     </div>
   </header>
 
@@ -1108,36 +1052,17 @@
         </div>
       </div>
 
-      <!-- STORAGE WIDGET -->
-      <div class="storage-card" role="region" aria-label="Storage usage">
-        <div class="storage-header">
-          <div class="storage-title">STORAGE USAGE</div>
-          <div class="storage-meta" id="storageMetaTotal">ESTIMATED — <span id="storageMetaVal">—</span></div>
+      <!-- STORAGE INDICATOR -->
+      <div class="storage-card" role="meter" aria-label="Storage usage">
+        <span class="storage-label">STORAGE</span>
+        <div class="storage-track" title="Storage used vs total quota">
+          <div class="storage-fill" id="sfUsed" style="width:0%"></div>
         </div>
-        <div class="storage-bars">
-          <div class="storage-bar-row">
-            <div class="storage-bar-label">USED</div>
-            <div class="storage-track"><div class="storage-fill sfill-used" id="sfUsed" style="width:0%"></div></div>
-            <div class="storage-bar-val sv-violet" id="svUsed">—</div>
-          </div>
-          <div class="storage-bar-row">
-            <div class="storage-bar-label">FREE</div>
-            <div class="storage-track"><div class="storage-fill sfill-free" id="sfFree" style="width:100%"></div></div>
-            <div class="storage-bar-val sv-green" id="svFree">—</div>
-          </div>
-          <div class="storage-divider"></div>
-          <div class="storage-bar-row">
-            <div class="storage-bar-label">PHOTO DATA</div>
-            <div class="storage-track"><div class="storage-fill sfill-photos" id="sfPhotos" style="width:0%"></div></div>
-            <div class="storage-bar-val sv-cyan" id="svPhotos">—</div>
-          </div>
-          <div class="storage-bar-row">
-            <div class="storage-bar-label">META DATA</div>
-            <div class="storage-track"><div class="storage-fill sfill-free" id="sfMeta" style="width:0%"></div></div>
-            <div class="storage-bar-val sv-green" id="svMeta">—</div>
-          </div>
+        <div class="storage-stats">
+          <span class="sv sv-used" id="svUsed">—</span>
+          <span class="storage-sep">/</span>
+          <span class="sv sv-free" id="svFree">— free</span>
         </div>
-        <div class="storage-estimate-note" id="storageNote">Estimates based on loaded records. Actual DB size may differ.</div>
       </div>
 
       <div id="error-bar" role="alert"></div>
@@ -1506,9 +1431,8 @@ const COLUMNS = [
   { key: 'session_id',           label: 'SESSION',   vis: false, sort: true,  render: r => fmtM(r.session_id) },
   { key: '_act',                 label: 'ACTIONS',   vis: true,  sort: false, render: r => `
     <div class="row-actions">
-      <button class="btn btn-cyan btn-sm" onclick="openEditModal(${r.id})" title="Edit">✎</button>
-      <button class="btn btn-violet btn-sm" onclick="openNameModal(${r.id})" title="Name">◈</button>
-      <button class="btn btn-red btn-sm" onclick="confirmDelete([${r.id}])" title="Delete">⛌</button>
+      <button class="btn btn-cyan btn-sm" onclick="openEditModal(${r.id})" title="Edit record">✎ EDIT</button>
+      <button class="btn btn-red btn-sm"  onclick="confirmDelete([${r.id}])" title="Delete record">⛌ DEL</button>
     </div>` }
 ];
 
@@ -2010,49 +1934,32 @@ function fmtBytes(b) {
 }
 
 function updateStorage(data) {
-  // Estimate photo data (base64 strings)
   let photoBytes = 0;
   data.forEach(r => { if (r.front_photo) photoBytes += Math.round(r.front_photo.length * 0.75); });
-
-  // Estimate metadata (all other fields as JSON)
   let metaBytes = 0;
   data.forEach(r => {
     const clone = {...r}; delete clone.front_photo;
     metaBytes += new TextEncoder().encode(JSON.stringify(clone)).length;
   });
+  const usedBytes = photoBytes + metaBytes;
+  const freeBytes = Math.max(0, STORAGE_QUOTA_BYTES - usedBytes);
+  const usedPct   = Math.min(100, (usedBytes / STORAGE_QUOTA_BYTES) * 100);
 
-  const usedBytes  = photoBytes + metaBytes;
-  const freeBytes  = Math.max(0, STORAGE_QUOTA_BYTES - usedBytes);
-  const usedPct    = Math.min(100, (usedBytes / STORAGE_QUOTA_BYTES) * 100);
-  const freePct    = 100 - usedPct;
-  const photoPct   = Math.min(100, (photoBytes / STORAGE_QUOTA_BYTES) * 100);
-  const metaPct    = Math.min(100, (metaBytes  / STORAGE_QUOTA_BYTES) * 100);
+  const fill    = document.getElementById('sfUsed');
+  const usedEl  = document.getElementById('svUsed');
+  const freeEl  = document.getElementById('svFree');
 
-  // Choose fill class by usage level
-  const usedClass = usedPct >= 90 ? 'sfill-crit' : usedPct >= 70 ? 'sfill-warn' : 'sfill-used';
-  const usedValClass = usedPct >= 90 ? 'sv-red' : usedPct >= 70 ? 'sv-amber' : 'sv-violet';
+  fill.style.width = usedPct.toFixed(1) + '%';
 
-  document.getElementById('sfUsed').style.width   = usedPct.toFixed(1) + '%';
-  document.getElementById('sfFree').style.width   = freePct.toFixed(1) + '%';
-  document.getElementById('sfPhotos').style.width = photoPct.toFixed(1) + '%';
-  document.getElementById('sfMeta').style.width   = metaPct.toFixed(1) + '%';
+  const level = usedPct >= 90 ? 'crit' : usedPct >= 70 ? 'warn' : '';
+  fill.className  = 'storage-fill' + (level ? ' '+level : '');
+  usedEl.className = 'sv sv-used' + (level ? ' '+level : '');
 
-  // Swap fill colour classes
-  const usedEl = document.getElementById('sfUsed');
-  usedEl.className = 'storage-fill ' + usedClass;
-  const usedValEl = document.getElementById('svUsed');
-  usedValEl.className = 'storage-bar-val ' + usedValClass;
+  usedEl.textContent = `${fmtBytes(usedBytes)} used (${usedPct.toFixed(1)}%)`;
+  freeEl.textContent = `${fmtBytes(freeBytes)} free`;
 
-  document.getElementById('svUsed').textContent   = `${fmtBytes(usedBytes)} (${usedPct.toFixed(1)}%)`;
-  document.getElementById('svFree').textContent   = `${fmtBytes(freeBytes)} (${freePct.toFixed(1)}%)`;
-  document.getElementById('svPhotos').textContent = fmtBytes(photoBytes);
-  document.getElementById('svMeta').textContent   = fmtBytes(metaBytes);
-  document.getElementById('storageMetaVal').textContent = `${fmtBytes(STORAGE_QUOTA_BYTES)} QUOTA`;
-
-  const note = data.length === 0
-    ? 'No records loaded yet.'
-    : `Estimates based on ${data.length} loaded record${data.length!==1?'s':''}. Actual DB size may differ.`;
-  document.getElementById('storageNote').textContent = note;
+  const card = fill.closest('.storage-card');
+  if (card) card.setAttribute('title', `${fmtBytes(usedBytes)} used · ${fmtBytes(freeBytes)} free · ${fmtBytes(STORAGE_QUOTA_BYTES)} quota`);
 }
 
 // ── RENDER TABLE ──────────────────────────────────────────────────────────
