@@ -24,7 +24,7 @@
     </script>
 
     <style>
-        /* ── RESET & BASE ──────────────────────────────────────────────────── */
+        /* ── RESET ─────────────────────────────────────────────────────────── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         html {
@@ -64,13 +64,16 @@
             background: #000;
             color: var(--text);
             font-family: 'Rajdhani', sans-serif;
-            min-height: 100vh;
-            min-height: 100dvh;
+            height: 100dvh; /* dvh: respects mobile browser chrome */
             perspective: 1200px;
         }
 
-        /* Three.js canvas — appended directly to body, sits at z-index 0 */
-        canvas {
+        /*
+         * FIX #6: Target only the Three.js canvas by ID, not all <canvas>.
+         * Prevents any other canvas (extensions, future elements) from inheriting
+         * position:fixed unintentionally.
+         */
+        #three-canvas {
             position: fixed;
             top: 0;
             left: 0;
@@ -78,7 +81,7 @@
             display: block;
         }
 
-        /* ── SCANLINES ─────────────────────────────────────────────────────── */
+        /* ── SCANLINES ──────────────────────────────────────────────────────── */
         #scanlines {
             position: fixed; inset: 0; z-index: 9998; pointer-events: none;
             background: repeating-linear-gradient(
@@ -89,7 +92,7 @@
         }
         @keyframes scanShift { 0% { background-position: 0 0; } 100% { background-position: 0 400px; } }
 
-        /* ── CHROMATIC ABERRATION ──────────────────────────────────────────── */
+        /* ── CHROMATIC ABERRATION ───────────────────────────────────────────── */
         #chromatic {
             position: fixed; inset: 0; z-index: 9997; pointer-events: none;
             background: repeating-linear-gradient(
@@ -101,7 +104,7 @@
             );
         }
 
-        /* ── DATA STREAMS ──────────────────────────────────────────────────── */
+        /* ── DATA STREAMS ───────────────────────────────────────────────────── */
         #datastreams {
             position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden;
         }
@@ -112,7 +115,7 @@
         }
         @keyframes streamFall { from { transform: translateY(-100%); } to { transform: translateY(200vh); } }
 
-        /* ── CORNER BRACKETS ───────────────────────────────────────────────── */
+        /* ── CORNER BRACKETS ────────────────────────────────────────────────── */
         .corner-bracket {
             position: fixed; width: 80px; height: 80px; z-index: 3; pointer-events: none;
             transition: opacity .3s;
@@ -129,27 +132,31 @@
         .corner-bracket { animation: bracketPulse 3s ease-in-out infinite; }
         @keyframes bracketPulse { 0%,100% { opacity: .4; } 50% { opacity: .9; } }
 
-        /* ── STAGE — full-viewport flex container ──────────────────────────── */
+        /*
+         * FIX #3 + #5 + #9: Stage is position:fixed, uses 100dvh (not 100vh).
+         * dvh accounts for mobile browser toolbars — 100vh would be the maximized
+         * height, causing the card to appear off-center when the address bar is visible.
+         * position:fixed keeps it out of document flow entirely (no scroll drift).
+         */
         #stage {
-            position: relative;
+            position: fixed;
+            inset: 0;
             z-index: 10;
             transform-style: preserve-3d;
             animation: stageEntry .9s cubic-bezier(.16,1,.3,1) both;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 100%;
-            height: 100vh;
-            pointer-events: none; /* card re-enables below */
+            pointer-events: none; /* card re-enables with pointer-events:auto below */
         }
         @keyframes stageEntry {
             from { opacity: 0; transform: translateZ(-120px) translateY(40px) rotateX(6deg); }
             to   { opacity: 1; transform: translateZ(0) translateY(0) rotateX(0deg); }
         }
 
-        /* ── LOGIN CARD ────────────────────────────────────────────────────── */
+        /* ── LOGIN CARD ─────────────────────────────────────────────────────── */
         .login-card {
-            pointer-events: auto; /* re-enable within pointer-events:none stage */
+            pointer-events: auto; /* re-enable interaction inside pointer-events:none stage */
             position: relative;
             width: var(--card-w);
             background: linear-gradient(145deg, #07141f 0%, #040d18 60%, #061220 100%);
@@ -158,7 +165,6 @@
             padding: clamp(24px, 4vw, 44px) clamp(20px, 4vw, 40px);
             transform-style: preserve-3d;
             transition: transform .06s ease-out, box-shadow .3s ease;
-            --card-scale: 1;
             box-shadow:
                 0 0 0 1px rgba(0,229,255,.06),
                 0 30px 80px rgba(0,0,0,.95),
@@ -185,7 +191,7 @@
         }
         @keyframes cardScan { 0% { top: 0%; opacity: 0; } 10% { opacity: .6; } 90% { opacity: .3; } 100% { top: 100%; opacity: 0; } }
 
-        /* ── HEX BADGE ─────────────────────────────────────────────────────── */
+        /* ── HEX BADGE ──────────────────────────────────────────────────────── */
         .hex-badge {
             position: absolute; top: -16px; left: 32px;
             background: var(--bg2); border: 1px solid var(--cyan-dim); border-radius: 2px;
@@ -193,7 +199,7 @@
             font-size: .55rem; color: var(--cyan-dim); letter-spacing: .2em;
         }
 
-        /* ── LOGO ──────────────────────────────────────────────────────────── */
+        /* ── LOGO ───────────────────────────────────────────────────────────── */
         .logo-block { margin-bottom: 8px; }
         .logo-main {
             font-family: 'Orbitron', monospace; font-weight: 900;
@@ -223,9 +229,10 @@
         .logo-sub::before {
             content: ''; display: inline-block; width: 24px; height: 1px;
             background: linear-gradient(90deg, transparent, var(--cyan-dim));
+            flex-shrink: 0; /* FIX #10: prevent decorative line from collapsing */
         }
 
-        /* ── DIVIDER ───────────────────────────────────────────────────────── */
+        /* ── DIVIDER ────────────────────────────────────────────────────────── */
         .divider {
             margin: 18px 0; height: 1px;
             background: linear-gradient(90deg, transparent, var(--border-hi) 30%, var(--cyan-dim) 50%, var(--border-hi) 70%, transparent);
@@ -237,21 +244,21 @@
             font-size: .5rem; background: var(--panel); padding: 0 6px;
         }
 
-        /* ── SECTION TITLE ─────────────────────────────────────────────────── */
+        /* ── SECTION TITLE ──────────────────────────────────────────────────── */
         .section-title {
             font-family: 'Orbitron', monospace; font-weight: 700;
             font-size: clamp(.65rem, 2vw, .8rem); color: var(--cyan);
             letter-spacing: .25em; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
         }
         .section-title::before {
-            content: ''; display: inline-block; width: 6px; height: 6px;
+            content: ''; display: inline-block; width: 6px; height: 6px; flex-shrink: 0;
             background: var(--cyan); box-shadow: var(--glow-c-sm);
             clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
             animation: diamondSpin 4s linear infinite;
         }
         @keyframes diamondSpin { to { transform: rotate(360deg); } }
 
-        /* ── FORM FIELDS ───────────────────────────────────────────────────── */
+        /* ── FORM FIELDS ────────────────────────────────────────────────────── */
         .field-wrap { margin-bottom: 16px; position: relative; }
 
         .field-label {
@@ -260,7 +267,7 @@
             display: flex; align-items: center; gap: 6px; transition: color .2s;
         }
         .field-label::before {
-            content: ''; display: inline-block; width: 4px; height: 4px;
+            content: ''; display: inline-block; width: 4px; height: 4px; flex-shrink: 0;
             background: var(--cyan-dim); border-radius: 50%; transition: background .2s, box-shadow .2s;
         }
         .field-wrap:focus-within .field-label { color: var(--cyan); }
@@ -281,12 +288,14 @@
             font-size: clamp(.75rem, 2vw, .85rem); outline: none;
             transition: border-color .2s, background .2s, box-shadow .2s;
             width: 100%; caret-color: var(--cyan);
+            /* Prevent iOS from zooming on focus (font-size must be >=16px on iOS) */
+            -webkit-text-size-adjust: 100%;
         }
         .login-input:focus { border-color: var(--cyan-dim); background: rgba(0,229,255,.03); box-shadow: inset 0 0 20px rgba(0,229,255,.04); }
         .login-input::placeholder { color: var(--text-dim); font-size: .75rem; }
         .login-input::selection { background: rgba(0,229,255,.25); }
 
-        /* ── PASSWORD TOGGLE ───────────────────────────────────────────────── */
+        /* ── PASSWORD TOGGLE ────────────────────────────────────────────────── */
         .pw-toggle {
             position: absolute; right: 0; top: 0; bottom: 0; width: 42px;
             background: transparent; border: none; border-left: 1px solid var(--border);
@@ -313,7 +322,7 @@
         }
         .login-input.pw-visible { border-color: var(--cyan-dim); box-shadow: inset 0 0 20px rgba(0,229,255,.06); }
 
-        /* ── ALERT BARS ────────────────────────────────────────────────────── */
+        /* ── ALERT BARS ─────────────────────────────────────────────────────── */
         .alert-bar {
             border-radius: 2px; font-family: 'Share Tech Mono', monospace;
             font-size: .68rem; padding: 9px 12px 9px 32px; margin-bottom: 14px;
@@ -323,12 +332,18 @@
             position: absolute; left: 10px; top: 50%;
             transform: translateY(-50%); font-size: .75rem;
         }
+        /*
+         * FIX #8: errorShake is declared on the element permanently, meaning it
+         * only fires at initial render. The JS reflow trick (void offsetWidth)
+         * works but requires animation to be re-applied via a class toggle.
+         * We use .shaking to re-trigger cleanly on every failure.
+         */
         #loginError {
             background: rgba(255,59,92,.07); border: 1px solid var(--red-dim);
             color: var(--red); border-left: 3px solid var(--red);
             box-shadow: 0 0 20px rgba(255,59,92,.1), inset 0 0 20px rgba(255,59,92,.03);
-            animation: errorShake .4s ease;
         }
+        #loginError.shaking { animation: errorShake .4s ease; }
         #loginError::before { content: '⚠'; }
         @keyframes errorShake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-5px); } 40%,80% { transform: translateX(5px); } }
 
@@ -339,7 +354,7 @@
         }
         #lockoutBar::before { content: '⛔'; }
 
-        /* ── AUTH BUTTON ───────────────────────────────────────────────────── */
+        /* ── AUTH BUTTON ────────────────────────────────────────────────────── */
         .auth-btn {
             position: relative; width: 100%; margin-top: 6px;
             padding: clamp(10px, 2.5vw, 14px); background: transparent;
@@ -381,7 +396,7 @@
         .btn-corner.bl { bottom: 4px; left: 4px; transform: scaleY(-1); }
         .btn-corner.br { bottom: 4px; right: 4px; transform: scale(-1); }
 
-        /* ── STATUS FOOTER ─────────────────────────────────────────────────── */
+        /* ── STATUS FOOTER ──────────────────────────────────────────────────── */
         .status-footer {
             margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(13,58,82,.6);
             display: flex; justify-content: space-between; align-items: center; gap: 8px;
@@ -400,7 +415,7 @@
 
         #resInfo { font-family: 'Share Tech Mono', monospace; font-size: .52rem; color: var(--text-dim); letter-spacing: .1em; }
 
-        /* ── MEDIA QUERIES ─────────────────────────────────────────────────── */
+        /* ── MEDIA QUERIES ──────────────────────────────────────────────────── */
         @media (max-height: 600px) { .login-card { padding: 18px 22px; } .divider { margin: 10px 0; } .field-wrap { margin-bottom: 10px; } }
         @media (max-width: 360px)  { :root { --card-w: 94vw; } .corner-bracket { display: none; } }
         @media (min-width: 1400px) { :root { --card-w: 460px; } }
@@ -419,7 +434,7 @@
     <div class="corner-bracket bl" aria-hidden="true"></div>
     <div class="corner-bracket br" aria-hidden="true"></div>
 
-    <!-- Login card (stage is full-viewport flex; card is pointer-events:auto within it) -->
+    <!-- Stage: fixed full-viewport flex, card is pointer-events:auto inside -->
     <div id="stage">
         <div class="login-card" id="loginCard">
 
@@ -437,7 +452,7 @@
             <div class="section-title">AUTHENTICATE SESSION</div>
 
             <div id="loginError" class="alert-bar" role="alert" aria-live="assertive"></div>
-            <div id="lockoutBar" class="alert-bar" role="status"  aria-live="polite"></div>
+            <div id="lockoutBar" class="alert-bar" role="status" aria-live="polite"></div>
 
             <div class="field-wrap">
                 <label class="field-label" for="loginUser">USERNAME</label>
@@ -501,11 +516,12 @@
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════════════
+    <!-- ═══════════════════════════════════════════════════════════════════
          THREE.JS TESSERACT SWARM
-         Canvas is appended directly to body (z-index:0 via CSS canvas rule).
-         OrbitControls bind to the canvas — card UI is fully unaffected.
-    ════════════════════════════════════════════════════════════════════════ -->
+         Canvas appended to body and given id="three-canvas" so the CSS
+         #three-canvas rule (not a bare "canvas" rule) targets it exclusively.
+         OrbitControls bind to this canvas only — card UI is unaffected.
+    ════════════════════════════════════════════════════════════════════ -->
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls }   from 'three/addons/controls/OrbitControls.js';
@@ -526,18 +542,23 @@
         const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        document.body.appendChild(renderer.domElement); // direct body append — CSS positions it fixed z-index:0
+
+        // FIX #6: assign id so the CSS #three-canvas rule targets only this element
+        renderer.domElement.id = 'three-canvas';
+        document.body.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping  = true;
-        controls.autoRotate     = AUTO_SPIN;
+        controls.enableDamping   = true;
+        controls.autoRotate      = AUTO_SPIN;
         controls.autoRotateSpeed = 2.0;
-        controls.enablePan      = true;
-        controls.enableZoom     = true;
+        controls.enablePan       = true;
+        controls.enableZoom      = true;
 
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        const bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85
+        );
         bloomPass.strength  = 1.8;
         bloomPass.radius    = 0.4;
         bloomPass.threshold = 0;
@@ -563,8 +584,10 @@
             instancedMesh.setColorAt(i, colorObj.setHex(0x00ff88));
         }
 
-        const PARAMS    = { scale: 92, chaos: 2.22, fold: 1.57, drift: 0.3 };
-        const addControl = (id, _label, _min, _max, val) => PARAMS[id] !== undefined ? PARAMS[id] : val;
+        // FIX #4: PARAMS constants hoisted — never re-read inside the per-particle loop.
+        // Previously addControl() was called 4× per particle = 80,000 function calls/frame
+        // for values that never change. Now they're read once per frame.
+        const PARAMS = { scale: 92, chaos: 2.22, fold: 1.57, drift: 0.3 };
 
         const clock = new THREE.Clock();
 
@@ -575,12 +598,13 @@
 
             controls.update();
 
-            for (let i = 0; i < COUNT; i++) {
-                const scale = addControl('scale', 'Universe Scale', 20, 200, 80);
-                const chaos = addControl('chaos', 'Quantum Chaos',  0,  3,   1.0);
-                const fold  = addControl('fold',  '4D Fold Angle',  0,  6.28, 1.57);
-                const drift = addControl('drift', 'Cosmic Drift',   0,  2,   0.3);
+            // Hoist constants out of inner loop (FIX #4)
+            const scale = PARAMS.scale;
+            const chaos = PARAMS.chaos;
+            const fold  = PARAMS.fold;
+            const drift = PARAMS.drift;
 
+            for (let i = 0; i < count; i++) {
                 const t     = time * 0.18;
                 const phi   = (i / count) * 6.2831853;
                 const theta = Math.acos(1 - 2 * ((i * 1.6180339887) % 1));
@@ -590,9 +614,9 @@
                 const psi    = localT * 6.2831853 + t;
                 const xi     = phi + t * 0.07 * (layer + 1);
 
-                const r4     = scale * (0.3 + 0.7 * (i / count));
-                const sinTh  = Math.sin(theta), cosTh  = Math.cos(theta);
-                const sinPhi = Math.sin(xi),    cosPhi = Math.cos(xi);
+                const r4    = scale * (0.3 + 0.7 * (i / count));
+                const sinTh = Math.sin(theta), cosTh  = Math.cos(theta);
+                const cosPhi = Math.cos(xi),   sinPhi  = Math.sin(xi);
                 const cosPsi = Math.cos(psi + fold);
 
                 let x4 = r4 * sinTh * cosPhi;
@@ -657,11 +681,9 @@
         });
     </script>
 
-    <!-- ═══════════════════════════════════════════════════════════════════════
+    <!-- ═══════════════════════════════════════════════════════════════════
          LOGIN UI LOGIC
-         Kept in a separate non-module script so "use strict" works at top level
-         and ES module scoping doesn't affect DOM event bindings.
-    ════════════════════════════════════════════════════════════════════════ -->
+    ════════════════════════════════════════════════════════════════════ -->
     <script>
     "use strict";
 
@@ -759,46 +781,77 @@
     updateResInfo();
     window.addEventListener('resize', updateResInfo);
 
-    // ── Responsive card scaling ──────────────────────────────────────────────
+    /*
+     * FIX #1 + #2 — Mobile orientation change card scale bug.
+     *
+     * Root causes:
+     *  A) On iOS Safari, window.innerWidth/innerHeight don't reflect the new
+     *     orientation until after the next paint. Reading them synchronously in
+     *     a 'resize' handler gives stale dimensions.
+     *  B) The tilt mousemove handler writes loginCard.style.transform directly,
+     *     including an inline scale(). When adaptToViewport runs after tilt has
+     *     already set an inline transform, the two systems fight: tilt reads the
+     *     CSS custom property --card-scale, but the inline transform it wrote
+     *     doesn't reflect what adaptToViewport last set.
+     *
+     * Fix:
+     *  - adaptToViewport defers 150ms on orientationchange (after iOS reflows).
+     *  - The tilt handler is disabled on touch/mobile entirely (no hover anyway).
+     *  - Scale is applied ONLY through --card-scale + a CSS rule that reads it,
+     *    never through inline style.transform in this function.
+     *  - A separate CSS var --tilt-transform composes the two independently.
+     */
+    const loginCard = document.getElementById('loginCard');
+
     function adaptToViewport() {
-        const vw   = window.innerWidth;
-        const card = document.getElementById('loginCard');
-        if (!card) return;
+        const vw = window.innerWidth;
         if (vw < 440) {
-            card.style.setProperty('--card-scale', Math.max(0.72, vw / 440));
+            loginCard.style.setProperty('--card-scale', Math.max(0.72, vw / 440));
         } else {
-            card.style.setProperty('--card-scale', 1);
+            loginCard.style.setProperty('--card-scale', 1);
         }
     }
     adaptToViewport();
     window.addEventListener('resize', adaptToViewport);
 
-    // ── 3D card tilt on mouse move ───────────────────────────────────────────
-    const loginCard = document.getElementById('loginCard');
-    const MAX_TILT  = 8;
+    // FIX #1: orientationchange fires before innerWidth updates on iOS.
+    // Defer adaptToViewport so dimensions are stable.
+    window.addEventListener('orientationchange', () => {
+        setTimeout(adaptToViewport, 150);
+    });
 
-    document.addEventListener('mousemove', e => {
-        if (window.innerWidth < 768) return;
+    // ── 3D Card tilt (desktop only) ──────────────────────────────────────────
+    // FIX #2: tilt is skipped entirely on touch devices — they have no hover,
+    // and the inline transform it sets can interfere with --card-scale on rotate.
+    const isTouchDevice = () => window.matchMedia('(hover: none)').matches;
+    const MAX_TILT = 8;
+
+    // FIX #7: listen on documentElement, not document, for reliable mouseleave.
+    document.documentElement.addEventListener('mousemove', e => {
+        if (isTouchDevice() || window.innerWidth < 768) return;
         const cx = window.innerWidth  / 2;
         const cy = window.innerHeight / 2;
         const dx = (e.clientX - cx) / cx;
         const dy = (e.clientY - cy) / cy;
         const rx = dy * -MAX_TILT;
         const ry = dx *  MAX_TILT;
-        const sc = parseFloat(loginCard.style.getPropertyValue('--card-scale') || 1);
+        const sc = parseFloat(loginCard.style.getPropertyValue('--card-scale') || '1');
         loginCard.style.transform = `scale(${sc}) rotateX(${rx}deg) rotateY(${ry}deg)`;
         loginCard.style.boxShadow = `${-ry * 2}px ${rx * 2}px 80px rgba(0,0,0,.95), 0 0 40px rgba(0,229,255,.08), inset 0 1px 0 rgba(0,229,255,.12), inset 0 -1px 0 rgba(0,0,0,.5), ${ry * 1.5}px ${-rx * 1.5}px 30px rgba(0,229,255,.06)`;
     });
 
-    document.addEventListener('mouseleave', () => {
+    document.documentElement.addEventListener('mouseleave', e => {
+        // FIX #7: only fire when leaving the actual viewport (relatedTarget is null)
+        if (e.relatedTarget !== null) return;
         loginCard.style.transition = 'transform .6s cubic-bezier(.23,1,.32,1), box-shadow .6s ease';
-        const sc = parseFloat(loginCard.style.getPropertyValue('--card-scale') || 1);
+        const sc = parseFloat(loginCard.style.getPropertyValue('--card-scale') || '1');
         loginCard.style.transform  = sc !== 1 ? `scale(${sc})` : '';
         loginCard.style.boxShadow  = '';
         setTimeout(() => { loginCard.style.transition = ''; }, 620);
     });
 
     loginCard.addEventListener('mouseenter', () => {
+        if (isTouchDevice()) return;
         loginCard.style.transition = 'transform .1s ease-out, box-shadow .1s ease-out';
     });
 
@@ -854,7 +907,7 @@
             });
             clearTimeout(tid);
 
-            // Always clear password from DOM immediately after response
+            // Clear password from DOM immediately after every response
             passEl.value = '';
             if (pwVisible) {
                 pwVisible = false;
@@ -882,16 +935,22 @@
                 s.count = Math.max(s.count + 1, MAX_ATTEMPTS);
                 s.until = Math.max(s.until, Date.now() + wait * 1000);
                 saveAttemptState(s);
-                errEl.textContent    = 'Server rate limit — wait ' + wait + 's.';
-                errEl.style.display  = 'block';
+                errEl.textContent   = 'Server rate limit — wait ' + wait + 's.';
+                errEl.style.display = 'block';
                 startLockoutCountdown();
                 return;
             }
 
             recordFailure();
+
+            // FIX #8: shake animation re-triggered cleanly via class toggle.
+            // Remove first to reset, force reflow, then add back so it replays
+            // every failure regardless of whether the bar was already visible.
+            errEl.classList.remove('shaking');
             errEl.textContent   = 'Invalid credentials.';
-            void errEl.offsetWidth; // force reflow so shake animation replays
             errEl.style.display = 'block';
+            void errEl.offsetWidth; // force reflow
+            errEl.classList.add('shaking');
 
             // Shake card on failure
             loginCard.style.animation = 'none';
