@@ -761,6 +761,8 @@
             bloomPass.setSize(window.innerWidth, window.innerHeight);
         });
 
+    </script>
+
     <!-- ═══════════════════════════════════════════════════════════════════
          LOGIN UI LOGIC
     ════════════════════════════════════════════════════════════════════ -->
@@ -1079,6 +1081,8 @@
                 }
 
                 setTimeout(() => window.location.replace(SAFE_REDIRECT), 400);
+                // _submitting intentionally stays true — page is navigating away.
+                // If navigation somehow fails the user can refresh; no infinite lock.
                 return;
             }
 
@@ -1150,14 +1154,11 @@
         }
     }
 
-    // FIX #20: form submit event handles Enter natively (no more manual keydown patches)
+    // FIX #20: form submit event handles Enter natively (no more manual keydown patches).
+    // The button is type="submit" so clicking it also fires the form's submit event.
     document.getElementById('loginForm').addEventListener('submit', e => {
         e.preventDefault();
         doLogin();
-    });
-    // Keep explicit click handler for redundancy
-    document.getElementById('loginBtn').addEventListener('click', e => {
-        // form submit fires first; this is a fallback only
     });
 
     // ── Init ─────────────────────────────────────────────────────────────────
