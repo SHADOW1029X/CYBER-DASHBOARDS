@@ -1,1 +1,457 @@
-//
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAPTURES // SETTINGS</title>
+  <meta name="description" content="Capture Node Telemetry Dashboard — account settings.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020810'/%3E%3Cpolygon points='16,2 30,9 30,23 16,30 2,23 2,9' fill='none' stroke='%2300e5ff' stroke-width='1.5'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-size='13' font-weight='bold' fill='%2300e5ff'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── DELTHA DISPLAY FONT ──────────────────────────────────────── */
+    @font-face {
+      font-family: 'Deltha';
+      src: url('fonts/Deltha.woff2') format('woff2'),
+           url('fonts/Deltha.otf')   format('opentype'),
+           url('fonts/Deltha.ttf')   format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg:         #020810;
+      --bg2:        #040d18;
+      --panel:      #07111e;
+      --panel2:     #0a1828;
+      --border:     #0d3a52;
+      --border-hi:  #1a6a8a;
+      --cyan:       #00e5ff;
+      --cyan-dim:   #007a99;
+      --cyan-deep:  #003d4d;
+      --green:      #00ff9d;
+      --green-dim:  #006644;
+      --amber:      #ffb300;
+      --amber-dim:  #7a5500;
+      --red:        #ff3b5c;
+      --red-dim:    #7a1a2a;
+      --violet:     #bf7fff;
+      --violet-dim: #5a3a88;
+      --text:       #b0d4e8;
+      --text-dim:   #3d6478;
+      --text-mid:   #6a9ab8;
+      --glow-c:  0 0 8px #00e5ff77, 0 0 24px #00e5ff33;
+      --glow-g:  0 0 8px #00ff9d77, 0 0 24px #00ff9d33;
+      --glow-r:  0 0 8px #ff3b5c77, 0 0 24px #ff3b5c33;
+      --glow-v:  0 0 8px #bf7fff77, 0 0 24px #bf7fff33;
+      --glow-a:  0 0 8px #ffb30077, 0 0 24px #ffb30033;
+      --font-deltha: 'Deltha', 'Orbitron', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: var(--cyan-dim) var(--bg2);
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--cyan-dim); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 3px,
+        rgba(0,229,255,.007) 3px, rgba(0,229,255,.007) 4px
+      );
+    }
+    #bg-grid {
+      position: fixed; bottom: 0; left: 50%; z-index: 0; pointer-events: none;
+      transform: translateX(-50%) rotateX(70deg);
+      transform-origin: center bottom;
+      width: 260vw; height: 160vh;
+      background-image:
+        linear-gradient(rgba(0,229,255,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,.06) 1px, transparent 1px);
+      background-size: 56px 56px;
+      opacity: .55;
+    }
+    #bg-vignette {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      background: radial-gradient(ellipse 100% 100% at 50% 100%,
+        transparent 20%, rgba(2,8,16,.82) 65%, rgba(2,8,16,.99) 100%
+      );
+    }
+    #bg-glow {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 70vw; height: 2px; z-index: 1; pointer-events: none;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      filter: blur(1px); opacity: .5;
+    }
+
+    /* ── LAYOUT ───────────────────────────────────────────────────── */
+    .layout {
+      position: relative; z-index: 2;
+      max-width: 1760px; margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       NAVBAR (fixed, not affected by scrolling)
+    ══════════════════════════════════════════════════════════════ */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid transparent;
+      border-image: linear-gradient(90deg, transparent, var(--border-hi) 20%, var(--cyan-dim) 50%, var(--border-hi) 80%, transparent) 1;
+      gap: 16px; flex-wrap: wrap;
+      position: sticky; top: 0; z-index: 5000;
+      background: rgba(2,8,16,.86);
+      backdrop-filter: blur(8px);
+      margin: 0 -24px 0;
+    }
+    header::after {
+      content: '';
+      position: absolute; bottom: -1px; left: -5%; right: -5%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      animation: headerScan 4s ease-in-out infinite;
+      opacity: .4;
+    }
+    @keyframes headerScan {
+      0%,100% { transform: scaleX(0); opacity: 0; }
+      50%      { transform: scaleX(1); opacity: .5; }
+    }
+
+    .logo-block { display: flex; flex-direction: column; gap: 3px; }
+
+    .logo-top {
+      font-family: var(--font-deltha);
+      font-weight: 900;
+      font-size: clamp(1.3rem, 3vw, 1.75rem);
+      color: var(--cyan); text-shadow: var(--glow-c);
+      letter-spacing: .18em; line-height: 1;
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .logo-favicon {
+      display: inline-block;
+      width: 32px; height: 32px;
+      object-fit: contain;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 6px rgba(0,229,255,.6));
+      image-rendering: crisp-edges;
+    }
+
+    .logo-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(.58rem, 1.2vw, .68rem);
+      color: var(--text-dim); letter-spacing: .3em;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .logo-sub::before {
+      content: '';
+      display: inline-block; width: 18px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan-dim));
+    }
+
+    .header-right {
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    header { flex-wrap: nowrap; }
+    @media (max-width: 860px) {
+      header { flex-wrap: wrap; }
+      .header-right { gap: 7px; }
+    }
+
+    /* ── BUTTONS ──────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 16px; border-radius: 2px; border: 1px solid var(--border-hi);
+      background: rgba(0,229,255,.04); color: var(--cyan);
+      font-family: 'Orbitron', monospace; font-size: .62rem; font-weight: 700;
+      letter-spacing: .14em; text-decoration: none; cursor: pointer;
+      transition: all .15s; white-space: nowrap;
+    }
+    .btn:hover { background: rgba(0,229,255,.1); box-shadow: var(--glow-c); }
+    .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .btn-amber  { color: var(--amber);  border-color: var(--amber-dim); background: rgba(255,179,0,.04); }
+    .btn-amber:hover  { background: rgba(255,179,0,.1); box-shadow: var(--glow-a); }
+    .btn-red    { color: var(--red);    border-color: var(--red-dim); background: rgba(255,59,92,.04); }
+    .btn-red:hover    { background: rgba(255,59,92,.1); box-shadow: var(--glow-r); }
+    .btn-cyan   { color: var(--cyan);   border-color: var(--border-hi); }
+    .btn-violet { color: var(--violet); border-color: var(--violet-dim); background: rgba(191,127,255,.04); }
+    .btn-violet:hover { background: rgba(191,127,255,.1); box-shadow: var(--glow-v); }
+    .btn-green  { color: var(--green);  border-color: var(--green-dim); background: rgba(0,255,157,.04); }
+    .btn-green:hover  { background: rgba(0,255,157,.1); box-shadow: var(--glow-g); }
+    .hdr-btn { padding: 8px 14px; }
+    @media (max-width: 860px) {
+      .hdr-btn { padding: 7px 10px; font-size: .56rem; }
+    }
+
+    /* ── PANEL / SETTINGS CARD ────────────────────────────────────── */
+    .settings-wrap {
+      max-width: 600px; margin: 48px auto 0;
+      position: relative; z-index: 2;
+    }
+    .panel {
+      background: linear-gradient(135deg, var(--panel2) 0%, #040d18 100%);
+      border: 1px solid var(--border-hi);
+      border-radius: 3px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-c), inset 0 1px 0 rgba(0,229,255,.1);
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+      overflow: hidden;
+    }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 22px; border-bottom: 1px solid var(--border);
+      background: rgba(4,13,24,.7);
+      position: relative;
+    }
+    .panel-header::after {
+      content: '';
+      position: absolute; bottom: 0; left: 5%; right: 5%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent);
+    }
+    .panel-title {
+      font-family: var(--font-deltha); font-size: .8rem; font-weight: 700;
+      letter-spacing: .16em; color: var(--amber); text-shadow: var(--glow-a);
+    }
+    .panel-body { padding: 22px; }
+    .panel-footer {
+      padding: 14px 22px; border-top: 1px solid var(--border);
+      display: flex; gap: 10px; justify-content: flex-end;
+      flex-wrap: wrap; background: rgba(4,13,24,.5);
+    }
+
+    /* ── FORMS ─────────────────────────────────────────────────── */
+    .form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .field-group { display: flex; flex-direction: column; gap: 5px; }
+    .field-label {
+      font-family: 'Share Tech Mono', monospace; font-size: .6rem;
+      color: var(--cyan-dim); letter-spacing: .16em; text-transform: uppercase;
+    }
+    .field-input {
+      background: rgba(2,8,16,.8); border: 1px solid var(--border);
+      border-radius: 2px; padding: 8px 11px; color: var(--text);
+      font-family: 'Share Tech Mono', monospace; font-size: .76rem;
+      outline: none; transition: border-color .2s, box-shadow .2s; width: 100%;
+      caret-color: var(--cyan);
+    }
+    .field-input:focus { border-color: var(--cyan-dim); box-shadow: 0 0 0 2px rgba(0,229,255,.08); }
+    .field-input::placeholder { color: var(--text-dim); }
+
+    .cred-section-title {
+      font-family: var(--font-deltha); font-size: .58rem;
+      color: var(--amber); letter-spacing: .22em;
+      margin: 4px 0 12px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cred-hint {
+      font-family: 'Share Tech Mono', monospace; font-size: .62rem;
+      color: var(--text-dim); margin-top: 12px; line-height: 1.65;
+      border-left: 2px solid var(--border); padding-left: 10px;
+    }
+    #credMsg {
+      display: none; border-radius: 2px;
+      font-family: 'Share Tech Mono', monospace; font-size: .7rem;
+      padding: 8px 12px; margin-top: 12px;
+    }
+    #credMsg.ok  { background: rgba(0,255,157,.06); border: 1px solid var(--green-dim); border-left: 3px solid var(--green); color: var(--green); }
+    #credMsg.err { background: rgba(255,59,92,.06);  border: 1px solid var(--red-dim);  border-left: 3px solid var(--red);   color: var(--red); }
+
+    /* ── TOASTS ────────────────────────────────────────────────── */
+    .toast-stack {
+      position: fixed; bottom: 22px; right: 22px; z-index: 9500;
+      display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+    }
+    .toast {
+      background: var(--panel2); border-radius: 2px;
+      padding: 10px 18px; font-family: 'Share Tech Mono', monospace; font-size: .7rem;
+      box-shadow: 0 6px 30px rgba(0,0,0,.8); animation: toastIn .25s ease;
+      pointer-events: none;
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .toast.out { animation: toastOut .25s ease forwards; }
+    @keyframes toastIn  { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:none} }
+    @keyframes toastOut { to{opacity:0;transform:translateX(24px)} }
+    .t-green  { border: 1px solid var(--green);  border-left: 3px solid var(--green);  color: var(--green); }
+    .t-red    { border: 1px solid var(--red);    border-left: 3px solid var(--red);    color: var(--red); }
+    .t-cyan   { border: 1px solid var(--cyan);   border-left: 3px solid var(--cyan);   color: var(--cyan); }
+    .t-amber  { border: 1px solid var(--amber);  border-left: 3px solid var(--amber);  color: var(--amber); }
+    .t-violet { border: 1px solid var(--violet); border-left: 3px solid var(--violet); color: var(--violet); }
+
+    @media (max-width: 700px) {
+      .logo-top { font-size: 1.1rem; }
+      .settings-wrap { margin-top: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="bg-grid"     aria-hidden="true"></div>
+<div id="bg-vignette" aria-hidden="true"></div>
+<div id="bg-glow"     aria-hidden="true"></div>
+
+<div class="layout">
+
+  <!-- ══════════════ NAVBAR ══════════════ -->
+  <header role="banner">
+    <div class="logo-block">
+      <div class="logo-top">
+        <img src="favicon.png" alt="" class="logo-favicon" aria-hidden="true" onerror="this.style.display='none'">
+        CAPTURES
+      </div>
+      <div class="logo-sub" aria-hidden="true">ACCOUNT SETTINGS</div>
+    </div>
+    <div class="header-right">
+      <a href="NYTHERIX-ADMIN.html" class="btn btn-violet hdr-btn" title="Open NYTHERIX Admin">◈ NYTHERIX ADMIN</a>
+      <a href="settings.html" class="btn btn-amber hdr-btn" title="Account settings">⚙ SETTINGS</a>
+      <button class="btn btn-red hdr-btn" id="logoutBtn" title="End session">⏻ DISCONNECT</button>
+    </div>
+  </header>
+
+  <!-- ══════════════ SETTINGS PANEL ══════════════ -->
+  <div class="settings-wrap">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">⚙ CHANGE CREDENTIALS</span>
+      </div>
+      <div class="panel-body">
+        <div class="form-grid">
+          <div class="cred-section-title">// VERIFY IDENTITY</div>
+          <div class="field-group">
+            <label class="field-label" for="credCurrentPass">CURRENT PASSWORD <span style="color:var(--red)">*</span></label>
+            <input class="field-input" id="credCurrentPass" type="password"
+                   autocomplete="current-password" maxlength="128"
+                   placeholder="Required to save any change">
+          </div>
+          <div class="cred-section-title" style="margin-top:16px;">// NEW VALUES (leave blank to keep current)</div>
+          <div class="field-group">
+            <label class="field-label" for="credNewUser">NEW USERNAME</label>
+            <input class="field-input" id="credNewUser" type="text"
+                   autocomplete="username" spellcheck="false" maxlength="64"
+                   placeholder="Leave blank to keep current">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="credNewPass">NEW PASSWORD</label>
+            <input class="field-input" id="credNewPass" type="password"
+                   autocomplete="new-password" maxlength="128"
+                   placeholder="Leave blank to keep current">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="credNewPassConfirm">CONFIRM NEW PASSWORD</label>
+            <input class="field-input" id="credNewPassConfirm" type="password"
+                   autocomplete="new-password" maxlength="128"
+                   placeholder="Repeat new password">
+          </div>
+          <div id="credMsg" role="alert"></div>
+          <p class="cred-hint">// Other active sessions will be signed out automatically when credentials change.</p>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <button class="btn btn-amber" id="credSaveBtn" onclick="saveCredentials()">◈ APPLY CHANGES</button>
+        <a class="btn btn-cyan" href="PHOTONdashboard.html">CANCEL</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="false"></div>
+
+<script>
+"use strict";
+
+const WORKER_URL = "https://snowy-fog-b0d1.23amtics322.workers.dev/";
+const BASE_URL   = new URL(WORKER_URL).origin;
+
+function toast(msg, type = 't-cyan', dur = 2800) {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toastStack').appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, dur);
+}
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  try { await fetch(`${BASE_URL}/auth/logout`, {method:'POST', credentials:'include'}); } catch(e) {}
+  toast('Session terminated','t-amber');
+  setTimeout(() => { window.location.replace('index.html'); }, 600);
+});
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────
+async function saveCredentials() {
+  const currentPass    = document.getElementById('credCurrentPass').value;
+  const newUser        = document.getElementById('credNewUser').value.trim();
+  const newPass        = document.getElementById('credNewPass').value;
+  const newPassConfirm = document.getElementById('credNewPassConfirm').value;
+  const msg            = document.getElementById('credMsg');
+  const btn            = document.getElementById('credSaveBtn');
+  const showMsg = (text, type) => { msg.textContent = text; msg.className = type; msg.style.display = 'block'; };
+  if (!currentPass) { showMsg('⚠ Current password is required.','err'); return; }
+  if (!newUser && !newPass) { showMsg('⚠ Enter a new username, new password, or both.','err'); return; }
+  if (newPass && newPass.length < 8) { showMsg('⚠ New password must be at least 8 characters.','err'); return; }
+  if (newPass && newPass.length > 128) { showMsg('⚠ New password too long (max 128 chars).','err'); return; }
+  if (newUser && newUser.length > 64) { showMsg('⚠ New username too long (max 64 chars).','err'); return; }
+  if (newPass && newPass !== newPassConfirm) { showMsg('⚠ New passwords do not match.','err'); return; }
+  btn.disabled = true; btn.textContent = 'APPLYING…';
+  showMsg('',''); msg.style.display = 'none';
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), 10_000);
+  try {
+    const payload = {current_password:currentPass};
+    if (newUser) payload.new_username = newUser;
+    if (newPass) payload.new_password = newPass;
+    const res  = await fetch(`${BASE_URL}/auth/change-credentials`, {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+      signal: ctrl.signal
+    });
+    clearTimeout(tid);
+    const data = await res.json().catch(()=>({}));
+    if (res.ok && data.success) {
+      showMsg('✓ Credentials updated. You will need to log in again on other devices.','ok');
+      document.getElementById('credCurrentPass').value = '';
+      document.getElementById('credNewPass').value = '';
+      document.getElementById('credNewPassConfirm').value = '';
+      toast('✓ Credentials updated','t-green');
+    } else {
+      document.getElementById('credCurrentPass').value = '';
+      document.getElementById('credNewPass').value = '';
+      document.getElementById('credNewPassConfirm').value = '';
+      showMsg(`⚠ ${data.error||'Update failed ('+res.status+')'}`, 'err');
+    }
+  } catch(e) {
+    clearTimeout(tid);
+    document.getElementById('credCurrentPass').value = '';
+    document.getElementById('credNewPass').value = '';
+    document.getElementById('credNewPassConfirm').value = '';
+    const msg2 = e.name === 'AbortError' ? 'Request timed out.' : `Network error — ${e.message}`;
+    showMsg(`⚠ ${msg2}`, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = '◈ APPLY CHANGES';
+  }
+}
+</script>
+</body>
+</html>
