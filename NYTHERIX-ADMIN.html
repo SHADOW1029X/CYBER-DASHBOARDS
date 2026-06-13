@@ -465,7 +465,6 @@
         <span id="hdrLbl">CHECKING…</span>
       </div>
       <div id="hdrLoader" class="loader"></div>
-      <button class="btn btn-violet hdr-btn" id="chPassBtn">🔑 PASSWORD</button>
       <button class="btn btn-red hdr-btn"    id="logoutBtn">⏻ LOGOUT</button>
     </div>
   </header>
@@ -490,7 +489,7 @@
     <div class="stat-card">
       <div class="stat-lbl">Session</div>
       <div class="stat-val g">ACTIVE</div>
-      <div class="stat-sub">8h TTL · nx_sess</div>
+      <div class="stat-sub">dashboard login</div>
     </div>
   </div>
 
@@ -552,10 +551,8 @@
       <div class="info-grid">
         <div class="ic"><div class="ic-l">D1 Database</div><div class="ic-v c">nytherix_db</div></div>
         <div class="ic"><div class="ic-l">DB Binding</div><div class="ic-v c">DB</div></div>
-        <div class="ic"><div class="ic-l">Session Cookie</div><div class="ic-v">nx_sess</div></div>
-        <div class="ic"><div class="ic-l">Session TTL</div><div class="ic-v">8 hours</div></div>
-        <div class="ic"><div class="ic-l">Password Storage</div><div class="ic-v">SHA-256 + salt (admin_config)</div></div>
-        <div class="ic"><div class="ic-l">Tables</div><div class="ic-v" style="font-size:.62rem;line-height:1.7">settings · admin_sessions · admin_config</div></div>
+        <div class="ic"><div class="ic-l">Table</div><div class="ic-v">settings</div></div>
+        <div class="ic"><div class="ic-l">Auth</div><div class="ic-v">delegated to dashboard login</div></div>
         <div class="ic"><div class="ic-l">Proxy Status</div><div class="ic-v" id="sysProxy">—</div></div>
         <div class="ic"><div class="ic-l">Current Target</div><div class="ic-v" id="sysTarget" style="word-break:break-all;font-size:.62rem">— not set —</div></div>
       </div>
@@ -564,14 +561,10 @@
     <div class="panel a">
       <div class="panel-hdr"><div class="panel-title a">Worker Routes</div></div>
       <div class="info-grid">
-        <div class="ic"><div class="ic-l">GET /login</div><div class="ic-v">Login page</div></div>
-        <div class="ic"><div class="ic-l">POST /login</div><div class="ic-v">Authenticate (form)</div></div>
-        <div class="ic"><div class="ic-l">GET/POST /setup</div><div class="ic-v">First-run password setup</div></div>
-        <div class="ic"><div class="ic-l">GET /</div><div class="ic-v">Dashboard (auth-gated)</div></div>
-        <div class="ic"><div class="ic-l">POST /save</div><div class="ic-v">Save proxy settings</div></div>
-        <div class="ic"><div class="ic-l">GET/POST /change-password</div><div class="ic-v">Change admin password</div></div>
-        <div class="ic"><div class="ic-l">GET /logout</div><div class="ic-v">Destroy session &amp; redirect</div></div>
+        <div class="ic"><div class="ic-l">GET /api/settings</div><div class="ic-v">Fetch proxy settings</div></div>
+        <div class="ic"><div class="ic-l">POST /api/settings</div><div class="ic-v">Save proxy settings</div></div>
         <div class="ic"><div class="ic-l">Auth check (/auth/me)</div><div class="ic-v a">{authenticated: true}</div></div>
+        <div class="ic"><div class="ic-l">Logout (/auth/logout)</div><div class="ic-v">Dashboard login worker</div></div>
       </div>
     </div>
 
@@ -607,35 +600,6 @@
 
 </div><!-- /.layout -->
 
-<!-- ════ MODAL — Change Password ════ -->
-<div class="modal-bg" id="cpModal">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-ttl">🔑 Change Password</div>
-      <button class="modal-x" data-close="cpModal">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="cpAlert" class="alert"></div>
-      <div class="field">
-        <label for="cpCurrent">Current Password</label>
-        <input type="password" id="cpCurrent" placeholder="Current password" autocomplete="current-password">
-      </div>
-      <div class="field">
-        <label for="cpNew">New Password</label>
-        <input type="password" id="cpNew" placeholder="New password (min 6 chars)" autocomplete="new-password">
-      </div>
-      <div class="field">
-        <label for="cpConfirm">Confirm New Password</label>
-        <input type="password" id="cpConfirm" placeholder="Repeat new password" autocomplete="new-password">
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-cyan" data-close="cpModal">Cancel</button>
-      <button class="btn btn-violet" id="cpSaveBtn">Update Password →</button>
-    </div>
-  </div>
-</div>
-
 <!-- ════ MODAL — Confirm Logout ════ -->
 <div class="modal-bg" id="nukeModal">
   <div class="modal danger" style="width:min(420px,95vw)">
@@ -668,13 +632,11 @@
 // ── CONFIG ─────────────────────────────────────────────────────
 // Dashboard-management login worker (auth/me, auth/logout) — login.html / PHOTONdashboard.html
 const BASE_URL        = 'https://snowy-fog-b0d1.23amtics322.workers.dev';
-// NYTHERIX proxy admin worker (its own nx_sess cookie + /, /save, /change-password)
-const NYTHERIX_WORKER = 'https://YOUR-NYTHERIX-ADMIN-WORKER.workers.dev'; // ← set to your NYTHERIX admin worker URL
-// NOTE: since this page is hosted on a different origin than NYTHERIX_WORKER,
-// the worker must respond with CORS headers for credentialed requests:
+// NYTHERIX backend worker (pure JSON API: GET/POST /api/settings)
+const NYTHERIX_WORKER = 'https://YOUR-NYTHERIX-ADMIN-WORKER.workers.dev'; // ← set to your NYTHERIX backend worker URL
+// NOTE: NYTHERIX_WORKER must respond with CORS headers matching this site's origin:
 //   Access-Control-Allow-Origin: <this site's exact origin> (not *)
 //   Access-Control-Allow-Credentials: true
-// and its nx_sess cookie must be Set-Cookie ...; SameSite=None; Secure
 
 // ── HELPERS ────────────────────────────────────────────────────
 function toast(msg, cls) {
@@ -747,27 +709,21 @@ function setProxyUI(enabled, targetUrl) {
 }
 
 // ── LOAD SETTINGS FROM NYTHERIX WORKER ────────────────────────
-// The NYTHERIX worker serves its own dashboard at GET / (auth via nx_sess cookie).
-// We fetch that page and parse out the current enabled + target_url values.
+// GET /api/settings → { target_url, enabled }
 async function loadSettings() {
   document.getElementById('hdrLoader').classList.add('on');
   try {
     const ctrl = new AbortController();
     const tid  = setTimeout(() => ctrl.abort(), 10_000);
-    const res  = await fetch(NYTHERIX_WORKER + '/', {
+    const res  = await fetch(NYTHERIX_WORKER + '/api/settings', {
       credentials: 'include', signal: ctrl.signal
     });
     clearTimeout(tid);
 
-    const html = await res.text();
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
 
-    // Parse enabled: checkbox with name="enabled" and attribute "checked" (attrs may span lines)
-    const enabled    = /name="enabled"[\s\S]*?checked/i.test(html.slice(0, html.indexOf('</label>')));
-    // Parse target_url: value="..." on the input with name="target_url" (attrs may span lines)
-    const urlMatch   = html.match(/name="target_url"[\s\S]*?value="([^"]*)"/i);
-    const targetUrl  = urlMatch ? urlMatch[1] : '';
-
-    setProxyUI(enabled ? 1 : 0, targetUrl);
+    setProxyUI(data.enabled ? 1 : 0, data.target_url || '');
   } catch (e) {
     setProxyUI(0, '');
     toast('Could not load settings from worker', 't-a');
@@ -777,6 +733,7 @@ async function loadSettings() {
 }
 
 // ── SAVE SETTINGS ──────────────────────────────────────────────
+// POST /api/settings  body: { target_url, enabled } → { target_url, enabled }
 async function saveSettings() {
   const btn    = document.getElementById('saveBtn');
   const on     = document.getElementById('proxyToggle').checked;
@@ -786,30 +743,25 @@ async function saveSettings() {
   btn.textContent = 'Applying…';
   hideAlert('proxyAlert');
 
-  // Build FormData exactly as the worker's POST /save handler expects
-  const fd = new FormData();
-  fd.set('target_url', rawUrl);
-  if (on) fd.set('enabled', 'on');
-
   try {
     const ctrl = new AbortController();
     const tid  = setTimeout(() => ctrl.abort(), 10_000);
-    const res  = await fetch(NYTHERIX_WORKER + '/save', {
-      method: 'POST', credentials: 'include', body: fd, signal: ctrl.signal
+    const res  = await fetch(NYTHERIX_WORKER + '/api/settings', {
+      method: 'POST',
+      credentials: 'include',
+      signal: ctrl.signal,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_url: rawUrl, enabled: on })
     });
     clearTimeout(tid);
-    const text = await res.text();
+    const data = await res.json().catch(() => ({}));
 
-    // Worker flashes "✅ Settings saved successfully." inside class="alert ok" on success
-    // and "alert err" on failure
-    if (res.ok && text.includes('alert ok')) {
-      setProxyUI(on ? 1 : 0, rawUrl);
+    if (res.ok) {
+      setProxyUI(data.enabled ? 1 : 0, data.target_url ?? rawUrl);
       showAlert('proxyAlert', '✅ Settings saved successfully.', 'ok');
       toast('✓ Settings saved', 't-g');
     } else {
-      const m = text.match(/class="alert err">([^<]+)/);
-      const msg = m ? m[1] : `HTTP ${res.status}`;
-      showAlert('proxyAlert', `⚠ ${msg}`, 'err');
+      showAlert('proxyAlert', `⚠ ${data.error || `HTTP ${res.status}`}`, 'err');
     }
   } catch (e) {
     const msg = e.name === 'AbortError' ? 'Request timed out.' : `Network error — ${e.message}`;
@@ -817,55 +769,6 @@ async function saveSettings() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Apply Settings →';
-  }
-}
-
-// ── CHANGE PASSWORD ────────────────────────────────────────────
-async function changePassword() {
-  const btn     = document.getElementById('cpSaveBtn');
-  const current = document.getElementById('cpCurrent').value;
-  const newp    = document.getElementById('cpNew').value;
-  const confirm = document.getElementById('cpConfirm').value;
-
-  hideAlert('cpAlert');
-  if (!current)         { showAlert('cpAlert', '⚠ Current password is required.',      'err'); return; }
-  if (!newp)            { showAlert('cpAlert', '⚠ New password is required.',           'err'); return; }
-  if (newp.length < 6)  { showAlert('cpAlert', '⚠ Password must be at least 6 chars.', 'err'); return; }
-  if (newp !== confirm) { showAlert('cpAlert', '⚠ New passwords do not match.',         'err'); return; }
-
-  btn.disabled = true;
-  btn.textContent = 'Updating…';
-
-  // POST /change-password — same FormData fields as the worker handler
-  const fd = new FormData();
-  fd.set('current', current);
-  fd.set('newpass', newp);
-  fd.set('confirm', confirm);
-
-  try {
-    const ctrl = new AbortController();
-    const tid  = setTimeout(() => ctrl.abort(), 10_000);
-    const res  = await fetch(NYTHERIX_WORKER + '/change-password', {
-      method: 'POST', credentials: 'include', body: fd, signal: ctrl.signal
-    });
-    clearTimeout(tid);
-    const text = await res.text();
-
-    if (res.ok && text.includes('alert ok')) {
-      showAlert('cpAlert', '✅ Password updated successfully.', 'ok');
-      ['cpCurrent','cpNew','cpConfirm'].forEach(id => document.getElementById(id).value = '');
-      toast('✓ Password updated', 't-g');
-    } else {
-      const m = text.match(/class="alert err">([^<]+)/);
-      showAlert('cpAlert', `⚠ ${m ? m[1] : `HTTP ${res.status}`}`, 'err');
-      document.getElementById('cpCurrent').value = '';
-    }
-  } catch (e) {
-    const msg = e.name === 'AbortError' ? 'Request timed out.' : `Network error — ${e.message}`;
-    showAlert('cpAlert', `⚠ ${msg}`, 'err');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Update Password →';
   }
 }
 
@@ -938,14 +841,6 @@ document.querySelectorAll('.tab').forEach(btn => {
 
 // ── BUTTON BINDINGS ────────────────────────────────────────────
 document.getElementById('saveBtn').addEventListener('click', saveSettings);
-
-document.getElementById('chPassBtn').addEventListener('click', () => {
-  ['cpCurrent','cpNew','cpConfirm'].forEach(id => document.getElementById(id).value = '');
-  hideAlert('cpAlert');
-  openModal('cpModal');
-  setTimeout(() => document.getElementById('cpCurrent').focus(), 50);
-});
-document.getElementById('cpSaveBtn').addEventListener('click', changePassword);
 
 document.getElementById('logoutBtn').addEventListener('click', () => openModal('nukeModal'));
 document.getElementById('nukeBtn').addEventListener('click',   () => openModal('nukeModal'));
