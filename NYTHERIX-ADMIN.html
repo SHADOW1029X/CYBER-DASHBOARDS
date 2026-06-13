@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NYTHERIX // ADMIN</title>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev; img-src data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev https://*.workers.dev; img-src data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="Referrer-Policy" content="no-referrer">
@@ -666,10 +666,15 @@
 'use strict';
 
 // ── CONFIG ─────────────────────────────────────────────────────
-// Same worker origin used by login.html and PHOTONdashboard.html
-const BASE_URL       = 'https://snowy-fog-b0d1.23amtics322.workers.dev';
-// NYTHERIX admin worker endpoints (form-based, same origin assumed)
-const NYTHERIX_WORKER = BASE_URL; // update if your NYTHERIX worker is on a different subdomain
+// Dashboard-management login worker (auth/me, auth/logout) — login.html / PHOTONdashboard.html
+const BASE_URL        = 'https://snowy-fog-b0d1.23amtics322.workers.dev';
+// NYTHERIX proxy admin worker (its own nx_sess cookie + /, /save, /change-password)
+const NYTHERIX_WORKER = 'https://YOUR-NYTHERIX-ADMIN-WORKER.workers.dev'; // ← set to your NYTHERIX admin worker URL
+// NOTE: since this page is hosted on a different origin than NYTHERIX_WORKER,
+// the worker must respond with CORS headers for credentialed requests:
+//   Access-Control-Allow-Origin: <this site's exact origin> (not *)
+//   Access-Control-Allow-Credentials: true
+// and its nx_sess cookie must be Set-Cookie ...; SameSite=None; Secure
 
 // ── HELPERS ────────────────────────────────────────────────────
 function toast(msg, cls) {
@@ -756,10 +761,10 @@ async function loadSettings() {
 
     const html = await res.text();
 
-    // Parse enabled: checkbox with name="enabled" and attribute "checked"
-    const enabled    = /name="enabled"[^>]*checked/i.test(html);
-    // Parse target_url: value="..." on the input with name="target_url"
-    const urlMatch   = html.match(/name="target_url"[^>]*value="([^"]*)"/i);
+    // Parse enabled: checkbox with name="enabled" and attribute "checked" (attrs may span lines)
+    const enabled    = /name="enabled"[\s\S]*?checked/i.test(html.slice(0, html.indexOf('</label>')));
+    // Parse target_url: value="..." on the input with name="target_url" (attrs may span lines)
+    const urlMatch   = html.match(/name="target_url"[\s\S]*?value="([^"]*)"/i);
     const targetUrl  = urlMatch ? urlMatch[1] : '';
 
     setProxyUI(enabled ? 1 : 0, targetUrl);
