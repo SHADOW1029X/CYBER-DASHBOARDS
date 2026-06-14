@@ -79,26 +79,26 @@
     #webgl-canvas {
       position: fixed; inset: 0; z-index: 0;
       width: 100%; height: 100%;
-      pointer-events: none; opacity: .9;
+      pointer-events: none; opacity: 1;
     }
     .bg-layer { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
     .bg-layer::before {
       content: ''; position: absolute; inset: 0;
       background:
-        linear-gradient(90deg, rgba(2,8,16,.98) 0%, rgba(2,8,16,.78) 34%, rgba(2,8,16,.20) 67%, rgba(2,8,16,.82) 100%),
-        radial-gradient(circle at 52% 54%, transparent 0%, rgba(0,0,0,.48) 70%, rgba(0,0,0,.72) 100%);
+        linear-gradient(90deg, rgba(2,8,16,.85) 0%, rgba(2,8,16,.55) 34%, rgba(2,8,16,.08) 67%, rgba(2,8,16,.58) 100%),
+        radial-gradient(circle at 52% 54%, transparent 0%, rgba(0,0,0,.28) 70%, rgba(0,0,0,.45) 100%);
     }
     .bg-layer::after {
-      content: ''; position: absolute; inset: 0; opacity: .05;
+      content: ''; position: absolute; inset: 0; opacity: .09;
       background-image:
-        linear-gradient(rgba(0,229,255,.8) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,229,255,.8) 1px, transparent 1px);
+        linear-gradient(rgba(0,229,255,.9) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,.9) 1px, transparent 1px);
       background-size: 44px 44px;
       mask-image: radial-gradient(circle at 63% 48%, black 0%, transparent 74%);
     }
     .noise {
       position: fixed; inset: -50%; z-index: 2; pointer-events: none;
-      opacity: .04;
+      opacity: .035;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 260 260' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
       animation: grain 9s steps(6) infinite;
       mix-blend-mode: overlay;
@@ -116,19 +116,19 @@
     }
     #bg-vignette {
       position: fixed; inset: 0; z-index: 1; pointer-events: none;
-      background: radial-gradient(ellipse 100% 100% at 50% 100%, transparent 20%, rgba(2,8,16,.82) 65%, rgba(2,8,16,.99) 100%);
+      background: radial-gradient(ellipse 100% 100% at 50% 100%, transparent 25%, rgba(2,8,16,.6) 68%, rgba(2,8,16,.88) 100%);
     }
     #bg-glow {
       position: fixed; top: 0; left: 50%; transform: translateX(-50%);
       width: 70vw; height: 2px; z-index: 1; pointer-events: none;
-      background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent);
-      box-shadow: 0 0 60px 20px rgba(0,229,255,.08);
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      box-shadow: 0 0 90px 30px rgba(0,229,255,.14);
     }
     #bg-violet {
       position: fixed; bottom: -200px; right: -200px;
       width: 700px; height: 700px; border-radius: 50%;
       z-index: 0; pointer-events: none;
-      background: radial-gradient(circle, rgba(124,58,237,.06) 0%, transparent 60%);
+      background: radial-gradient(circle, rgba(191,127,255,.12) 0%, transparent 60%);
     }
     #bg-particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
     .pt { position: absolute; border-radius: 50%; opacity: 0; animation: ptFloat linear infinite; }
@@ -930,13 +930,13 @@ document.addEventListener('visibilitychange', () => {
 
   const config = {
     dpr: Math.min(window.devicePixelRatio || 1, 1.6),
-    exposure: 2.45,
-    brightness: 2.75,
-    bloomStrength: 0.42,
-    bloomRadius: 0.55,
-    bloomThreshold: 0.02,
+    exposure: 3.1,
+    brightness: 3.4,
+    bloomStrength: 0.62,
+    bloomRadius: 0.65,
+    bloomThreshold: 0.0,
     speedMultiplier: 0.105,
-    linesCount: 118,
+    linesCount: 140,
     dotDensity: 74,
     dotSize: 0.19,
     dotSpeed: 1.45,
