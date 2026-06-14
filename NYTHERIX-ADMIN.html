@@ -79,7 +79,7 @@
     #webgl-canvas {
       position: fixed; inset: 0; z-index: 0;
       width: 100%; height: 100%;
-      pointer-events: none; opacity: 1;
+      pointer-events: none; opacity: 0.94;
     }
     .bg-layer { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
     .bg-layer::before {
@@ -95,6 +95,7 @@
         linear-gradient(90deg, rgba(0,229,255,.9) 1px, transparent 1px);
       background-size: 44px 44px;
       mask-image: radial-gradient(circle at 63% 48%, black 0%, transparent 74%);
+      -webkit-mask-image: radial-gradient(circle at 63% 48%, black 0%, transparent 74%);
     }
     .noise {
       position: fixed; inset: -50%; z-index: 2; pointer-events: none;
@@ -114,26 +115,6 @@
       content: ''; position: fixed; inset: 0; z-index: 9998; pointer-events: none;
       background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,229,255,.007) 3px, rgba(0,229,255,.007) 4px);
     }
-    #bg-vignette {
-      position: fixed; inset: 0; z-index: 1; pointer-events: none;
-      background: radial-gradient(ellipse 100% 100% at 50% 100%, transparent 30%, rgba(2,8,16,.42) 70%, rgba(2,8,16,.7) 100%);
-    }
-    #bg-glow {
-      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-      width: 70vw; height: 2px; z-index: 1; pointer-events: none;
-      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-      box-shadow: 0 0 110px 40px rgba(0,229,255,.2);
-    }
-    #bg-violet {
-      position: fixed; bottom: -200px; right: -200px;
-      width: 700px; height: 700px; border-radius: 50%;
-      z-index: 0; pointer-events: none;
-      background: radial-gradient(circle, rgba(191,127,255,.18) 0%, transparent 60%);
-    }
-    #bg-particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
-    .pt { position: absolute; border-radius: 50%; opacity: 0; animation: ptFloat linear infinite; }
-    @keyframes ptFloat {
-      0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
       8%   { opacity: .5; }
       92%  { opacity: .2; }
       100% { transform: translateY(-20vh) translateX(var(--dx)); opacity: 0; }
@@ -448,11 +429,7 @@
 <div class="bg-layer" aria-hidden="true"></div>
 <div class="noise" aria-hidden="true"></div>
 
-<!-- BG layers -->
-<div id="bg-vignette" aria-hidden="true"></div>
-<div id="bg-glow"     aria-hidden="true"></div>
-<div id="bg-violet"   aria-hidden="true"></div>
-<div id="bg-particles" aria-hidden="true"></div>
+<!-- BG layers: WebGL canvas + overlay handled above -->
 
 <div class="layout">
 
@@ -641,12 +618,31 @@ function hideAlert(id) { document.getElementById(id).className = 'alert'; }
 
 function openModal(id) {
   const el = document.getElementById(id);
+  el._opener = document.activeElement;
   el.classList.add('open');
   // focus first focusable element inside
-  const first = el.querySelector('button, [tabindex]:not([tabindex="-1"])');
+  const first = el.querySelector('button:not([disabled]), [href], input, [tabindex]:not([tabindex="-1"])');
   if (first) setTimeout(() => first.focus(), 50);
 }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModal(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('open');
+  // return focus to trigger element
+  if (el._opener) { el._opener.focus(); el._opener = null; }
+}
+
+// Focus trap — keep Tab/Shift+Tab inside open modal
+function trapFocus(modal) {
+  const focusable = modal.querySelectorAll('button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  modal.addEventListener('keydown', function handler(e) {
+    if (!modal.classList.contains('open')) { modal.removeEventListener('keydown', handler); return; }
+    if (e.key !== 'Tab') return;
+    if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+    else            { if (document.activeElement === last)  { e.preventDefault(); first.focus(); } }
+  });
+}
+document.querySelectorAll('.modal-bg').forEach(trapFocus);
 
 // close on backdrop click or [data-close] buttons
 document.querySelectorAll('[data-close]').forEach(b =>
@@ -885,25 +881,7 @@ document.addEventListener('visibilitychange', () => {
     .catch(() => clearTimeout(tid));
 });
 
-// ── BACKGROUND PARTICLES ───────────────────────────────────────
-(function () {
-  const c = document.getElementById('bg-particles');
-  const frag = document.createDocumentFragment();
-  for (let i = 0; i < 16; i++) {
-    const p  = document.createElement('div');
-    const sz = Math.random() * 2 + 1;
-    p.className = 'pt';
-    p.style.cssText = [
-      `width:${sz}px`, `height:${sz}px`, `left:${Math.random()*100}%`,
-      `animation-duration:${8+Math.random()*14}s`,
-      `animation-delay:${Math.random()*12}s`,
-      `--dx:${(Math.random()-.5)*80}px`,
-      `background:${i%5===0?'var(--violet)':i%7===0?'var(--amber)':'var(--cyan)'}`
-    ].join(';');
-    frag.appendChild(p);
-  }
-  c.appendChild(frag);
-})();
+
 </script>
 
 <!-- ════════════════════ INTERACTIVE WEBGL BACKGROUND ════════════════════ -->
@@ -934,13 +912,13 @@ document.addEventListener('visibilitychange', () => {
 
   const config = {
     dpr: Math.min(window.devicePixelRatio || 1, 1.6),
-    exposure: 3.6,
-    brightness: 3.9,
+    exposure: 2.6,
+    brightness: 3.0,
     bloomStrength: 0.78,
     bloomRadius: 0.7,
-    bloomThreshold: 0.0,
+    bloomThreshold: 0.02,
     speedMultiplier: 0.105,
-    linesCount: 140,
+    linesCount: window.innerWidth < 768 ? 60 : 110,
     dotDensity: 74,
     dotSize: 0.19,
     dotSpeed: 1.45,
@@ -1311,9 +1289,10 @@ document.addEventListener('visibilitychange', () => {
       const geometry = new THREE.TubeGeometry(path, 210, object.thickness, 8, false);
 
       if (object.mesh.geometry) object.mesh.geometry.dispose();
+      if (object.reflectionMesh.geometry) object.reflectionMesh.geometry.dispose();
 
       object.mesh.geometry = geometry;
-      object.reflectionMesh.geometry = geometry;
+      object.reflectionMesh.geometry = geometry.clone(); // separate instance to avoid shared-dispose corruption
 
       object.mesh.material.uniforms.uBendUv.value = bendUv;
       object.reflectionMesh.material.uniforms.uBendUv.value = bendUv;
