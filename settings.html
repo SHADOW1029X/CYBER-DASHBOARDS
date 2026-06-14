@@ -194,28 +194,38 @@ th,
 
     /* ── BUTTONS ──────────────────────────────────────────────────── */
     .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-      padding: 8px 16px; border-radius: 2px; border: 1px solid var(--border-hi);
-      background: rgba(0,229,255,.04); color: var(--cyan);
-      font-family: 'Orbitron', monospace; font-size: .62rem; font-weight: 700;
-      letter-spacing: .14em; text-decoration: none; cursor: pointer;
-      transition: all .15s; white-space: nowrap;
+      position: relative; background: transparent;
+      border: 1px solid var(--border); border-radius: 2px;
+      padding: 7px 14px; font-family: 'Orbitron', monospace;
+      font-size: .57rem; font-weight: 700; letter-spacing: .14em;
+      cursor: pointer; transition: all .2s ease; white-space: nowrap;
+      clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
+      overflow: hidden; display: inline-flex; align-items: center;
+      justify-content: center; gap: 6px; text-decoration: none; color: var(--cyan);
     }
-    .btn:hover { background: rgba(0,229,255,.1); box-shadow: var(--glow-c); }
+    .btn::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent);
+      transform: translateX(-100%); transition: transform .3s ease;
+    }
+    .btn:hover::before { transform: translateX(100%); }
     .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-    .btn-amber  { color: var(--amber);  border-color: var(--amber-dim); background: rgba(255,179,0,.04); }
-    .btn-amber:hover  { background: rgba(255,179,0,.1); box-shadow: var(--glow-a); }
-    .btn-red    { color: var(--red);    border-color: var(--red-dim); background: rgba(255,59,92,.04); }
-    .btn-red:hover    { background: rgba(255,59,92,.1); box-shadow: var(--glow-r); }
-    .btn-cyan   { color: var(--cyan);   border-color: var(--border-hi); }
-    .btn-violet { color: var(--violet); border-color: var(--violet-dim); background: rgba(191,127,255,.04); }
-    .btn-violet:hover { background: rgba(191,127,255,.1); box-shadow: var(--glow-v); }
-    .btn-green  { color: var(--green);  border-color: var(--green-dim); background: rgba(0,255,157,.04); }
-    .btn-green:hover  { background: rgba(0,255,157,.1); box-shadow: var(--glow-g); }
-    .hdr-btn { padding: 8px 14px; }
+    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .hdr-btn { padding: 6px 13px; font-size: .55rem; letter-spacing: .12em; }
     @media (max-width: 860px) {
-      .hdr-btn { padding: 7px 10px; font-size: .56rem; }
+      .hdr-btn { padding: 7px 10px; font-size: .55rem; }
     }
+
+    .btn-cyan   { color: var(--cyan);   border-color: var(--cyan-dim); }
+    .btn-cyan:hover:not(:disabled)   { background: rgba(0,229,255,.08);   box-shadow: var(--glow-c); border-color: var(--cyan); }
+    .btn-amber  { color: var(--amber);  border-color: var(--amber-dim); }
+    .btn-amber:hover:not(:disabled)  { background: rgba(255,179,0,.08);   box-shadow: var(--glow-a); border-color: var(--amber); }
+    .btn-red    { color: var(--red);    border-color: var(--red-dim); }
+    .btn-red:hover:not(:disabled)    { background: rgba(255,59,92,.08);   box-shadow: var(--glow-r); border-color: var(--red); }
+    .btn-violet { color: var(--violet); border-color: var(--violet-dim); }
+    .btn-violet:hover:not(:disabled) { background: rgba(191,127,255,.08); box-shadow: var(--glow-v); border-color: var(--violet); }
+    .btn-green  { color: var(--green);  border-color: var(--green-dim); }
+    .btn-green:hover:not(:disabled)  { background: rgba(0,255,157,.08);   box-shadow: var(--glow-g); border-color: var(--green); }
 
     /* ── PANEL / SETTINGS CARD ────────────────────────────────────── */
     .settings-wrap {
@@ -336,6 +346,7 @@ th,
     <div class="header-right">
       <a href="dashboard.html" class="btn btn-cyan hdr-btn" title="Open Dashboard">⊞ DASHBOARD</a>
       <a href="NYTHERIX-ADMIN.html" class="btn btn-violet hdr-btn" title="Open NYTHERIX Admin">◈ NYTHERIX ADMIN</a>
+      <a href="settings.html" class="btn btn-amber hdr-btn" title="Account settings">⚙ SETTINGS</a>
       <button class="btn btn-red hdr-btn" id="logoutBtn" title="End session">⏻ DISCONNECT</button>
     </div>
   </header>
