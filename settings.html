@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CAPTURES // SETTINGS</title>
   <meta name="description" content="Capture Node Telemetry Dashboard — account settings.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev https://unpkg.com; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://unpkg.com; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="Referrer-Policy" content="no-referrer">
@@ -13,6 +13,14 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020810'/%3E%3Cpolygon points='16,2 30,9 30,23 16,30 2,23 2,9' fill='none' stroke='%2300e5ff' stroke-width='1.5'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-size='13' font-weight='bold' fill='%2300e5ff'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
   <style>
     /* ── DELTHA DISPLAY FONT ──────────────────────────────────────── */
     @font-face {
@@ -67,46 +75,63 @@
       font-family: 'Rajdhani', sans-serif; min-height: 100vh;
     }
 
-    /* ── BACKGROUND (Three.js trail system) ─────────────── */
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,229,255,.007) 3px, rgba(0,229,255,.007) 4px);
+    }
     #webgl-canvas {
       position: fixed; inset: 0; z-index: 0;
       width: 100%; height: 100%;
-      pointer-events: none; opacity: 0.92;
+      pointer-events: none; opacity: 1;
     }
     .bg-layer { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
     .bg-layer::before {
       content: ''; position: absolute; inset: 0;
       background:
-        linear-gradient(90deg, rgba(2,8,16,.98) 0%, rgba(2,8,16,.78) 34%, rgba(2,8,16,.22) 67%, rgba(2,8,16,.85) 100%),
-        radial-gradient(circle at 52% 54%, transparent 0%, rgba(0,0,0,.52) 70%, rgba(0,0,0,.78) 100%);
+        linear-gradient(90deg, rgba(2,8,16,.65) 0%, rgba(2,8,16,.35) 34%, rgba(2,8,16,.04) 67%, rgba(2,8,16,.35) 100%),
+        radial-gradient(circle at 52% 54%, transparent 0%, rgba(0,0,0,.18) 70%, rgba(0,0,0,.30) 100%);
     }
     .bg-layer::after {
-      content: ''; position: absolute; inset: 0; opacity: 0.05;
+      content: ''; position: absolute; inset: 0; opacity: .12;
       background-image:
-        linear-gradient(rgba(0,229,255,.7) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,229,255,.7) 1px, transparent 1px);
+        linear-gradient(rgba(0,229,255,.9) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,.9) 1px, transparent 1px);
       background-size: 44px 44px;
       mask-image: radial-gradient(circle at 63% 48%, black 0%, transparent 74%);
-      -webkit-mask-image: radial-gradient(circle at 63% 48%, black 0%, transparent 74%);
     }
-    .bg-noise {
-      position: fixed; inset: -50%; z-index: 2; pointer-events: none; opacity: 0.035;
+    .noise {
+      position: fixed; inset: -50%; z-index: 2; pointer-events: none;
+      opacity: .035;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 260 260' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      animation: bgGrain 9s steps(6) infinite; mix-blend-mode: overlay;
+      animation: grain 9s steps(6) infinite;
+      mix-blend-mode: overlay;
     }
-    @keyframes bgGrain { 0%,100%{transform:translate(0,0)} 16%{transform:translate(-3%,-4%)} 32%{transform:translate(4%,3%)} 48%{transform:translate(-2%,5%)} 64%{transform:translate(5%,-2%)} 80%{transform:translate(-4%,4%)} }
-    .bg-orbital {
-      position: fixed; right: -22vw; top: -22vw; width: 78vw; height: 78vw;
-      z-index: 3; border-radius: 999px;
-      border: 1px solid rgba(0,229,255,.06); pointer-events: none;
-      transform: rotate(-16deg);
-      box-shadow: inset 0 0 120px rgba(0,229,255,.025);
-      animation: bgRingDrift 18s ease-in-out infinite alternate;
+    @keyframes grain {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-4%, 3%); }
+      40% { transform: translate(3%, -5%); }
+      60% { transform: translate(-3%, -2%); }
+      80% { transform: translate(4%, 4%); }
     }
-    .bg-orbital::before, .bg-orbital::after { content: ''; position: absolute; border-radius: inherit; }
-    .bg-orbital::before { inset: 8%;  border: 1px solid rgba(0,229,255,.07); }
-    .bg-orbital::after  { inset: 18%; border: 1px solid rgba(0,255,157,.06); }
-    @keyframes bgRingDrift { from{transform:rotate(-16deg) scale(1)} to{transform:rotate(-8deg) scale(1.04)} }
+    #bg-grid {
+      position: fixed; bottom: 0; left: 50%; z-index: 0; pointer-events: none;
+      transform: translateX(-50%) rotateX(70deg); transform-origin: center bottom;
+      width: 260vw; height: 160vh;
+      background-image: linear-gradient(rgba(0,229,255,.06) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0,229,255,.06) 1px, transparent 1px);
+      background-size: 56px 56px; opacity: .55;
+    }
+    #bg-vignette {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      background: radial-gradient(ellipse 100% 100% at 50% 100%, transparent 30%, rgba(2,8,16,.42) 70%, rgba(2,8,16,.7) 100%);
+    }
+    #bg-glow {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 70vw; height: 2px; z-index: 1; pointer-events: none;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      filter: blur(1px); opacity: .7;
+      box-shadow: 0 0 110px 40px rgba(0,229,255,.2);
+    }
 
     /* ── LAYOUT ───────────────────────────────────────────────────── */
     :root { --layout-px: 24px; }
@@ -118,9 +143,9 @@
       padding: 22px var(--layout-px) 18px;
       gap: 16px; flex-wrap: nowrap;
       position: sticky; top: 0; z-index: 5000;
-      background: rgba(2,8,16,.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(2,8,16,.62);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       margin: 0 calc(var(--layout-px) * -1) 0;
     }
     /* pseudo border — avoids border-image + backdrop-filter Safari conflict */
@@ -203,7 +228,8 @@
     /* ── PANEL ────────────────────────────────────────────────── */
     .settings-wrap { max-width: 600px; margin: 48px auto 0; position: relative; z-index: 2; }
     .panel {
-      background: linear-gradient(135deg, var(--panel2) 0%, #040d18 100%);
+      background: linear-gradient(135deg, rgba(10,24,40,.5) 0%, rgba(4,13,24,.45) 100%);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--border-hi); border-radius: 3px;
       box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-c), inset 0 1px 0 rgba(0,229,255,.1);
       clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
@@ -212,7 +238,7 @@
     .panel-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 22px; border-bottom: 1px solid var(--border);
-      background: rgba(4,13,24,.7); position: relative;
+      background: rgba(4,13,24,.4); position: relative;
     }
     .panel-header::after {
       content: ''; position: absolute; bottom: 0; left: 5%; right: 5%; height: 1px;
@@ -226,7 +252,7 @@
     .panel-footer {
       padding: 14px 22px; border-top: 1px solid var(--border);
       display: flex; gap: 10px; justify-content: flex-end;
-      flex-wrap: wrap; background: rgba(4,13,24,.5);
+      flex-wrap: wrap; background: rgba(4,13,24,.3);
     }
 
     /* ── FORMS ─────────────────────────────────────────────────── */
@@ -237,7 +263,7 @@
       color: var(--cyan-dim); letter-spacing: .16em; text-transform: uppercase;
     }
     .field-input {
-      background: rgba(2,8,16,.8); border: 1px solid var(--border);
+      background: rgba(2,8,16,.55); border: 1px solid var(--border);
       border-radius: 2px; padding: 8px 11px; color: var(--text);
       font-family: 'Share Tech Mono', monospace; font-size: .76rem;
       outline: none; transition: border-color .2s, box-shadow .2s; width: 100%;
@@ -288,7 +314,8 @@
     /* ── TOASTS ────────────────────────────────────────────── */
     .toast-stack { position: fixed; bottom: 22px; right: 22px; z-index: 9500; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
     .toast {
-      background: var(--panel2); border-radius: 2px;
+      background: rgba(10,24,40,.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-radius: 2px;
       padding: 10px 18px; font-family: 'Share Tech Mono', monospace; font-size: .7rem;
       box-shadow: 0 6px 30px rgba(0,0,0,.8); animation: toastIn .25s ease forwards;
       pointer-events: none;
@@ -309,10 +336,14 @@
 </head>
 <body>
 
+<!-- WebGL interactive background -->
 <canvas id="webgl-canvas" aria-hidden="true"></canvas>
-<div class="bg-layer"   aria-hidden="true"></div>
-<div class="bg-noise"   aria-hidden="true"></div>
-<div class="bg-orbital" aria-hidden="true"></div>
+<div class="bg-layer" aria-hidden="true"></div>
+<div class="noise" aria-hidden="true"></div>
+
+<div id="bg-grid"     aria-hidden="true"></div>
+<div id="bg-vignette" aria-hidden="true"></div>
+<div id="bg-glow"     aria-hidden="true"></div>
 
 <div class="layout">
 
@@ -578,195 +609,461 @@ document.querySelectorAll('.field-input').forEach(inp => {
 });
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script type="importmap">
-  { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
-</script>
+<!-- ════════════════════ INTERACTIVE WEBGL BACKGROUND ════════════════════ -->
 <script type="module">
-import * as THREE from "three";
-import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-import { RenderPass }     from "three/addons/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-import { ShaderPass }     from "three/addons/postprocessing/ShaderPass.js";
-import { OutputPass }     from "three/addons/postprocessing/OutputPass.js";
+  import * as THREE from "three";
+  import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+  import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+  import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+  import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+  import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
-let scene, camera, renderer, composer, bloomPass, blurPass, floorMesh;
-const clock = new THREE.Clock();
-let globalTime = 0;
-const trailObjects = [], trailMaterials = [];
-const pointer = new THREE.Vector2(0,0), easedPointer = new THREE.Vector2(0,0);
+  let scene;
+  let camera;
+  let renderer;
+  let composer;
+  let bloomPass;
+  let blurPass;
+  let outputPass;
+  let floorMesh;
 
-const cfg = {
-  dpr: Math.min(window.devicePixelRatio||1, 1.6),
-  exposure: 2.2, brightness: 2.4,
-  bloomStrength: 0.38, bloomRadius: 0.52, bloomThreshold: 0.02,
-  speedMultiplier: 0.09, linesCount: 100,
-  dotDensity: 70, dotSize: 0.18, dotSpeed: 1.4, blurStrength: 4.0,
-  arcRadius: 15.5, bendStartZ: -126.0, floorLength: 148.0, wallHeight: 205.0,
-  color1: "#bf7fff", color2: "#00e5ff", color3: "#ffb300", color4: "#00ff9d", color5: "#b0d4e8"
-};
+  const clock = new THREE.Clock();
+  let globalTime = 0;
+  const trailObjects = [];
+  const trailMaterials = [];
 
-class PerformanceCurve extends THREE.Curve {
-  constructor(x, zStart, zBend, radius, yEnd) {
-    super();
-    this.x=x; this.zStart=zStart; this.zBend=zBend; this.radius=radius; this.yEnd=yEnd;
-    this.L_flat=Math.abs(zStart-(zBend+radius));
-    this.L_arc=Math.PI*radius*0.5;
-    this.L_up=Math.max(0.1,yEnd-radius);
-    this.totalLength=this.L_flat+this.L_arc+this.L_up;
-  }
-  getPoint(t, out=new THREE.Vector3()) {
-    const d=t*this.totalLength; let py=0, pz=0;
-    if(d<=this.L_flat){ pz=this.zStart-d; }
-    else if(d<=this.L_flat+this.L_arc){
-      const n=(d-this.L_flat)/this.L_arc, e=n*n*(3-2*n), a=(n*0.36+e*0.64)*Math.PI*0.5;
-      py=this.radius*(1-Math.cos(a)); pz=(this.zBend+this.radius)-Math.sin(a)*this.radius;
-    } else { py=this.radius+(d-(this.L_flat+this.L_arc)); pz=this.zBend; }
-    return out.set(this.x, py, pz);
-  }
-}
+  const pointer = new THREE.Vector2(0, 0);
+  const easedPointer = new THREE.Vector2(0, 0);
 
-const vertexShader=`
-  varying vec2 vUv; varying vec3 vNormal,vViewPosition;
-  void main(){
-    vUv=uv; vNormal=normalMatrix*normal;
-    vec4 mv=modelViewMatrix*vec4(position,1.0); vViewPosition=-mv.xyz;
-    gl_Position=projectionMatrix*mv;
-  }`;
-
-const fragmentShader=`
-  varying vec2 vUv; varying vec3 vNormal,vViewPosition;
-  uniform float uTime,uSpeed,uOffset,uTailLength,uIntensityMultiplier,uBendUv,uIsReflection,uDotDensity,uDotSize,uDotSpeed,uBrightness;
-  uniform vec3 uColor;
-  float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
-  void main(){
-    float t=fract(uTime*uSpeed+uOffset);
-    float dist=fract(t-vUv.x+1.0);
-    float baseAlpha=pow(max(0.0,smoothstep(uTailLength,0.0,dist)),1.22);
-    baseAlpha*=smoothstep(0.0,0.025,abs(dot(normalize(vNormal),normalize(vViewPosition))));
-    float core=pow(max(0.0,baseAlpha),3.2)*1.35;
-    float sp=(vUv.x-(uTime*uSpeed*uDotSpeed)-uOffset)*uDotDensity;
-    float dotId=floor(sp),dotLocal=fract(sp);
-    float dotShape=length(vec2((dotLocal-0.5)*2.0,(fract(vUv.y+0.5)-0.5)*6.0));
-    float dotFinal=(1.0-smoothstep(0.0,max(0.001,uDotSize),dotShape))*step(0.62,hash(vec2(dotId,uOffset)))*(sin(uTime*4.0+hash(vec2(dotId))*6.28)*0.28+0.72)*baseAlpha;
-    if(uIsReflection>0.5){
-      float rf=1.0-smoothstep(uBendUv-0.015,uBendUv,vUv.x);
-      baseAlpha*=rf; core*=rf; dotFinal*=rf*0.08;
-      baseAlpha=pow(max(0.0,baseAlpha),0.55)*(0.58+hash(vUv*210.0+uTime*0.05)*0.42); core*=0.28;
-    }
-    vec3 tc=uColor*(baseAlpha+core*1.45)*uIntensityMultiplier*uBrightness;
-    vec3 rgb=tc/max(1.0-clamp(dotFinal*1.75,0.0,0.94),0.001)+uColor*dotFinal*2.25*uIntensityMultiplier*uBrightness;
-    gl_FragColor=vec4(rgb,(baseAlpha+dotFinal)*uIntensityMultiplier);
-  }`;
-
-function init(){
-  const canvas=document.getElementById("webgl-canvas");
-  scene=new THREE.Scene(); scene.background=new THREE.Color(0x020810);
-  camera=new THREE.PerspectiveCamera(54,window.innerWidth/window.innerHeight,1,2000);
-  camera.position.set(0,16,132); camera.lookAt(0,26,-62);
-  renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:"high-performance"});
-  renderer.setSize(window.innerWidth,window.innerHeight);
-  renderer.setPixelRatio(cfg.dpr);
-  renderer.toneMapping=THREE.LinearToneMapping;
-  renderer.toneMappingExposure=cfg.exposure;
-  const rt=new THREE.WebGLRenderTarget(window.innerWidth*cfg.dpr,window.innerHeight*cfg.dpr,{type:THREE.HalfFloatType,format:THREE.RGBAFormat});
-  const blurShader={
-    uniforms:{tDiffuse:{value:null},resolution:{value:new THREE.Vector2(window.innerWidth*cfg.dpr,window.innerHeight*cfg.dpr)},blurStrength:{value:cfg.blurStrength}},
-    vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
-    fragmentShader:`uniform sampler2D tDiffuse;uniform vec2 resolution;uniform float blurStrength;varying vec2 vUv;
-      void main(){float mask=1.0-smoothstep(0.0,0.58,vUv.y);float radius=mask*blurStrength;
-        if(radius<0.1){gl_FragColor=texture2D(tDiffuse,vUv);}
-        else{vec4 color=vec4(0.0);float total=0.0;const float ga=2.3999632;
-          for(int i=0;i<30;i++){float f=float(i);float r=sqrt(f)*radius;float theta=f*ga;
-            color+=texture2D(tDiffuse,vUv+vec2(cos(theta),sin(theta))*(r/resolution));total+=1.0;}
-          gl_FragColor=color/total;}}`
+  const config = {
+    dpr: Math.min(window.devicePixelRatio || 1, 1.6),
+    exposure: 3.6,
+    brightness: 3.9,
+    bloomStrength: 0.78,
+    bloomRadius: 0.7,
+    bloomThreshold: 0.0,
+    speedMultiplier: 0.105,
+    linesCount: 140,
+    dotDensity: 74,
+    dotSize: 0.19,
+    dotSpeed: 1.45,
+    blurStrength: 4.2,
+    arcRadius: 15.5,
+    bendStartZ: -126.0,
+    floorLength: 148.0,
+    wallHeight: 205.0,
+    color0: "#020810",
+    color1: "#ffb300",
+    color2: "#00e5ff",
+    color3: "#bf7fff",
+    color4: "#00ff9d",
+    color5: "#b0d4e8"
   };
-  composer=new EffectComposer(renderer,rt);
-  composer.setPixelRatio(cfg.dpr);
-  composer.addPass(new RenderPass(scene,camera));
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth,window.innerHeight),cfg.bloomStrength,cfg.bloomRadius,cfg.bloomThreshold));
-  blurPass=new ShaderPass(blurShader); composer.addPass(blurPass); composer.addPass(new OutputPass());
 
-  const floorMat=new THREE.MeshBasicMaterial({color:0x020810,transparent:true,opacity:0.96,depthWrite:false,side:THREE.DoubleSide});
-  floorMesh=new THREE.Mesh(new THREE.BufferGeometry(),floorMat);
-  floorMesh.position.set(0,-0.5,-0.5); floorMesh.renderOrder=1; scene.add(floorMesh);
+  class PerformanceCurve extends THREE.Curve {
+    constructor(x, zStart, zBend, radius, yEnd) {
+      super();
+      this.x = x;
+      this.zStart = zStart;
+      this.zBend = zBend;
+      this.radius = radius;
+      this.yEnd = yEnd;
+      this.L_flat = Math.abs(zStart - (zBend + radius));
+      this.L_arc = Math.PI * radius * 0.5;
+      this.L_up = Math.max(0.1, yEnd - radius);
+      this.totalLength = this.L_flat + this.L_arc + this.L_up;
+    }
 
-  const group=new THREE.Group(); scene.add(group);
-  const colors=[cfg.color1,cfg.color2,cfg.color3,cfg.color4,cfg.color5];
-  for(let i=0;i<cfg.linesCount;i++){
-    const norm=(i/(cfg.linesCount-1))*2-1;
-    const eased=Math.sign(norm)*Math.pow(Math.abs(norm),1.28);
-    const startX=(norm*0.34+eased*0.66)*92+(Math.random()-0.5)*2.8;
-    const thickness=Math.random()*0.18+0.06;
-    const roll=Math.random();
-    const ci=roll<0.36?1:roll<0.62?2:roll<0.80?3:roll<0.93?0:4;
-    const uniforms={
-      uTime:{value:0},uColor:{value:new THREE.Color(colors[ci])},
-      uSpeed:{value:Math.random()*0.46+0.22},uOffset:{value:Math.random()},
-      uTailLength:{value:Math.random()*0.36+0.28},uIntensityMultiplier:{value:1.0},
-      uBendUv:{value:0.0},uIsReflection:{value:0.0},
-      uDotDensity:{value:cfg.dotDensity},uDotSize:{value:cfg.dotSize},
-      uDotSpeed:{value:cfg.dotSpeed},uBrightness:{value:cfg.brightness}
-    };
-    const mat=new THREE.ShaderMaterial({vertexShader,fragmentShader,uniforms,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
-    const mesh=new THREE.Mesh(new THREE.BufferGeometry(),mat);
-    const rMat=mat.clone();
-    rMat.uniforms.uIntensityMultiplier.value=0.22; rMat.uniforms.uIsReflection.value=1.0;
-    const rMesh=new THREE.Mesh(new THREE.BufferGeometry(),rMat);
-    rMesh.scale.y=-1; rMesh.position.y=-1.0;
-    group.add(mesh,rMesh);
-    trailMaterials.push(mat.uniforms,rMat.uniforms);
-    trailObjects.push({mesh,reflectionMesh:rMesh,startX,thickness});
-  }
-  updateGeometries();
-  window.addEventListener("resize",onResize);
-  window.addEventListener("pointermove",e=>{pointer.x=(e.clientX/window.innerWidth)*2-1;pointer.y=(e.clientY/window.innerHeight)*2-1;},{passive:true});
-}
+    getPoint(t, output = new THREE.Vector3()) {
+      const d = t * this.totalLength;
+      let py = 0;
+      let pz = 0;
 
-function updateGeometries(){
-  if(floorMesh.geometry) floorMesh.geometry.dispose();
-  const fg=new THREE.PlaneGeometry(1000,1000,1,1500); fg.rotateX(-Math.PI*0.5);
-  const pos=fg.attributes.position.array;
-  for(let i=0;i<pos.length;i+=3){
-    if(pos[i+2]<cfg.bendStartZ){
-      const dist=cfg.bendStartZ-pos[i+2], maxArc=cfg.arcRadius*Math.PI*0.5;
-      if(dist<maxArc){const n=dist/maxArc,e=n*n*(3-2*n),a=(n*0.36+e*0.64)*Math.PI*0.5;pos[i+1]=cfg.arcRadius*(1-Math.cos(a));pos[i+2]=cfg.bendStartZ-Math.sin(a)*cfg.arcRadius;}
-      else{pos[i+1]=cfg.arcRadius+(dist-maxArc);pos[i+2]=cfg.bendStartZ-cfg.arcRadius;}
+      if (d <= this.L_flat) {
+        pz = this.zStart - d;
+      } else if (d <= this.L_flat + this.L_arc) {
+        const n = (d - this.L_flat) / this.L_arc;
+        const e = n * n * (3 - 2 * n);
+        const a = (n * 0.36 + e * 0.64) * Math.PI * 0.5;
+        py = this.radius * (1 - Math.cos(a));
+        pz = (this.zBend + this.radius) - Math.sin(a) * this.radius;
+      } else {
+        py = this.radius + (d - (this.L_flat + this.L_arc));
+        pz = this.zBend;
+      }
+
+      return output.set(this.x, py, pz);
     }
   }
-  fg.computeVertexNormals(); floorMesh.geometry=fg;
-  const bendUv=Math.abs(cfg.floorLength-cfg.bendStartZ)/(Math.abs(cfg.floorLength-cfg.bendStartZ)+Math.PI*cfg.arcRadius*0.5+Math.max(0.1,cfg.wallHeight-cfg.arcRadius));
-  trailObjects.forEach(obj=>{
-    const path=new PerformanceCurve(obj.startX,cfg.floorLength,cfg.bendStartZ-cfg.arcRadius,cfg.arcRadius,cfg.wallHeight);
-    const geo=new THREE.TubeGeometry(path,210,obj.thickness,8,false);
-    if(obj.mesh.geometry) obj.mesh.geometry.dispose();
-    obj.mesh.geometry=obj.reflectionMesh.geometry=geo;
-    obj.mesh.material.uniforms.uBendUv.value=bendUv;
-    obj.reflectionMesh.material.uniforms.uBendUv.value=bendUv;
-  });
-}
 
-function onResize(){
-  cfg.dpr=Math.min(window.devicePixelRatio||1,1.6);
-  camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix();
-  renderer.setPixelRatio(cfg.dpr); renderer.setSize(window.innerWidth,window.innerHeight);
-  composer.setPixelRatio(cfg.dpr); composer.setSize(window.innerWidth,window.innerHeight);
-  blurPass.uniforms.resolution.value.set(window.innerWidth*cfg.dpr,window.innerHeight*cfg.dpr);
-}
+  init();
+  animate();
 
-function animate(){
-  requestAnimationFrame(animate);
-  const delta=clock.getDelta(); globalTime+=delta*cfg.speedMultiplier;
-  trailMaterials.forEach(u=>{u.uTime.value=globalTime;});
-  easedPointer.lerp(pointer,0.035);
-  camera.position.x=easedPointer.x*7;
-  camera.position.y=16-easedPointer.y*3.5;
-  camera.lookAt(easedPointer.x*4,26,-62);
-  composer.render();
-}
+  function init() {
+    const canvas = document.querySelector("#webgl-canvas");
 
-init(); animate();
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+
+    camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 1, 2000);
+    camera.position.set(0, 16, 132);
+    camera.lookAt(0, 26, -62);
+
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      powerPreference: "high-performance"
+    });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(config.dpr);
+    renderer.toneMapping = THREE.LinearToneMapping;
+    renderer.toneMappingExposure = config.exposure;
+
+    const renderTarget = new THREE.WebGLRenderTarget(
+      window.innerWidth * config.dpr,
+      window.innerHeight * config.dpr,
+      {
+        type: THREE.HalfFloatType,
+        format: THREE.RGBAFormat
+      }
+    );
+
+    const renderScene = new RenderPass(scene, camera);
+
+    bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      config.bloomStrength,
+      config.bloomRadius,
+      config.bloomThreshold
+    );
+
+    const blurShader = {
+      uniforms: {
+        tDiffuse: { value: null },
+        resolution: { value: new THREE.Vector2(window.innerWidth * config.dpr, window.innerHeight * config.dpr) },
+        blurStrength: { value: config.blurStrength }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform vec2 resolution;
+        uniform float blurStrength;
+        varying vec2 vUv;
+
+        void main() {
+          float mask = 1.0 - smoothstep(0.0, 0.58, vUv.y);
+          float radius = mask * blurStrength;
+
+          if (radius < 0.1) {
+            gl_FragColor = texture2D(tDiffuse, vUv);
+          } else {
+            vec4 color = vec4(0.0);
+            float total = 0.0;
+            const float goldenAngle = 2.3999632;
+
+            for (int i = 0; i < 30; i++) {
+              float f = float(i);
+              float r = sqrt(f) * radius;
+              float theta = f * goldenAngle;
+              vec2 offset = vec2(cos(theta), sin(theta)) * (r / resolution);
+              color += texture2D(tDiffuse, vUv + offset);
+              total += 1.0;
+            }
+
+            gl_FragColor = color / total;
+          }
+        }
+      `
+    };
+
+    blurPass = new ShaderPass(blurShader);
+    outputPass = new OutputPass();
+
+    composer = new EffectComposer(renderer, renderTarget);
+    composer.setPixelRatio(config.dpr);
+    composer.addPass(renderScene);
+    composer.addPass(bloomPass);
+    composer.addPass(blurPass);
+    composer.addPass(outputPass);
+
+    createFloor();
+    generateTrails();
+    updateGeometries();
+
+    window.addEventListener("resize", onWindowResize);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+  }
+
+  function createFloor() {
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x000000,
+      transparent: true,
+      opacity: 0.965,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+
+    floorMesh = new THREE.Mesh(new THREE.BufferGeometry(), material);
+    floorMesh.position.set(0, -0.5, -0.5);
+    floorMesh.renderOrder = 1;
+    scene.add(floorMesh);
+  }
+
+  function generateTrails() {
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const vertexShader = `
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vViewPosition;
+
+      void main() {
+        vUv = uv;
+        vNormal = normalMatrix * normal;
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vViewPosition = -mv.xyz;
+        gl_Position = projectionMatrix * mv;
+      }
+    `;
+
+    const fragmentShader = `
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vViewPosition;
+
+      uniform float uTime;
+      uniform vec3 uColor;
+      uniform float uSpeed;
+      uniform float uOffset;
+      uniform float uTailLength;
+      uniform float uIntensityMultiplier;
+      uniform float uBendUv;
+      uniform float uIsReflection;
+      uniform float uDotDensity;
+      uniform float uDotSize;
+      uniform float uDotSpeed;
+      uniform float uBrightness;
+
+      float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+      }
+
+      void main() {
+        float t = fract(uTime * uSpeed + uOffset);
+        float dist = fract(t - vUv.x + 1.0);
+
+        float baseAlpha = smoothstep(uTailLength, 0.0, dist);
+        baseAlpha = pow(max(0.0, baseAlpha), 1.22);
+
+        vec3 viewDir = normalize(vViewPosition);
+        float fresnel = abs(dot(normalize(vNormal), viewDir));
+        float edgeSoftener = smoothstep(0.0, 0.025, fresnel);
+        baseAlpha *= edgeSoftener;
+
+        float core = pow(max(0.0, baseAlpha), 3.2) * 1.35;
+
+        float movingUv = vUv.x - (uTime * uSpeed * uDotSpeed) - uOffset;
+        float sp = movingUv * uDotDensity;
+        float dotId = floor(sp);
+        float dotLocal = fract(sp);
+
+        float dotShape = length(vec2(
+          (dotLocal - 0.5) * 2.0,
+          (fract(vUv.y + 0.5) - 0.5) * 6.0
+        ));
+
+        float dotMask = 1.0 - smoothstep(0.0, max(0.001, uDotSize), dotShape);
+        float dotRand = step(0.62, hash(vec2(dotId, uOffset)));
+        float dotPulse = sin(uTime * 4.0 + hash(vec2(dotId)) * 6.28) * 0.28 + 0.72;
+        float dotFinal = dotMask * dotRand * dotPulse * baseAlpha;
+
+        if (uIsReflection > 0.5) {
+          float reflectionFade = 1.0 - smoothstep(uBendUv - 0.015, uBendUv, vUv.x);
+          baseAlpha *= reflectionFade;
+          core *= reflectionFade;
+          dotFinal *= reflectionFade * 0.08;
+
+          baseAlpha = pow(max(0.0, baseAlpha), 0.55) *
+            (0.58 + hash(vUv * 210.0 + uTime * 0.05) * 0.42);
+
+          core *= 0.28;
+        }
+
+        vec3 trailColor = uColor * (baseAlpha + core * 1.45) * uIntensityMultiplier * uBrightness;
+        vec3 rgb = trailColor / max(1.0 - clamp(dotFinal * 1.75, 0.0, 0.94), 0.001)
+          + uColor * dotFinal * 2.25 * uIntensityMultiplier * uBrightness;
+
+        gl_FragColor = vec4(rgb, (baseAlpha + dotFinal) * uIntensityMultiplier);
+      }
+    `;
+
+    for (let i = 0; i < config.linesCount; i++) {
+      const normalized = (i / (config.linesCount - 1)) * 2 - 1;
+      const eased = Math.sign(normalized) * Math.pow(Math.abs(normalized), 1.28);
+
+      let startX = (normalized * 0.34 + eased * 0.66) * 92;
+      startX += (Math.random() - 0.5) * 2.8;
+
+      const thickness = Math.random() * 0.18 + 0.06;
+
+      let colorIndex;
+      const colorRoll = Math.random();
+
+      if (colorRoll < 0.36) colorIndex = 2;
+      else if (colorRoll < 0.62) colorIndex = 3;
+      else if (colorRoll < 0.80) colorIndex = 4;
+      else if (colorRoll < 0.93) colorIndex = 1;
+      else colorIndex = 5;
+
+      const uniforms = {
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Color(config[`color${colorIndex}`]) },
+        uSpeed: { value: Math.random() * 0.46 + 0.22 },
+        uOffset: { value: Math.random() },
+        uTailLength: { value: Math.random() * 0.36 + 0.28 },
+        uIntensityMultiplier: { value: 1.0 },
+        uBendUv: { value: 0.0 },
+        uIsReflection: { value: 0.0 },
+        uDotDensity: { value: config.dotDensity },
+        uDotSize: { value: config.dotSize },
+        uDotSpeed: { value: config.dotSpeed },
+        uBrightness: { value: config.brightness }
+      };
+
+      const material = new THREE.ShaderMaterial({
+        vertexShader,
+        fragmentShader,
+        uniforms,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+
+      const mesh = new THREE.Mesh(new THREE.BufferGeometry(), material);
+
+      const reflectionMaterial = material.clone();
+      reflectionMaterial.uniforms.uIntensityMultiplier.value = 0.22;
+      reflectionMaterial.uniforms.uIsReflection.value = 1.0;
+
+      const reflectionMesh = new THREE.Mesh(new THREE.BufferGeometry(), reflectionMaterial);
+      reflectionMesh.scale.y = -1;
+      reflectionMesh.position.y = -1.0;
+
+      group.add(mesh, reflectionMesh);
+
+      trailMaterials.push(material.uniforms, reflectionMaterial.uniforms);
+      trailObjects.push({ mesh, reflectionMesh, startX, thickness });
+    }
+  }
+
+  function updateGeometries() {
+    if (floorMesh.geometry) floorMesh.geometry.dispose();
+
+    const floorGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1500);
+    floorGeometry.rotateX(-Math.PI * 0.5);
+
+    const positions = floorGeometry.attributes.position.array;
+
+    for (let i = 0; i < positions.length; i += 3) {
+      if (positions[i + 2] < config.bendStartZ) {
+        const distance = config.bendStartZ - positions[i + 2];
+        const maxArc = config.arcRadius * Math.PI * 0.5;
+
+        if (distance < maxArc) {
+          const n = distance / maxArc;
+          const eased = n * n * (3 - 2 * n);
+          const angle = (n * 0.36 + eased * 0.64) * Math.PI * 0.5;
+
+          positions[i + 1] = config.arcRadius * (1 - Math.cos(angle));
+          positions[i + 2] = config.bendStartZ - Math.sin(angle) * config.arcRadius;
+        } else {
+          positions[i + 1] = config.arcRadius + (distance - maxArc);
+          positions[i + 2] = config.bendStartZ - config.arcRadius;
+        }
+      }
+    }
+
+    floorGeometry.computeVertexNormals();
+    floorMesh.geometry = floorGeometry;
+
+    const bendUv = Math.abs(config.floorLength - config.bendStartZ) /
+      (
+        Math.abs(config.floorLength - config.bendStartZ) +
+        Math.PI * config.arcRadius * 0.5 +
+        Math.max(0.1, config.wallHeight - config.arcRadius)
+      );
+
+    trailObjects.forEach((object) => {
+      const path = new PerformanceCurve(
+        object.startX,
+        config.floorLength,
+        config.bendStartZ - config.arcRadius,
+        config.arcRadius,
+        config.wallHeight
+      );
+
+      const geometry = new THREE.TubeGeometry(path, 210, object.thickness, 8, false);
+
+      if (object.mesh.geometry) object.mesh.geometry.dispose();
+
+      object.mesh.geometry = geometry;
+      object.reflectionMesh.geometry = geometry;
+
+      object.mesh.material.uniforms.uBendUv.value = bendUv;
+      object.reflectionMesh.material.uniforms.uBendUv.value = bendUv;
+    });
+  }
+
+  function onPointerMove(event) {
+    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = (event.clientY / window.innerHeight) * 2 - 1;
+  }
+
+  function onWindowResize() {
+    config.dpr = Math.min(window.devicePixelRatio || 1, 1.6);
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setPixelRatio(config.dpr);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    composer.setPixelRatio(config.dpr);
+    composer.setSize(window.innerWidth, window.innerHeight);
+
+    blurPass.uniforms.resolution.value.set(
+      window.innerWidth * config.dpr,
+      window.innerHeight * config.dpr
+    );
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const delta = clock.getDelta();
+    globalTime += delta * config.speedMultiplier;
+
+    trailMaterials.forEach((materialUniforms) => {
+      materialUniforms.uTime.value = globalTime;
+    });
+
+    easedPointer.lerp(pointer, 0.035);
+
+    camera.position.x = easedPointer.x * 7;
+    camera.position.y = 16 - easedPointer.y * 3.5;
+    camera.lookAt(easedPointer.x * 4, 26, -62);
+
+    composer.render();
+  }
 </script>
-
 </body>
 </html>
