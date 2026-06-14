@@ -85,8 +85,8 @@
     .bg-layer::before {
       content: ''; position: absolute; inset: 0;
       background:
-        linear-gradient(90deg, rgba(2,8,16,.65) 0%, rgba(2,8,16,.35) 34%, rgba(2,8,16,.04) 67%, rgba(2,8,16,.35) 100%),
-        radial-gradient(circle at 52% 54%, transparent 0%, rgba(0,0,0,.18) 70%, rgba(0,0,0,.30) 100%);
+        linear-gradient(90deg, rgba(2,8,16,.82) 0%, rgba(2,8,16,.55) 34%, rgba(2,8,16,.18) 67%, rgba(2,8,16,.55) 100%),
+        radial-gradient(circle at 52% 54%, transparent 0%, rgba(0,0,0,.38) 70%, rgba(0,0,0,.58) 100%);
     }
     .bg-layer::after {
       content: ''; position: absolute; inset: 0; opacity: .12;
@@ -912,17 +912,17 @@ document.addEventListener('visibilitychange', () => {
 
   const config = {
     dpr: Math.min(window.devicePixelRatio || 1, 1.6),
-    exposure: 2.6,
-    brightness: 3.0,
-    bloomStrength: 0.78,
-    bloomRadius: 0.7,
+    exposure: 2.0,
+    brightness: 2.2,
+    bloomStrength: 0.28,
+    bloomRadius: 0.32,
     bloomThreshold: 0.02,
     speedMultiplier: 0.105,
     linesCount: window.innerWidth < 768 ? 60 : 110,
     dotDensity: 74,
     dotSize: 0.19,
     dotSpeed: 1.45,
-    blurStrength: 4.2,
+    blurStrength: 1.8,
     arcRadius: 15.5,
     bendStartZ: -126.0,
     floorLength: 148.0,
