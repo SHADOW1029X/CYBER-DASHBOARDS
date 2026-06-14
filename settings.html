@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CAPTURES // SETTINGS</title>
   <meta name="description" content="Capture Node Telemetry Dashboard — account settings.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src data: blob:; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="Referrer-Policy" content="no-referrer">
@@ -16,13 +16,11 @@
   <style>
     /* ── DELTHA DISPLAY FONT ──────────────────────────────────────── */
     @font-face {
-  font-family: 'Deltha';
-  src: url('./Deltha.otf') format('opentype'),
-       url('./Deltha.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+      font-family: 'Deltha';
+      src: url('./Deltha.otf') format('opentype'),
+           url('./Deltha.ttf') format('truetype');
+      font-weight: normal; font-style: normal; font-display: swap;
+    }
 
     :root {
       --bg:         #020810;
@@ -53,62 +51,37 @@
       --font-deltha: 'Deltha', monospace;
     }
 
-    .logo-top,
-.panel-title,
-.btn,
-.tab-btn,
-.stat-value,
-.query-box-title,
-.modal-title,
-th,
-.sql-result-table th,
-.page-btn {
-  font-family: var(--font-deltha) !important;
-}
+    .logo-top, .panel-title, .btn, .tab-btn, .stat-value,
+    .query-box-title, .modal-title, th, .sql-result-table th, .page-btn {
+      font-family: var(--font-deltha) !important;
+    }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html {
-      scrollbar-width: thin;
-      scrollbar-color: var(--cyan-dim) var(--bg2);
-      overflow-x: hidden;
-    }
+    html { scrollbar-width: thin; scrollbar-color: var(--cyan-dim) var(--bg2); overflow-x: hidden; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg2); }
     ::-webkit-scrollbar-thumb { background: var(--cyan-dim); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
-
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      min-height: 100vh;
+      background: var(--bg); color: var(--text);
+      font-family: 'Rajdhani', sans-serif; min-height: 100vh;
     }
 
     body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 9998; pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg, transparent, transparent 3px,
-        rgba(0,229,255,.007) 3px, rgba(0,229,255,.007) 4px
-      );
+      content: ''; position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,229,255,.007) 3px, rgba(0,229,255,.007) 4px);
     }
     #bg-grid {
       position: fixed; bottom: 0; left: 50%; z-index: 0; pointer-events: none;
-      transform: translateX(-50%) rotateX(70deg);
-      transform-origin: center bottom;
+      transform: translateX(-50%) rotateX(70deg); transform-origin: center bottom;
       width: 260vw; height: 160vh;
-      background-image:
-        linear-gradient(rgba(0,229,255,.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,229,255,.06) 1px, transparent 1px);
-      background-size: 56px 56px;
-      opacity: .55;
+      background-image: linear-gradient(rgba(0,229,255,.06) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0,229,255,.06) 1px, transparent 1px);
+      background-size: 56px 56px; opacity: .55;
     }
     #bg-vignette {
       position: fixed; inset: 0; z-index: 1; pointer-events: none;
-      background: radial-gradient(ellipse 100% 100% at 50% 100%,
-        transparent 20%, rgba(2,8,16,.82) 65%, rgba(2,8,16,.99) 100%
-      );
+      background: radial-gradient(ellipse 100% 100% at 50% 100%, transparent 20%, rgba(2,8,16,.82) 65%, rgba(2,8,16,.99) 100%);
     }
     #bg-glow {
       position: fixed; top: 0; left: 50%; transform: translateX(-50%);
@@ -118,58 +91,43 @@ th,
     }
 
     /* ── LAYOUT ───────────────────────────────────────────────────── */
-    .layout {
-      position: relative; z-index: 2;
-      max-width: 1760px; margin: 0 auto;
-      padding: 0 24px 80px;
-    }
+    .layout { position: relative; z-index: 2; max-width: 1760px; margin: 0 auto; padding: 0 24px 80px; }
 
-    /* ══════════════════════════════════════════════════════════════
-       NAVBAR (fixed, not affected by scrolling)
-    ══════════════════════════════════════════════════════════════ */
+    /* ── NAVBAR ───────────────────────────────────────────────────── */
     header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 22px 24px 18px;
       border-bottom: 1px solid transparent;
       border-image: linear-gradient(90deg, transparent, var(--border-hi) 20%, var(--cyan-dim) 50%, var(--border-hi) 80%, transparent) 1;
-      gap: 16px; flex-wrap: wrap;
+      gap: 16px; flex-wrap: nowrap;
       position: sticky; top: 0; z-index: 5000;
-      background: rgba(2,8,16,.86);
-      backdrop-filter: blur(8px);
+      background: rgba(2,8,16,.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       margin: 0 -24px 0;
     }
     header::after {
-      content: '';
-      position: absolute; bottom: -1px; left: -5%; right: -5%; height: 1px;
+      content: ''; position: absolute; bottom: -1px; left: -5%; right: -5%; height: 1px;
       background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-      animation: headerScan 4s ease-in-out infinite;
-      opacity: .4;
+      animation: headerScan 4s ease-in-out infinite; opacity: .4;
     }
-    @keyframes headerScan {
-      0%,100% { transform: scaleX(0); opacity: 0; }
-      50%      { transform: scaleX(1); opacity: .5; }
-    }
+    @keyframes headerScan { 0%,100%{transform:scaleX(0);opacity:0} 50%{transform:scaleX(1);opacity:.5} }
+    @media (max-width: 860px) { header { flex-wrap: wrap; } .header-right { gap: 7px; flex-wrap: wrap; } }
 
     .logo-block { display: flex; flex-direction: column; gap: 3px; }
-
     .logo-top {
-      font-family: var(--font-deltha);
-      font-weight: 900;
+      font-family: var(--font-deltha); font-weight: 900;
       font-size: clamp(1.3rem, 3vw, 1.75rem);
       color: var(--cyan); text-shadow: var(--glow-c);
       letter-spacing: .18em; line-height: 1;
       display: flex; align-items: center; gap: 12px;
     }
-
     .logo-favicon {
-      display: inline-block;
-      width: 32px; height: 32px;
-      object-fit: contain;
-      flex-shrink: 0;
+      display: inline-block; width: 32px; height: 32px;
+      object-fit: contain; flex-shrink: 0;
       filter: drop-shadow(0 0 6px rgba(0,229,255,.6));
       image-rendering: crisp-edges;
     }
-
     .logo-sub {
       font-family: 'Share Tech Mono', monospace;
       font-size: clamp(.58rem, 1.2vw, .68rem);
@@ -177,31 +135,22 @@ th,
       display: flex; align-items: center; gap: 8px;
     }
     .logo-sub::before {
-      content: '';
-      display: inline-block; width: 18px; height: 1px;
+      content: ''; display: inline-block; width: 18px; height: 1px;
       background: linear-gradient(90deg, transparent, var(--cyan-dim));
     }
-
-    .header-right {
-      display: flex; align-items: center; gap: 10px;
-      flex-shrink: 0;
-    }
-    header { flex-wrap: nowrap; }
-    @media (max-width: 860px) {
-      header { flex-wrap: wrap; }
-      .header-right { gap: 7px; }
-    }
+    .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
     /* ── BUTTONS ──────────────────────────────────────────────────── */
     .btn {
       position: relative; background: transparent;
       border: 1px solid var(--border); border-radius: 2px;
-      padding: 7px 14px; font-family: 'Orbitron', monospace;
+      padding: 7px 14px; font-family: var(--font-deltha);
       font-size: .57rem; font-weight: 700; letter-spacing: .14em;
       cursor: pointer; transition: all .2s ease; white-space: nowrap;
       clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
       overflow: hidden; display: inline-flex; align-items: center;
       justify-content: center; gap: 6px; text-decoration: none; color: var(--cyan);
+      user-select: none; -webkit-user-select: none;
     }
     .btn::before {
       content: ''; position: absolute; inset: 0;
@@ -210,11 +159,9 @@ th,
     }
     .btn:hover::before { transform: translateX(100%); }
     .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .btn:disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
     .hdr-btn { padding: 6px 13px; font-size: .55rem; letter-spacing: .12em; }
-    @media (max-width: 860px) {
-      .hdr-btn { padding: 7px 10px; font-size: .55rem; }
-    }
+    @media (max-width: 860px) { .hdr-btn { padding: 7px 10px; font-size: .55rem; } }
 
     .btn-cyan   { color: var(--cyan);   border-color: var(--cyan-dim); }
     .btn-cyan:hover:not(:disabled)   { background: rgba(0,229,255,.08);   box-shadow: var(--glow-c); border-color: var(--cyan); }
@@ -227,15 +174,11 @@ th,
     .btn-green  { color: var(--green);  border-color: var(--green-dim); }
     .btn-green:hover:not(:disabled)  { background: rgba(0,255,157,.08);   box-shadow: var(--glow-g); border-color: var(--green); }
 
-    /* ── PANEL / SETTINGS CARD ────────────────────────────────────── */
-    .settings-wrap {
-      max-width: 600px; margin: 48px auto 0;
-      position: relative; z-index: 2;
-    }
+    /* ── PANEL ────────────────────────────────────────────────── */
+    .settings-wrap { max-width: 600px; margin: 48px auto 0; position: relative; z-index: 2; }
     .panel {
       background: linear-gradient(135deg, var(--panel2) 0%, #040d18 100%);
-      border: 1px solid var(--border-hi);
-      border-radius: 3px;
+      border: 1px solid var(--border-hi); border-radius: 3px;
       box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-c), inset 0 1px 0 rgba(0,229,255,.1);
       clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
       overflow: hidden;
@@ -243,12 +186,10 @@ th,
     .panel-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 22px; border-bottom: 1px solid var(--border);
-      background: rgba(4,13,24,.7);
-      position: relative;
+      background: rgba(4,13,24,.7); position: relative;
     }
     .panel-header::after {
-      content: '';
-      position: absolute; bottom: 0; left: 5%; right: 5%; height: 1px;
+      content: ''; position: absolute; bottom: 0; left: 5%; right: 5%; height: 1px;
       background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent);
     }
     .panel-title {
@@ -279,6 +220,16 @@ th,
     .field-input:focus { border-color: var(--cyan-dim); box-shadow: 0 0 0 2px rgba(0,229,255,.08); }
     .field-input::placeholder { color: var(--text-dim); }
 
+    /* password field wrapper (for show/hide toggle) */
+    .pw-wrap { position: relative; }
+    .pw-wrap .field-input { padding-right: 38px; }
+    .pw-toggle {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: var(--text-dim);
+      font-size: .75rem; padding: 2px 4px; transition: color .15s; line-height: 1;
+    }
+    .pw-toggle:hover { color: var(--cyan); }
+
     .cred-section-title {
       font-family: var(--font-deltha); font-size: .58rem;
       color: var(--amber); letter-spacing: .22em;
@@ -290,23 +241,30 @@ th,
       color: var(--text-dim); margin-top: 12px; line-height: 1.65;
       border-left: 2px solid var(--border); padding-left: 10px;
     }
+
+    /* password strength bar */
+    .pw-strength { margin-top: 6px; }
+    .pw-strength-bar {
+      height: 3px; border-radius: 2px; background: var(--border);
+      overflow: hidden; margin-bottom: 4px;
+    }
+    .pw-strength-fill { height: 100%; width: 0; border-radius: 2px; transition: width .3s, background .3s; }
+    .pw-strength-lbl { font-family: 'Share Tech Mono', monospace; font-size: .55rem; color: var(--text-dim); }
+
     #credMsg {
       display: none; border-radius: 2px;
       font-family: 'Share Tech Mono', monospace; font-size: .7rem;
-      padding: 8px 12px; margin-top: 12px;
+      padding: 8px 12px; margin-top: 12px; line-height: 1.5;
     }
     #credMsg.ok  { background: rgba(0,255,157,.06); border: 1px solid var(--green-dim); border-left: 3px solid var(--green); color: var(--green); }
     #credMsg.err { background: rgba(255,59,92,.06);  border: 1px solid var(--red-dim);  border-left: 3px solid var(--red);   color: var(--red); }
 
-    /* ── TOASTS ────────────────────────────────────────────────── */
-    .toast-stack {
-      position: fixed; bottom: 22px; right: 22px; z-index: 9500;
-      display: flex; flex-direction: column; gap: 8px; pointer-events: none;
-    }
+    /* ── TOASTS ────────────────────────────────────────────── */
+    .toast-stack { position: fixed; bottom: 22px; right: 22px; z-index: 9500; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
     .toast {
       background: var(--panel2); border-radius: 2px;
       padding: 10px 18px; font-family: 'Share Tech Mono', monospace; font-size: .7rem;
-      box-shadow: 0 6px 30px rgba(0,0,0,.8); animation: toastIn .25s ease;
+      box-shadow: 0 6px 30px rgba(0,0,0,.8); animation: toastIn .25s ease forwards;
       pointer-events: none;
       clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
       display: flex; align-items: center; gap: 8px;
@@ -320,10 +278,7 @@ th,
     .t-amber  { border: 1px solid var(--amber);  border-left: 3px solid var(--amber);  color: var(--amber); }
     .t-violet { border: 1px solid var(--violet); border-left: 3px solid var(--violet); color: var(--violet); }
 
-    @media (max-width: 700px) {
-      .logo-top { font-size: 1.1rem; }
-      .settings-wrap { margin-top: 24px; }
-    }
+    @media (max-width: 700px) { .logo-top { font-size: 1.1rem; } .settings-wrap { margin-top: 24px; } }
   </style>
 </head>
 <body>
@@ -344,68 +299,93 @@ th,
       <div class="logo-sub" aria-hidden="true">ACCOUNT SETTINGS</div>
     </div>
     <div class="header-right">
-      <a href="dashboard.html" class="btn btn-cyan hdr-btn" title="Open Dashboard">⊞ DASHBOARD</a>
+      <a href="dashboard.html"      class="btn btn-cyan   hdr-btn" title="Open Dashboard">⊞ DASHBOARD</a>
       <a href="NYTHERIX-ADMIN.html" class="btn btn-violet hdr-btn" title="Open NYTHERIX Admin">◈ NYTHERIX ADMIN</a>
-      <a href="settings.html" class="btn btn-amber hdr-btn" title="Account settings">⚙ SETTINGS</a>
-      <button class="btn btn-red hdr-btn" id="logoutBtn" title="End session">⏻ DISCONNECT</button>
+      <a href="settings.html"       class="btn btn-amber  hdr-btn" title="Account settings" aria-current="page">⚙ SETTINGS</a>
+      <button class="btn btn-red hdr-btn" id="logoutBtn" aria-label="Disconnect and log out">⏻ DISCONNECT</button>
     </div>
   </header>
 
   <!-- ══════════════ SETTINGS PANEL ══════════════ -->
+  <main>
   <div class="settings-wrap">
-    <div class="panel">
+    <div class="panel" role="region" aria-labelledby="settingsTitle">
       <div class="panel-header">
-        <span class="panel-title">⚙ CHANGE CREDENTIALS</span>
+        <span class="panel-title" id="settingsTitle">⚙ CHANGE CREDENTIALS</span>
       </div>
       <div class="panel-body">
         <div class="form-grid">
           <div class="cred-section-title">// VERIFY IDENTITY</div>
+
           <div class="field-group">
-            <label class="field-label" for="credCurrentPass">CURRENT PASSWORD <span style="color:var(--red)">*</span></label>
-            <input class="field-input" id="credCurrentPass" type="password"
-                   autocomplete="current-password" maxlength="128"
-                   placeholder="Required to save any change">
+            <label class="field-label" for="credCurrentPass">CURRENT PASSWORD <span style="color:var(--red)" aria-label="required">*</span></label>
+            <div class="pw-wrap">
+              <input class="field-input" id="credCurrentPass" type="password"
+                     autocomplete="current-password" maxlength="128"
+                     placeholder="Required to save any change"
+                     aria-required="true" aria-describedby="credMsg">
+              <button class="pw-toggle" type="button" data-target="credCurrentPass" aria-label="Show/hide current password" tabindex="0">👁</button>
+            </div>
           </div>
+
           <div class="cred-section-title" style="margin-top:16px;">// NEW VALUES</div>
+
           <div class="field-group">
             <label class="field-label" for="credNewUser">NEW USERNAME</label>
             <input class="field-input" id="credNewUser" type="text"
                    autocomplete="username" spellcheck="false" maxlength="64"
                    placeholder="Leave blank to keep current">
           </div>
+
           <div class="field-group">
             <label class="field-label" for="credNewPass">NEW PASSWORD</label>
-            <input class="field-input" id="credNewPass" type="password"
-                   autocomplete="new-password" maxlength="128"
-                   placeholder="Leave blank to keep current">
+            <div class="pw-wrap">
+              <input class="field-input" id="credNewPass" type="password"
+                     autocomplete="new-password" maxlength="128"
+                     placeholder="Leave blank to keep current"
+                     aria-describedby="pwStrengthLbl">
+              <button class="pw-toggle" type="button" data-target="credNewPass" aria-label="Show/hide new password" tabindex="0">👁</button>
+            </div>
+            <div class="pw-strength" id="pwStrengthBlock" style="display:none">
+              <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+              <div class="pw-strength-lbl" id="pwStrengthLbl" aria-live="polite"></div>
+            </div>
           </div>
+
           <div class="field-group">
             <label class="field-label" for="credNewPassConfirm">CONFIRM NEW PASSWORD</label>
-            <input class="field-input" id="credNewPassConfirm" type="password"
-                   autocomplete="new-password" maxlength="128"
-                   placeholder="Repeat new password">
+            <div class="pw-wrap">
+              <input class="field-input" id="credNewPassConfirm" type="password"
+                     autocomplete="new-password" maxlength="128"
+                     placeholder="Repeat new password">
+              <button class="pw-toggle" type="button" data-target="credNewPassConfirm" aria-label="Show/hide confirm password" tabindex="0">👁</button>
+            </div>
           </div>
-          <div id="credMsg" role="alert"></div>
+
+          <div id="credMsg" role="alert" aria-live="assertive"></div>
           <p class="cred-hint">// Other active sessions will be signed out automatically when credentials change.</p>
         </div>
       </div>
       <div class="panel-footer">
-        <button class="btn btn-amber" id="credSaveBtn" onclick="saveCredentials()">◈ APPLY CHANGES</button>
+        <button class="btn btn-amber" id="credSaveBtn">◈ APPLY CHANGES</button>
         <a class="btn btn-cyan" href="dashboard.html">CANCEL</a>
       </div>
     </div>
   </div>
+  </main>
 
 </div>
 
 <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="false"></div>
 
 <script>
-"use strict";
+'use strict';
 
-const WORKER_URL = "https://snowy-fog-b0d1.23amtics322.workers.dev/";
-const BASE_URL   = new URL(WORKER_URL).origin;
+const BASE_URL = 'https://snowy-fog-b0d1.23amtics322.workers.dev';
 
+let _isLoggingOut = false;
+
+// ── TOAST ────────────────────────────────────────────────────────
 function toast(msg, type = 't-cyan', dur = 2800) {
   const el = document.createElement('div');
   el.className = `toast ${type}`;
@@ -414,95 +394,161 @@ function toast(msg, type = 't-cyan', dur = 2800) {
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, dur);
 }
 
-// ── AUTH CHECK ───────────────────────────────────────────────────────────
+// ── ALERT ────────────────────────────────────────────────────────
+function showMsg(text, type) {
+  const el = document.getElementById('credMsg');
+  el.textContent = text;
+  el.className = type;
+  el.style.display = text ? 'block' : 'none';
+}
+function clearMsg() { showMsg('', ''); }
+
+// ── PASSWORD SHOW / HIDE ─────────────────────────────────────────
+document.querySelectorAll('.pw-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = document.getElementById(btn.dataset.target);
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    btn.textContent = isHidden ? '🙈' : '👁';
+    btn.setAttribute('aria-label', (isHidden ? 'Hide' : 'Show') + '/' + 'hide ' + btn.getAttribute('aria-label').split(' ').slice(-2).join(' '));
+  });
+});
+
+// ── PASSWORD STRENGTH ────────────────────────────────────────────
+function scorePassword(pw) {
+  if (!pw) return { score: 0, label: '', color: '' };
+  let s = 0;
+  if (pw.length >= 8)  s++;
+  if (pw.length >= 12) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/[0-9]/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  const levels = [
+    { label: 'Very Weak', color: '#ff3b5c' },
+    { label: 'Weak',      color: '#ff3b5c' },
+    { label: 'Fair',      color: '#ffb300' },
+    { label: 'Strong',    color: '#00e5ff' },
+    { label: 'Very Strong', color: '#00ff9d' },
+    { label: 'Excellent',   color: '#00ff9d' },
+  ];
+  return { score: s, ...levels[Math.min(s, levels.length - 1)] };
+}
+
+document.getElementById('credNewPass').addEventListener('input', function () {
+  const block = document.getElementById('pwStrengthBlock');
+  const fill  = document.getElementById('pwStrengthFill');
+  const lbl   = document.getElementById('pwStrengthLbl');
+  if (!this.value) { block.style.display = 'none'; return; }
+  block.style.display = 'block';
+  const { score, label, color } = scorePassword(this.value);
+  fill.style.width      = `${Math.round((score / 5) * 100)}%`;
+  fill.style.background = color;
+  lbl.textContent       = label;
+  lbl.style.color       = color;
+});
+
+// ── AUTH CHECK ───────────────────────────────────────────────────
 (async () => {
   const ctrl = new AbortController();
   const tid  = setTimeout(() => ctrl.abort(), 6000);
   try {
-    const res = await fetch(`${BASE_URL}/auth/me`, {credentials:'include', signal:ctrl.signal});
+    const res = await fetch(`${BASE_URL}/auth/me`, { credentials: 'include', signal: ctrl.signal });
     clearTimeout(tid);
-    if (res.ok) { const data = await res.json().catch(()=>({})); if (data.authenticated === true) { return; } }
-  } catch(e) { clearTimeout(tid); }
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (data.authenticated === true) return;
+    }
+  } catch (_) { clearTimeout(tid); }
   window.location.replace('index.html');
 })();
 
+// ── VISIBILITY RE-CHECK ──────────────────────────────────────────
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    const ctrl = new AbortController(); const tid = setTimeout(() => ctrl.abort(), 6000);
-    fetch(`${BASE_URL}/auth/me`, {credentials:'include', signal:ctrl.signal})
-      .then(r => {
-        clearTimeout(tid);
-        if (r.status === 401 || r.status === 403) { window.location.replace('index.html'); return null; }
-        return r.ok ? r.json() : null;
-      })
-      .then(d => {
-        if (d === null) return;
-        if (d?.authenticated !== true) { window.location.replace('index.html'); }
-      })
-      .catch(() => { clearTimeout(tid); });
-  }
+  if (document.visibilityState !== 'visible' || _isLoggingOut) return;
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), 6000);
+  fetch(`${BASE_URL}/auth/me`, { credentials: 'include', signal: ctrl.signal })
+    .then(r => { clearTimeout(tid); return (r.status === 401 || r.status === 403) ? null : r.ok ? r.json() : null; })
+    .then(d => { if (d === null || d?.authenticated !== true) window.location.replace('index.html'); })
+    .catch(() => clearTimeout(tid));
 });
 
+// ── LOGOUT ───────────────────────────────────────────────────────
 document.getElementById('logoutBtn').addEventListener('click', async () => {
-  try { await fetch(`${BASE_URL}/auth/logout`, {method:'POST', credentials:'include'}); } catch(e) {}
-  toast('Session terminated','t-amber');
-  setTimeout(() => { window.location.replace('index.html'); }, 600);
+  _isLoggingOut = true;
+  try { await fetch(`${BASE_URL}/auth/logout`, { method: 'POST', credentials: 'include' }); } catch (_) {}
+  toast('Session terminated', 't-amber');
+  setTimeout(() => window.location.replace('index.html'), 600);
 });
 
-// ── SETTINGS ─────────────────────────────────────────────────────────────
+// ── SAVE CREDENTIALS ─────────────────────────────────────────────
 async function saveCredentials() {
   const currentPass    = document.getElementById('credCurrentPass').value;
   const newUser        = document.getElementById('credNewUser').value.trim();
   const newPass        = document.getElementById('credNewPass').value;
   const newPassConfirm = document.getElementById('credNewPassConfirm').value;
-  const msg            = document.getElementById('credMsg');
   const btn            = document.getElementById('credSaveBtn');
-  const showMsg = (text, type) => { msg.textContent = text; msg.className = type; msg.style.display = 'block'; };
-  if (!currentPass) { showMsg('⚠ Current password is required.','err'); return; }
-  if (!newUser && !newPass) { showMsg('⚠ Enter a new username, new password, or both.','err'); return; }
-  if (newPass && newPass.length < 8) { showMsg('⚠ New password must be at least 8 characters.','err'); return; }
-  if (newPass && newPass.length > 128) { showMsg('⚠ New password too long (max 128 chars).','err'); return; }
-  if (newUser && newUser.length > 64) { showMsg('⚠ New username too long (max 64 chars).','err'); return; }
-  if (newPass && newPass !== newPassConfirm) { showMsg('⚠ New passwords do not match.','err'); return; }
-  btn.disabled = true; btn.textContent = 'APPLYING…';
-  showMsg('',''); msg.style.display = 'none';
+
+  clearMsg();
+
+  // client-side validation
+  if (!currentPass)             { showMsg('⚠ Current password is required.', 'err'); document.getElementById('credCurrentPass').focus(); return; }
+  if (!newUser && !newPass)     { showMsg('⚠ Enter a new username, new password, or both.', 'err'); return; }
+  if (newPass && newPass.length < 8)   { showMsg('⚠ New password must be at least 8 characters.', 'err'); return; }
+  if (newPass && newPass.length > 128) { showMsg('⚠ New password too long (max 128 chars).', 'err'); return; }
+  if (newUser && newUser.length > 64)  { showMsg('⚠ Username too long (max 64 chars).', 'err'); return; }
+  if (newPass && newPass !== newPassConfirm) { showMsg('⚠ New passwords do not match.', 'err'); document.getElementById('credNewPassConfirm').focus(); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'APPLYING…';
+
   const ctrl = new AbortController();
   const tid  = setTimeout(() => ctrl.abort(), 10_000);
   try {
-    const payload = {current_password:currentPass};
+    const payload = { current_password: currentPass };
     if (newUser) payload.new_username = newUser;
     if (newPass) payload.new_password = newPass;
+
     const res  = await fetch(`${BASE_URL}/auth/change-credentials`, {
-      method:'POST', credentials:'include',
-      headers:{'Content-Type':'application/json'},
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
       signal: ctrl.signal
     });
     clearTimeout(tid);
-    const data = await res.json().catch(()=>({}));
+    const data = await res.json().catch(() => ({}));
+
     if (res.ok && data.success) {
-      showMsg('✓ Credentials updated. You will need to log in again on other devices.','ok');
-      document.getElementById('credCurrentPass').value = '';
-      document.getElementById('credNewPass').value = '';
+      showMsg('✓ Credentials updated. Other devices will need to log in again.', 'ok');
+      // only clear password fields on success; preserve username field
+      document.getElementById('credCurrentPass').value  = '';
+      document.getElementById('credNewPass').value      = '';
       document.getElementById('credNewPassConfirm').value = '';
-      toast('✓ Credentials updated','t-green');
+      document.getElementById('pwStrengthBlock').style.display = 'none';
+      toast('✓ Credentials updated', 't-green');
     } else {
+      // only clear current password on auth failure, preserve other fields
       document.getElementById('credCurrentPass').value = '';
-      document.getElementById('credNewPass').value = '';
-      document.getElementById('credNewPassConfirm').value = '';
-      showMsg(`⚠ ${data.error||'Update failed ('+res.status+')'}`, 'err');
+      showMsg(`⚠ ${data.error || `Update failed (${res.status})`}`, 'err');
+      document.getElementById('credCurrentPass').focus();
     }
-  } catch(e) {
+  } catch (e) {
     clearTimeout(tid);
-    document.getElementById('credCurrentPass').value = '';
-    document.getElementById('credNewPass').value = '';
-    document.getElementById('credNewPassConfirm').value = '';
-    const msg2 = e.name === 'AbortError' ? 'Request timed out.' : `Network error — ${e.message}`;
-    showMsg(`⚠ ${msg2}`, 'err');
+    // network error — don't clear any fields so user can retry
+    const msg = e.name === 'AbortError' ? 'Request timed out.' : `Network error — ${e.message}`;
+    showMsg(`⚠ ${msg}`, 'err');
   } finally {
-    btn.disabled = false; btn.textContent = '◈ APPLY CHANGES';
+    btn.disabled = false;
+    btn.textContent = '◈ APPLY CHANGES';
   }
 }
+
+document.getElementById('credSaveBtn').addEventListener('click', saveCredentials);
+
+// Enter key in any field submits
+document.querySelectorAll('.field-input').forEach(inp => {
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') saveCredentials(); });
+});
 </script>
 </body>
 </html>
