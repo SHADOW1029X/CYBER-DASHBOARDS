@@ -57,11 +57,8 @@
     .logo-top,
     .panel-title,
     .btn,
-    .tab,
     .stat-val,
-    .modal-ttl,
-    th,
-    .sess-table th {
+    .modal-ttl {
       font-family: var(--font-deltha) !important;
     }
 
@@ -123,24 +120,32 @@
       max-width: 1100px; margin: 0 auto;
       padding: 0 28px 80px;
     }
+    .layout-content {
+      padding-top: 32px;
+    }
 
     /* ── HEADER ─────────────────────────────────────────── */
     header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 0 16px; gap: 16px; flex-wrap: nowrap;
+      padding: 22px 24px 18px;
       border-bottom: 1px solid transparent;
-      border-image: linear-gradient(90deg, transparent, var(--border-hi) 20%,
-        var(--cyan-dim) 50%, var(--border-hi) 80%, transparent) 1;
-      position: relative;
+      border-image: linear-gradient(90deg, transparent, var(--border-hi) 20%, var(--cyan-dim) 50%, var(--border-hi) 80%, transparent) 1;
+      gap: 16px; flex-wrap: nowrap;
+      position: sticky; top: 0; z-index: 5000;
+      background: rgba(2,8,16,.86);
+      backdrop-filter: blur(8px);
+      margin: 0 -28px 0;
+      padding-left: 28px; padding-right: 28px;
     }
     header::after {
-      content: ''; position: absolute; bottom: -1px; left: -5%; right: -5%; height: 1px;
+      content: '';
+      position: absolute; bottom: -1px; left: -5%; right: -5%; height: 1px;
       background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-      animation: hScan 4s ease-in-out infinite; opacity: .35;
+      animation: hScan 4s ease-in-out infinite; opacity: .4;
     }
     @keyframes hScan {
       0%,100% { transform: scaleX(0); opacity: 0; }
-      50%      { transform: scaleX(1); opacity: .45; }
+      50%      { transform: scaleX(1); opacity: .5; }
     }
     @media (max-width: 860px) {
       header { flex-wrap: wrap; }
@@ -149,18 +154,26 @@
 
     .logo-block { display: flex; flex-direction: column; gap: 3px; }
     .logo-top {
-      font-family: 'Orbitron', monospace; font-weight: 900;
-      font-size: clamp(1.1rem, 2.6vw, 1.55rem);
+      font-family: var(--font-deltha);
+      font-weight: 900;
+      font-size: clamp(1.3rem, 3vw, 1.75rem);
       color: var(--cyan); text-shadow: var(--glow-c);
       letter-spacing: .18em; line-height: 1;
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 12px;
     }
     .logo-sep   { color: var(--text-dim); font-weight: 400; font-size: .85em; letter-spacing: .05em; }
     .logo-admin { color: var(--violet); text-shadow: var(--glow-v); font-size: .85em; letter-spacing: .14em; }
+    .logo-favicon {
+      display: inline-block;
+      width: 32px; height: 32px;
+      object-fit: contain; flex-shrink: 0;
+      filter: drop-shadow(0 0 6px rgba(0,229,255,.6));
+      image-rendering: crisp-edges;
+    }
     .logo-sub {
       font-family: 'Share Tech Mono', monospace;
-      font-size: clamp(.52rem, 1.1vw, .62rem);
-      color: var(--text-dim); letter-spacing: .28em;
+      font-size: clamp(.58rem, 1.2vw, .68rem);
+      color: var(--text-dim); letter-spacing: .3em;
       display: flex; align-items: center; gap: 8px;
     }
     .logo-sub::before {
@@ -168,7 +181,7 @@
       background: linear-gradient(90deg, transparent, var(--cyan-dim));
     }
 
-    .hdr-right { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+    .hdr-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
     /* proxy status badge in header */
     .hdr-badge {
@@ -188,35 +201,29 @@
 
     /* ── BUTTONS ────────────────────────────────────────── */
     .btn {
-      position: relative; background: transparent;
-      border: 1px solid var(--border); border-radius: 2px;
-      padding: 7px 14px; font-family: 'Orbitron', monospace;
-      font-size: .57rem; font-weight: 700; letter-spacing: .14em;
-      cursor: pointer; transition: all .2s ease; white-space: nowrap;
-      clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
-      overflow: hidden;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 16px; border-radius: 2px; border: 1px solid var(--border-hi);
+      background: rgba(0,229,255,.04); color: var(--cyan);
+      font-family: var(--font-deltha); font-size: .62rem; font-weight: 700;
+      letter-spacing: .14em; text-decoration: none; cursor: pointer;
+      transition: all .15s; white-space: nowrap;
     }
-    .btn::before {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent);
-      transform: translateX(-100%); transition: transform .3s ease;
-    }
-    .btn:hover::before { transform: translateX(100%); }
+    .btn:hover { background: rgba(0,229,255,.1); box-shadow: var(--glow-c); }
     .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
     .btn:disabled { opacity: .35; cursor: not-allowed; }
-    .btn-sm { padding: 5px 11px; font-size: .52rem; }
-    .hdr-btn { padding: 6px 13px; font-size: .55rem; letter-spacing: .12em; }
-
-    .btn-cyan   { color: var(--cyan);   border-color: var(--cyan-dim); }
-    .btn-cyan:hover:not(:disabled)   { background: rgba(0,229,255,.08); box-shadow: var(--glow-c); border-color: var(--cyan); }
-    .btn-green  { color: var(--green);  border-color: var(--green-dim); }
-    .btn-green:hover:not(:disabled)  { background: rgba(0,255,157,.08); box-shadow: var(--glow-g); border-color: var(--green); }
-    .btn-red    { color: var(--red);    border-color: var(--red-dim); }
-    .btn-red:hover:not(:disabled)    { background: rgba(255,59,92,.08); box-shadow: var(--glow-r); border-color: var(--red); }
-    .btn-amber  { color: var(--amber);  border-color: var(--amber-dim); }
-    .btn-amber:hover:not(:disabled)  { background: rgba(255,179,0,.08); box-shadow: var(--glow-a); border-color: var(--amber); }
-    .btn-violet { color: var(--violet); border-color: var(--violet-dim); }
-    .btn-violet:hover:not(:disabled) { background: rgba(191,127,255,.08); box-shadow: var(--glow-v); border-color: var(--violet); }
+    .btn-amber  { color: var(--amber);  border-color: var(--amber-dim); background: rgba(255,179,0,.04); }
+    .btn-amber:hover  { background: rgba(255,179,0,.1); box-shadow: var(--glow-a); }
+    .btn-red    { color: var(--red);    border-color: var(--red-dim); background: rgba(255,59,92,.04); }
+    .btn-red:hover    { background: rgba(255,59,92,.1); box-shadow: var(--glow-r); }
+    .btn-cyan   { color: var(--cyan);   border-color: var(--border-hi); }
+    .btn-violet { color: var(--violet); border-color: var(--violet-dim); background: rgba(191,127,255,.04); }
+    .btn-violet:hover { background: rgba(191,127,255,.1); box-shadow: var(--glow-v); }
+    .btn-green  { color: var(--green);  border-color: var(--green-dim); background: rgba(0,255,157,.04); }
+    .btn-green:hover  { background: rgba(0,255,157,.1); box-shadow: var(--glow-g); }
+    .hdr-btn { padding: 8px 14px; }
+    @media (max-width: 860px) {
+      .hdr-btn { padding: 7px 10px; font-size: .56rem; }
+    }
 
     /* ── STAT CARDS ─────────────────────────────────────── */
     .stats-row {
@@ -257,32 +264,37 @@
 
     /* ── PANEL CARD ─────────────────────────────────────── */
     .panel {
-      background: linear-gradient(135deg, var(--panel2) 0%, rgba(4,13,24,.9) 100%);
-      border: 1px solid var(--border); border-radius: 3px;
-      padding: 22px; margin-bottom: 14px; position: relative; overflow: hidden;
+      background: linear-gradient(135deg, var(--panel2) 0%, #040d18 100%);
+      border: 1px solid var(--border-hi);
+      border-radius: 3px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-c), inset 0 1px 0 rgba(0,229,255,.1);
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+      overflow: hidden;
+      margin-bottom: 16px;
     }
-    .panel::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent); opacity: .6;
-    }
-    .panel.v::before { background: linear-gradient(90deg, transparent, var(--violet-dim), transparent); }
-    .panel.g::before { background: linear-gradient(90deg, transparent, var(--green-dim),  transparent); }
-    .panel.a::before { background: linear-gradient(90deg, transparent, var(--amber-dim),  transparent); }
-    .panel.r::before { background: linear-gradient(90deg, transparent, var(--red-dim),    transparent); }
+    .panel.v { box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-v), inset 0 1px 0 rgba(191,127,255,.1); border-color: var(--violet-dim); }
+    .panel.g { box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-g), inset 0 1px 0 rgba(0,255,157,.1);  border-color: var(--green-dim); }
+    .panel.a { box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-a), inset 0 1px 0 rgba(255,179,0,.1);  border-color: var(--amber-dim); }
 
-    .panel-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; flex-wrap: wrap; }
+    .panel-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 22px; border-bottom: 1px solid var(--border);
+      background: rgba(4,13,24,.7); position: relative;
+    }
+    .panel-hdr::after {
+      content: ''; position: absolute; bottom: 0; left: 5%; right: 5%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent);
+    }
     .panel-title {
-      font-family: 'Orbitron', monospace; font-size: .63rem; font-weight: 700;
-      letter-spacing: .2em; color: var(--cyan);
+      font-family: var(--font-deltha); font-size: .8rem; font-weight: 700;
+      letter-spacing: .16em; color: var(--cyan); text-shadow: var(--glow-c);
       display: flex; align-items: center; gap: 8px;
     }
-    .panel-title::before { content: ''; width: 3px; height: 12px; border-radius: 2px; flex-shrink: 0; background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
-    .panel-title.v { color: var(--violet); }
-    .panel-title.v::before { background: var(--violet); box-shadow: 0 0 6px var(--violet); }
-    .panel-title.g { color: var(--green); }
-    .panel-title.g::before { background: var(--green); box-shadow: 0 0 6px var(--green); }
-    .panel-title.a { color: var(--amber); }
-    .panel-title.a::before { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .panel-title.v { color: var(--violet); text-shadow: var(--glow-v); }
+    .panel-title.g { color: var(--green);  text-shadow: var(--glow-g); }
+    .panel-title.a { color: var(--amber);  text-shadow: var(--glow-a); }
+    .panel-body { padding: 22px; }
+    .panel-body-pad { padding: 22px; }
 
     /* ── TOGGLE SWITCH ──────────────────────────────────── */
     .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 16px; background: rgba(2,8,16,.6); border: 1px solid var(--border); border-radius: 3px; }
@@ -335,7 +347,7 @@
     .modal {
       background: linear-gradient(145deg, var(--panel2), var(--bg2));
       border: 1px solid var(--border-hi); border-radius: 3px;
-      width: min(500px, 95vw); max-height: 90vh; overflow: hidden;
+      width: min(460px, 95vw); max-height: 90vh; overflow: hidden;
       display: flex; flex-direction: column;
       box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-c), inset 0 1px 0 rgba(0,229,255,.1);
       animation: mIn .22s cubic-bezier(.16,1,.3,1);
@@ -345,16 +357,16 @@
     @keyframes mIn { from { opacity: 0; transform: translateY(-14px) scale(.97); } to { opacity: 1; transform: none; } }
     .modal-hdr {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 15px 20px; border-bottom: 1px solid var(--border);
+      padding: 16px 22px; border-bottom: 1px solid var(--border);
       background: rgba(4,13,24,.7); flex-shrink: 0; position: relative;
     }
     .modal-hdr::after { content: ''; position: absolute; bottom: 0; left: 5%; right: 5%; height: 1px; background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent); }
-    .modal-ttl { font-family: 'Orbitron', monospace; font-size: .7rem; font-weight: 700; letter-spacing: .14em; color: var(--cyan); text-shadow: var(--glow-c); }
+    .modal-ttl { font-family: var(--font-deltha); font-size: .8rem; font-weight: 700; letter-spacing: .14em; color: var(--cyan); text-shadow: var(--glow-c); }
     .modal-ttl.r { color: var(--red); text-shadow: var(--glow-r); }
     .modal-x { background: transparent; border: 1px solid transparent; border-radius: 2px; color: var(--text-dim); font-size: 1rem; cursor: pointer; padding: 2px 7px; transition: all .15s; line-height: 1; }
     .modal-x:hover { color: var(--red); border-color: var(--red-dim); background: rgba(255,59,92,.06); }
     .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
-    .modal-foot { padding: 13px 20px; border-top: 1px solid var(--border); display: flex; gap: 9px; justify-content: flex-end; flex-shrink: 0; background: rgba(4,13,24,.5); flex-wrap: wrap; }
+    .modal-foot { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 9px; justify-content: flex-end; flex-shrink: 0; background: rgba(4,13,24,.5); flex-wrap: wrap; }
 
     /* ── TOASTS ─────────────────────────────────────────── */
     #toasts { position: fixed; bottom: 22px; right: 22px; z-index: 9500; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
@@ -413,6 +425,7 @@
   <header>
     <div class="logo-block">
       <div class="logo-top">
+        <img src="favicon.png" alt="" class="logo-favicon" aria-hidden="true" onerror="this.style.display='none'">
         NYTHERIX <span class="logo-sep">//</span> <span class="logo-admin">ADMIN</span>
       </div>
       <div class="logo-sub">Control Room · Proxy Management</div>
@@ -424,10 +437,13 @@
       </div>
       <div id="hdrLoader" class="loader"></div>
       <a href="dashboard.html" class="btn btn-cyan hdr-btn" title="Open Dashboard">⊞ DASHBOARD</a>
+      <a href="NYTHERIX-ADMIN.html" class="btn btn-violet hdr-btn" title="Open NYTHERIX Admin">◈ NYTHERIX ADMIN</a>
       <a href="settings.html" class="btn btn-amber hdr-btn" title="Account settings">⚙ SETTINGS</a>
       <button class="btn btn-red hdr-btn" id="logoutBtn">⏻ DISCONNECT</button>
     </div>
   </header>
+
+  <div class="layout-content">
 
   <!-- ════════════════════ STATS ════════════════════ -->
   <div class="stats-row">
@@ -449,63 +465,71 @@
   <!-- Toggle -->
   <div class="panel g">
     <div class="panel-hdr">
-      <div class="panel-title g">Proxy Playback</div>
+      <div class="panel-title g">◈ Proxy Playback</div>
       <div id="statusPill" class="status-pill off">
         <span id="pillDot" class="dead-dot"></span>
         <span id="pillLbl">OFFLINE</span>
       </div>
     </div>
-    <div class="toggle-row">
-      <div>
-        <div class="toggle-info-label">Site Proxy</div>
-        <div class="toggle-info-desc">Toggle proxy on / off for all incoming visitors.<br>When live, traffic is forwarded to the target URL.</div>
+    <div class="panel-body">
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-info-label">Site Proxy</div>
+          <div class="toggle-info-desc">Toggle proxy on / off for all incoming visitors.<br>When live, traffic is forwarded to the target URL.</div>
+        </div>
+        <label class="sw" title="Toggle proxy">
+          <input type="checkbox" id="proxyToggle">
+          <span class="sl"></span>
+        </label>
       </div>
-      <label class="sw" title="Toggle proxy">
-        <input type="checkbox" id="proxyToggle">
-        <span class="sl"></span>
-      </label>
     </div>
   </div>
 
   <!-- Target URL -->
   <div class="panel v">
     <div class="panel-hdr">
-      <div class="panel-title v">Target URL</div>
+      <div class="panel-title v">⬡ Target URL</div>
     </div>
-    <div class="field">
-      <label for="targetUrl">Destination</label>
-      <input type="url" id="targetUrl" placeholder="https://original-website.com" autocomplete="off" spellcheck="false">
-      <div class="field-hint" style="margin-top:6px">
-        The real site visitors will be proxied to. https:// is added automatically if omitted.
+    <div class="panel-body">
+      <div class="field">
+        <label for="targetUrl">Destination</label>
+        <input type="url" id="targetUrl" placeholder="https://original-website.com" autocomplete="off" spellcheck="false">
+        <div class="field-hint" style="margin-top:6px">
+          The real site visitors will be proxied to. https:// is added automatically if omitted.
+        </div>
       </div>
+      <button class="btn btn-violet" id="saveBtn" style="margin-top:14px">Apply Settings →</button>
     </div>
-    <button class="btn btn-violet" id="saveBtn" style="margin-top:14px">Apply Settings →</button>
   </div>
 
   <!-- User-Facing Sites -->
   <div class="panel a">
     <div class="panel-hdr">
-      <div class="panel-title a">User-Facing Sites</div>
+      <div class="panel-title a">⊞ User-Facing Sites</div>
     </div>
-    <div class="field-hint" style="margin-bottom:14px">
-      Live, public-facing endpoints. Share these URLs with end users.
-    </div>
-    <div class="field">
-      <label for="urlNytherix">NYTHERIX — proxy endpoint</label>
-      <div style="display:flex; gap:8px; align-items:stretch; flex-wrap:wrap">
-        <input type="text" id="urlNytherix" value="https://nytherix.nytherion.qzz.io" readonly spellcheck="false" style="flex:1; min-width:200px; cursor:text">
-        <button class="btn btn-cyan copy-btn" data-copy-target="urlNytherix">⧉ Copy</button>
+    <div class="panel-body">
+      <div class="field-hint" style="margin-bottom:18px">
+        Live, public-facing endpoints. Share these URLs with end users.
       </div>
-    </div>
-    <div class="field">
-      <label for="urlPhoton">PHOTON — capture node</label>
-      <div style="display:flex; gap:8px; align-items:stretch; flex-wrap:wrap">
-        <input type="text" id="urlPhoton" value="https://photon.nytherion.qzz.io" readonly spellcheck="false" style="flex:1; min-width:200px; cursor:text">
-        <button class="btn btn-cyan copy-btn" data-copy-target="urlPhoton">⧉ Copy</button>
+      <div class="field">
+        <label for="urlNytherix">NYTHERIX — proxy endpoint</label>
+        <div style="display:flex; gap:8px; align-items:stretch; flex-wrap:wrap">
+          <input type="text" id="urlNytherix" value="https://nytherix.nytherion.qzz.io" readonly spellcheck="false" style="flex:1; min-width:200px; cursor:text">
+          <button class="btn btn-cyan copy-btn" data-copy-target="urlNytherix">⧉ COPY</button>
+        </div>
+      </div>
+      <div class="field" style="margin-top:14px">
+        <label for="urlPhoton">PHOTON — capture node</label>
+        <div style="display:flex; gap:8px; align-items:stretch; flex-wrap:wrap">
+          <input type="text" id="urlPhoton" value="https://photon.nytherion.qzz.io" readonly spellcheck="false" style="flex:1; min-width:200px; cursor:text">
+          <button class="btn btn-cyan copy-btn" data-copy-target="urlPhoton">⧉ COPY</button>
+        </div>
       </div>
     </div>
   </div>
 
+
+  </div><!-- /.layout-content -->
 
 </div><!-- /.layout -->
 
