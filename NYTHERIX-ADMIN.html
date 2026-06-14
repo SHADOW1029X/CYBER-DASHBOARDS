@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NYTHERIX // ADMIN</title>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev https://nytherix-admin.23amtics322.workers.dev; img-src data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev https://nytherix-admin.23amtics322.workers.dev; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="Referrer-Policy" content="no-referrer">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
+  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020810'/%3E%3Cpolygon points='16,2 30,9 30,23 16,30 2,23 2,9' fill='none' stroke='%2300e5ff' stroke-width='1.5'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-size='13' font-weight='bold' fill='%2300e5ff'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
@@ -17,14 +18,9 @@
       font-family: 'Deltha';
       src: url('./Deltha.otf') format('opentype'),
            url('./Deltha.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-      font-display: swap;
+      font-weight: normal; font-style: normal; font-display: swap;
     }
 
-    /* ══════════════════════════════════════════════════════
-       TOKENS  (mirrors login.html + PHOTONdashboard.html)
-    ══════════════════════════════════════════════════════ */
     :root {
       --bg:         #020810;
       --bg2:        #040d18;
@@ -54,17 +50,12 @@
       --font-deltha: 'Deltha', monospace;
     }
 
-    .logo-top,
-    .panel-title,
-    .btn,
-    .stat-val,
-    .modal-ttl {
+    .logo-top, .panel-title, .btn, .stat-val, .modal-ttl {
       font-family: var(--font-deltha) !important;
     }
 
-    /* ── RESET ──────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scrollbar-width: thin; scrollbar-color: var(--cyan-dim) var(--bg2); }
+    html { scrollbar-width: thin; scrollbar-color: var(--cyan-dim) var(--bg2); overflow-x: hidden; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg2); }
     ::-webkit-scrollbar-thumb { background: var(--cyan-dim); border-radius: 3px; }
@@ -77,18 +68,13 @@
     :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 
     /* ── BACKGROUND ─────────────────────────────────────── */
-    /* scanlines */
     body::before {
       content: ''; position: fixed; inset: 0; z-index: 9998; pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg, transparent, transparent 3px,
-        rgba(0,229,255,.007) 3px, rgba(0,229,255,.007) 4px
-      );
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,229,255,.007) 3px, rgba(0,229,255,.007) 4px);
     }
     #bg-vignette {
       position: fixed; inset: 0; z-index: 1; pointer-events: none;
-      background: radial-gradient(ellipse 100% 100% at 50% 100%,
-        transparent 20%, rgba(2,8,16,.82) 65%, rgba(2,8,16,.99) 100%);
+      background: radial-gradient(ellipse 100% 100% at 50% 100%, transparent 20%, rgba(2,8,16,.82) 65%, rgba(2,8,16,.99) 100%);
     }
     #bg-glow {
       position: fixed; top: 0; left: 50%; transform: translateX(-50%);
@@ -103,10 +89,7 @@
       background: radial-gradient(circle, rgba(124,58,237,.06) 0%, transparent 60%);
     }
     #bg-particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
-    .pt {
-      position: absolute; border-radius: 50%; opacity: 0;
-      animation: ptFloat linear infinite;
-    }
+    .pt { position: absolute; border-radius: 50%; opacity: 0; animation: ptFloat linear infinite; }
     @keyframes ptFloat {
       0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
       8%   { opacity: .5; }
@@ -115,47 +98,33 @@
     }
 
     /* ── LAYOUT ─────────────────────────────────────────── */
-    .layout {
-      position: relative; z-index: 2;
-      max-width: 1100px; margin: 0 auto;
-      padding: 0 28px 80px;
-    }
-    .layout-content {
-      padding-top: 32px;
-    }
+    .layout { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: 0 28px 80px; }
+    .layout-content { padding-top: 32px; }
 
     /* ── HEADER ─────────────────────────────────────────── */
     header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 22px 24px 18px;
+      padding: 22px 28px 18px;
       border-bottom: 1px solid transparent;
       border-image: linear-gradient(90deg, transparent, var(--border-hi) 20%, var(--cyan-dim) 50%, var(--border-hi) 80%, transparent) 1;
       gap: 16px; flex-wrap: nowrap;
       position: sticky; top: 0; z-index: 5000;
-      background: rgba(2,8,16,.86);
-      backdrop-filter: blur(8px);
-      margin: 0 -28px 0;
-      padding-left: 28px; padding-right: 28px;
+      background: rgba(2,8,16,.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      margin: 0 -28px;
     }
     header::after {
-      content: '';
-      position: absolute; bottom: -1px; left: -5%; right: -5%; height: 1px;
+      content: ''; position: absolute; bottom: -1px; left: -5%; right: -5%; height: 1px;
       background: linear-gradient(90deg, transparent, var(--cyan), transparent);
       animation: hScan 4s ease-in-out infinite; opacity: .4;
     }
-    @keyframes hScan {
-      0%,100% { transform: scaleX(0); opacity: 0; }
-      50%      { transform: scaleX(1); opacity: .5; }
-    }
-    @media (max-width: 860px) {
-      header { flex-wrap: wrap; }
-      .hdr-right { gap: 6px; }
-    }
+    @keyframes hScan { 0%,100%{transform:scaleX(0);opacity:0} 50%{transform:scaleX(1);opacity:.5} }
+    @media (max-width: 860px) { header { flex-wrap: wrap; } .hdr-right { gap: 6px; flex-wrap: wrap; } }
 
     .logo-block { display: flex; flex-direction: column; gap: 3px; }
     .logo-top {
-      font-family: var(--font-deltha);
-      font-weight: 900;
+      font-family: var(--font-deltha); font-weight: 900;
       font-size: clamp(1.3rem, 3vw, 1.75rem);
       color: var(--cyan); text-shadow: var(--glow-c);
       letter-spacing: .18em; line-height: 1;
@@ -164,8 +133,7 @@
     .logo-sep   { color: var(--text-dim); font-weight: 400; font-size: .85em; letter-spacing: .05em; }
     .logo-admin { color: var(--violet); text-shadow: var(--glow-v); font-size: .85em; letter-spacing: .14em; }
     .logo-favicon {
-      display: inline-block;
-      width: 32px; height: 32px;
+      display: inline-block; width: 32px; height: 32px;
       object-fit: contain; flex-shrink: 0;
       filter: drop-shadow(0 0 6px rgba(0,229,255,.6));
       image-rendering: crisp-edges;
@@ -180,10 +148,9 @@
       content: ''; display: inline-block; width: 18px; height: 1px;
       background: linear-gradient(90deg, transparent, var(--cyan-dim));
     }
-
     .hdr-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
-    /* proxy status badge in header */
+    /* proxy status badge */
     .hdr-badge {
       display: flex; align-items: center; gap: 7px;
       font-family: 'Share Tech Mono', monospace; font-size: .65rem;
@@ -191,8 +158,8 @@
     }
     .hdr-badge.live { color: var(--green); background: rgba(0,255,157,.05); border: 1px solid var(--green-dim); }
     .hdr-badge.off  { color: var(--text-dim); background: rgba(255,255,255,.02); border: 1px solid var(--border); }
-    .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 1.4s ease-in-out infinite; }
-    .dead-dot  { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); }
+    .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 1.4s ease-in-out infinite; flex-shrink: 0; }
+    .dead-dot  { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.6)} }
 
     .loader { display: none; width: 15px; height: 15px; border: 1.5px solid rgba(0,229,255,.2); border-top-color: var(--cyan); border-radius: 50%; animation: spin .6s linear infinite; flex-shrink: 0; }
@@ -209,6 +176,7 @@
       clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
       overflow: hidden; display: inline-flex; align-items: center;
       justify-content: center; gap: 6px; text-decoration: none; color: var(--cyan);
+      user-select: none; -webkit-user-select: none;
     }
     .btn::before {
       content: ''; position: absolute; inset: 0;
@@ -217,11 +185,9 @@
     }
     .btn:hover::before { transform: translateX(100%); }
     .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .btn:disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
     .hdr-btn { padding: 6px 13px; font-size: .55rem; letter-spacing: .12em; }
-    @media (max-width: 860px) {
-      .hdr-btn { padding: 7px 10px; font-size: .55rem; }
-    }
+    @media (max-width: 860px) { .hdr-btn { padding: 7px 10px; font-size: .55rem; } }
 
     .btn-cyan   { color: var(--cyan);   border-color: var(--cyan-dim); }
     .btn-cyan:hover:not(:disabled)   { background: rgba(0,229,255,.08);   box-shadow: var(--glow-c); border-color: var(--cyan); }
@@ -235,11 +201,7 @@
     .btn-violet:hover:not(:disabled) { background: rgba(191,127,255,.08); box-shadow: var(--glow-v); border-color: var(--violet); }
 
     /* ── STAT CARDS ─────────────────────────────────────── */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 10px; margin: 22px 0;
-    }
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin: 22px 0; }
     .stat-card {
       background: linear-gradient(135deg, var(--panel2) 0%, rgba(4,13,24,.8) 100%);
       border: 1px solid var(--border); border-radius: 3px;
@@ -259,10 +221,8 @@
     }
     .stat-lbl { font-family: 'Share Tech Mono', monospace; font-size: .54rem; color: var(--text-dim); letter-spacing: .22em; text-transform: uppercase; margin-bottom: 10px; }
     .stat-val {
-      font-family: 'Orbitron', monospace;
       font-size: clamp(1.1rem, 2vw, 1.45rem); font-weight: 700;
-      color: var(--cyan); text-shadow: var(--glow-c); line-height: 1;
-      transition: transform .2s;
+      color: var(--cyan); text-shadow: var(--glow-c); line-height: 1; transition: transform .2s;
     }
     .stat-card:hover .stat-val { transform: scale(1.04); }
     .stat-val.g { color: var(--green); text-shadow: var(--glow-g); }
@@ -274,21 +234,18 @@
     /* ── PANEL CARD ─────────────────────────────────────── */
     .panel {
       background: linear-gradient(135deg, var(--panel2) 0%, #040d18 100%);
-      border: 1px solid var(--border-hi);
-      border-radius: 3px;
+      border: 1px solid var(--border-hi); border-radius: 3px;
       box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-c), inset 0 1px 0 rgba(0,229,255,.1);
       clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
-      overflow: hidden;
-      margin-bottom: 16px;
+      overflow: hidden; margin-bottom: 16px;
     }
     .panel.v { box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-v), inset 0 1px 0 rgba(191,127,255,.1); border-color: var(--violet-dim); }
     .panel.g { box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-g), inset 0 1px 0 rgba(0,255,157,.1);  border-color: var(--green-dim); }
     .panel.a { box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-a), inset 0 1px 0 rgba(255,179,0,.1);  border-color: var(--amber-dim); }
-
     .panel-hdr {
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 22px; border-bottom: 1px solid var(--border);
-      background: rgba(4,13,24,.7); position: relative;
+      background: rgba(4,13,24,.7); position: relative; gap: 12px; flex-wrap: wrap;
     }
     .panel-hdr::after {
       content: ''; position: absolute; bottom: 0; left: 5%; right: 5%; height: 1px;
@@ -303,21 +260,19 @@
     .panel-title.g { color: var(--green);  text-shadow: var(--glow-g); }
     .panel-title.a { color: var(--amber);  text-shadow: var(--glow-a); }
     .panel-body { padding: 22px; }
-    .panel-body-pad { padding: 22px; }
 
     /* ── TOGGLE SWITCH ──────────────────────────────────── */
     .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 16px; background: rgba(2,8,16,.6); border: 1px solid var(--border); border-radius: 3px; }
     .toggle-info-label { font-family: 'Orbitron', monospace; font-size: .68rem; font-weight: 700; letter-spacing: .12em; color: var(--text); margin-bottom: 4px; }
     .toggle-info-desc  { font-family: 'Share Tech Mono', monospace; font-size: .62rem; color: var(--text-dim); line-height: 1.6; }
-
-    .sw { position: relative; width: 52px; height: 28px; flex-shrink: 0; }
+    .sw { position: relative; width: 52px; height: 28px; flex-shrink: 0; cursor: pointer; }
     .sw input { opacity: 0; width: 0; height: 0; position: absolute; }
     .sl { position: absolute; inset: 0; background: var(--panel2); border: 1px solid var(--border); border-radius: 28px; cursor: pointer; transition: background .22s, border-color .22s; }
     .sl::before { content: ''; position: absolute; left: 4px; top: 4px; width: 18px; height: 18px; border-radius: 50%; background: var(--text-dim); transition: transform .22s, background .22s; }
     .sw input:checked + .sl { background: rgba(0,255,157,.1); border-color: var(--green-dim); }
     .sw input:checked + .sl::before { transform: translateX(24px); background: var(--green); box-shadow: 0 0 9px rgba(0,255,157,.5); }
+    .sw input:focus-visible + .sl { outline: 2px solid var(--cyan); outline-offset: 2px; }
 
-    /* status pill next to toggle */
     .status-pill {
       display: inline-flex; align-items: center; gap: 6px;
       font-family: 'Share Tech Mono', monospace; font-size: .64rem; letter-spacing: .1em;
@@ -340,9 +295,13 @@
     }
     .field input:focus, .field textarea:focus { border-color: var(--cyan-dim); box-shadow: 0 0 0 2px rgba(0,229,255,.08); }
     .field input::placeholder { color: var(--text-dim); }
+    .field input[readonly] { color: var(--text-mid); cursor: text; }
     .field-hint { font-family: 'Share Tech Mono', monospace; font-size: .58rem; color: var(--text-dim); line-height: 1.6; }
 
-    /* ── INFO GRID ──────────────────────────────────────── */
+    /* unsaved indicator on save button */
+    #saveBtn.dirty { border-color: var(--amber-dim); color: var(--amber); }
+    #saveBtn.dirty:hover:not(:disabled) { background: rgba(255,179,0,.08); box-shadow: var(--glow-a); }
+
     /* ── ALERT BAR ──────────────────────────────────────── */
     .alert { display: none; font-family: 'Share Tech Mono', monospace; font-size: .7rem; padding: 10px 14px; margin-bottom: 16px; border-radius: 2px; line-height: 1.6; }
     .alert.show { display: block; }
@@ -363,14 +322,14 @@
       clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
     }
     .modal.danger { border-color: var(--red-dim); box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-r), inset 0 1px 0 rgba(255,59,92,.1); }
-    @keyframes mIn { from { opacity: 0; transform: translateY(-14px) scale(.97); } to { opacity: 1; transform: none; } }
+    @keyframes mIn { from{opacity:0;transform:translateY(-14px) scale(.97)} to{opacity:1;transform:none} }
     .modal-hdr {
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 22px; border-bottom: 1px solid var(--border);
       background: rgba(4,13,24,.7); flex-shrink: 0; position: relative;
     }
     .modal-hdr::after { content: ''; position: absolute; bottom: 0; left: 5%; right: 5%; height: 1px; background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent); }
-    .modal-ttl { font-family: var(--font-deltha); font-size: .8rem; font-weight: 700; letter-spacing: .14em; color: var(--cyan); text-shadow: var(--glow-c); }
+    .modal-ttl { font-size: .8rem; font-weight: 700; letter-spacing: .14em; color: var(--cyan); text-shadow: var(--glow-c); }
     .modal-ttl.r { color: var(--red); text-shadow: var(--glow-r); }
     .modal-x { background: transparent; border: 1px solid transparent; border-radius: 2px; color: var(--text-dim); font-size: 1rem; cursor: pointer; padding: 2px 7px; transition: all .15s; line-height: 1; }
     .modal-x:hover { color: var(--red); border-color: var(--red-dim); background: rgba(255,59,92,.06); }
@@ -382,7 +341,7 @@
     .toast {
       background: var(--panel2); border-radius: 2px;
       padding: 10px 18px; font-family: 'Share Tech Mono', monospace; font-size: .7rem;
-      box-shadow: 0 6px 30px rgba(0,0,0,.8); animation: tIn .25s ease;
+      box-shadow: 0 6px 30px rgba(0,0,0,.8); animation: tIn .25s ease forwards;
       clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
       display: flex; align-items: center; gap: 8px;
     }
@@ -396,117 +355,128 @@
     .t-v { border: 1px solid var(--violet); border-left: 3px solid var(--violet); color: var(--violet); }
 
     /* ── RESPONSIVE ─────────────────────────────────────── */
-    @media (max-width: 480px) { .layout { padding: 0 14px 60px; } .panel { padding: 16px 14px; } }
+    @media (max-width: 480px) { .layout { padding: 0 14px 60px; } .panel-body { padding: 16px 14px; } }
 
-    /* ── AUTH GATE OVERLAY ──────────────────────────────── */
+    /* ── AUTH GATE ──────────────────────────────────────── */
     #gate {
       position: fixed; inset: 0; z-index: 9000;
-      background: var(--bg);
-      display: flex; align-items: center; justify-content: center;
+      background: var(--bg); display: flex; align-items: center; justify-content: center;
+      transition: opacity .3s ease;
     }
-    #gate.done { display: none; }
+    #gate.done { opacity: 0; pointer-events: none; }
+    #gate.hidden { display: none; }
     .gate-inner { text-align: center; }
-    .gate-logo { font-family: 'Orbitron', monospace; font-weight: 900; font-size: clamp(1.4rem, 4vw, 2rem); color: var(--cyan); text-shadow: var(--glow-c); letter-spacing: .2em; margin-bottom: 10px; }
+    .gate-logo { font-family: var(--font-deltha); font-weight: 900; font-size: clamp(1.4rem, 4vw, 2rem); color: var(--cyan); text-shadow: var(--glow-c); letter-spacing: .2em; margin-bottom: 10px; }
     .gate-txt  { font-family: 'Share Tech Mono', monospace; font-size: .68rem; color: var(--text-dim); letter-spacing: .14em; margin-bottom: 20px; }
+    .gate-err  { font-family: 'Share Tech Mono', monospace; font-size: .68rem; color: var(--red); letter-spacing: .1em; margin-bottom: 14px; display: none; }
     .gate-spin { width: 26px; height: 26px; margin: 0 auto; border: 2px solid rgba(0,229,255,.15); border-top-color: var(--cyan); border-radius: 50%; animation: spin .7s linear infinite; }
   </style>
 </head>
 <body>
 
-<!-- Auth gate — blocks the page until /auth/me confirms the session -->
-<div id="gate">
+<!-- Auth gate -->
+<div id="gate" role="status" aria-live="polite">
   <div class="gate-inner">
     <div class="gate-logo">NYTHERIX</div>
-    <div class="gate-txt">VERIFYING SESSION…</div>
-    <div class="gate-spin"></div>
+    <div class="gate-txt" id="gateTxt">VERIFYING SESSION…</div>
+    <div class="gate-err" id="gateErr"></div>
+    <div class="gate-spin" id="gateSpin"></div>
   </div>
 </div>
 
 <!-- BG layers -->
-<div id="bg-vignette"></div>
-<div id="bg-glow"></div>
-<div id="bg-violet"></div>
-<div id="bg-particles"></div>
+<div id="bg-vignette" aria-hidden="true"></div>
+<div id="bg-glow"     aria-hidden="true"></div>
+<div id="bg-violet"   aria-hidden="true"></div>
+<div id="bg-particles" aria-hidden="true"></div>
 
 <div class="layout">
 
   <!-- ════════════════════ HEADER ════════════════════ -->
-  <header>
+  <header role="banner">
     <div class="logo-block">
       <div class="logo-top">
         <img src="favicon.png" alt="" class="logo-favicon" aria-hidden="true" onerror="this.style.display='none'">
         NYTHERIX <span class="logo-sep">//</span> <span class="logo-admin">ADMIN</span>
       </div>
-      <div class="logo-sub">Control Room · Proxy Management</div>
+      <div class="logo-sub" aria-hidden="true">Control Room · Proxy Management</div>
     </div>
     <div class="hdr-right">
-      <div id="hdrBadge" class="hdr-badge off">
-        <span id="hdrDot" class="dead-dot"></span>
+      <div id="hdrBadge" class="hdr-badge off" aria-live="polite" aria-label="Proxy status">
+        <span id="hdrDot" class="dead-dot" aria-hidden="true"></span>
         <span id="hdrLbl">CHECKING…</span>
       </div>
-      <div id="hdrLoader" class="loader"></div>
-      <a href="dashboard.html" class="btn btn-cyan hdr-btn" title="Open Dashboard">⊞ DASHBOARD</a>
-      <a href="settings.html" class="btn btn-amber hdr-btn" title="Account settings">⚙ SETTINGS</a>
-      <button class="btn btn-red hdr-btn" id="logoutBtn">⏻ DISCONNECT</button>
+      <div id="hdrLoader" class="loader" aria-hidden="true"></div>
+      <a href="dashboard.html"      class="btn btn-cyan   hdr-btn" title="Open Dashboard">⊞ DASHBOARD</a>
+      <a href="NYTHERIX-ADMIN.html" class="btn btn-violet hdr-btn" title="NYTHERIX Admin" aria-current="page">◈ NYTHERIX ADMIN</a>
+      <a href="settings.html"       class="btn btn-amber  hdr-btn" title="Account settings">⚙ SETTINGS</a>
+      <button class="btn btn-red hdr-btn" id="logoutBtn" aria-label="Disconnect and log out">⏻ DISCONNECT</button>
     </div>
   </header>
 
   <div class="layout-content">
 
   <!-- ════════════════════ STATS ════════════════════ -->
-  <div class="stats-row">
+  <div class="stats-row" role="region" aria-label="Proxy status summary">
     <div class="stat-card">
       <div class="stat-lbl">Proxy Status</div>
-      <div class="stat-val r" id="svProxy">—</div>
+      <div class="stat-val r" id="svProxy" aria-live="polite">—</div>
       <div class="stat-sub" id="svProxySub">loading…</div>
     </div>
     <div class="stat-card">
       <div class="stat-lbl">Target URL</div>
-      <div class="stat-val v" id="svTarget" style="font-size:.6rem;letter-spacing:0;word-break:break-all;line-height:1.3">—</div>
+      <div class="stat-val v" id="svTarget" style="font-size:.6rem;letter-spacing:0;word-break:break-all;line-height:1.3" aria-live="polite">—</div>
       <div class="stat-sub">destination host</div>
     </div>
   </div>
 
   <!-- ════════════════════ PROXY CONTROL ════════════════════ -->
-  <div id="proxyAlert" class="alert"></div>
+  <main role="main">
 
   <!-- Toggle -->
   <div class="panel g">
     <div class="panel-hdr">
       <div class="panel-title g">◈ Proxy Playback</div>
-      <div id="statusPill" class="status-pill off">
-        <span id="pillDot" class="dead-dot"></span>
+      <div id="statusPill" class="status-pill off" aria-live="polite" aria-label="Proxy state">
+        <span id="pillDot" class="dead-dot" aria-hidden="true"></span>
         <span id="pillLbl">OFFLINE</span>
       </div>
     </div>
     <div class="panel-body">
       <div class="toggle-row">
-        <div>
+        <div id="toggleDesc">
           <div class="toggle-info-label">Site Proxy</div>
           <div class="toggle-info-desc">Toggle proxy on / off for all incoming visitors.<br>When live, traffic is forwarded to the target URL.</div>
         </div>
-        <label class="sw" title="Toggle proxy">
-          <input type="checkbox" id="proxyToggle">
-          <span class="sl"></span>
+        <label class="sw" title="Toggle proxy on or off" aria-label="Enable site proxy">
+          <input type="checkbox" id="proxyToggle" role="switch" aria-describedby="toggleDesc">
+          <span class="sl" aria-hidden="true"></span>
         </label>
       </div>
     </div>
   </div>
 
-  <!-- Target URL -->
+  <!-- Target URL + alert inside panel -->
   <div class="panel v">
     <div class="panel-hdr">
       <div class="panel-title v">⬡ Target URL</div>
     </div>
     <div class="panel-body">
+      <div id="proxyAlert" class="alert" role="alert" aria-live="assertive"></div>
       <div class="field">
         <label for="targetUrl">Destination</label>
-        <input type="url" id="targetUrl" placeholder="https://original-website.com" autocomplete="off" spellcheck="false">
-        <div class="field-hint" style="margin-top:6px">
-          The real site visitors will be proxied to. https:// is added automatically if omitted.
+        <input type="url" id="targetUrl" placeholder="https://original-website.com"
+               autocomplete="off" spellcheck="false"
+               aria-describedby="targetUrlHint">
+        <div class="field-hint" id="targetUrlHint" style="margin-top:6px">
+          The real site visitors will be proxied to. https:// is prepended automatically if omitted.
+          Press <kbd style="background:rgba(0,229,255,.08);border:1px solid var(--border);border-radius:2px;padding:1px 5px;font-size:.9em">Ctrl+S</kbd> to save.
         </div>
       </div>
-      <button class="btn btn-violet" id="saveBtn" style="margin-top:14px">Apply Settings →</button>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px">
+        <button class="btn btn-violet" id="saveBtn">Apply Settings →</button>
+        <button class="btn btn-cyan" id="refreshBtn" title="Reload settings from worker">⟳ Refresh</button>
+      </div>
     </div>
   </div>
 
@@ -521,36 +491,39 @@
       </div>
       <div class="field">
         <label for="urlNytherix">NYTHERIX — proxy endpoint</label>
-        <div style="display:flex; gap:8px; align-items:stretch; flex-wrap:wrap">
-          <input type="text" id="urlNytherix" value="https://nytherix.nytherion.qzz.io" readonly spellcheck="false" style="flex:1; min-width:200px; cursor:text">
-          <button class="btn btn-cyan copy-btn" data-copy-target="urlNytherix">⧉ COPY</button>
+        <div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap">
+          <input type="text" id="urlNytherix" value="https://nytherix.nytherion.qzz.io"
+                 readonly tabindex="-1" spellcheck="false" aria-readonly="true"
+                 style="flex:1;min-width:200px;cursor:text">
+          <button class="btn btn-cyan copy-btn" data-copy-target="urlNytherix" aria-label="Copy NYTHERIX URL">⧉ COPY</button>
         </div>
       </div>
       <div class="field" style="margin-top:14px">
         <label for="urlPhoton">PHOTON — capture node</label>
-        <div style="display:flex; gap:8px; align-items:stretch; flex-wrap:wrap">
-          <input type="text" id="urlPhoton" value="https://photon.nytherion.qzz.io" readonly spellcheck="false" style="flex:1; min-width:200px; cursor:text">
-          <button class="btn btn-cyan copy-btn" data-copy-target="urlPhoton">⧉ COPY</button>
+        <div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap">
+          <input type="text" id="urlPhoton" value="https://photon.nytherion.qzz.io"
+                 readonly tabindex="-1" spellcheck="false" aria-readonly="true"
+                 style="flex:1;min-width:200px;cursor:text">
+          <button class="btn btn-cyan copy-btn" data-copy-target="urlPhoton" aria-label="Copy PHOTON URL">⧉ COPY</button>
         </div>
       </div>
     </div>
   </div>
 
-
+  </main>
   </div><!-- /.layout-content -->
-
 </div><!-- /.layout -->
 
 <!-- ════ MODAL — Confirm Logout ════ -->
-<div class="modal-bg" id="nukeModal">
-  <div class="modal danger" style="width:min(420px,95vw)">
+<div class="modal-bg" id="nukeModal" role="dialog" aria-modal="true" aria-labelledby="nukeTitle">
+  <div class="modal danger">
     <div class="modal-hdr">
-      <div class="modal-ttl r">⚠ Confirm Logout</div>
-      <button class="modal-x" data-close="nukeModal">✕</button>
+      <div class="modal-ttl r" id="nukeTitle">⚠ Confirm Logout</div>
+      <button class="modal-x" data-close="nukeModal" aria-label="Cancel">✕</button>
     </div>
     <div class="modal-body">
       <div style="text-align:center;padding:10px 0">
-        <div style="font-size:2.4rem;margin-bottom:14px">⛔</div>
+        <div style="font-size:2.4rem;margin-bottom:14px" aria-hidden="true">⛔</div>
         <p style="font-family:'Share Tech Mono',monospace;font-size:.74rem;color:var(--text);line-height:1.9">
           Your session will be destroyed and you will be<br>
           redirected to <span style="color:var(--amber)">index.html</span> to log in again.
@@ -564,42 +537,45 @@
   </div>
 </div>
 
-<!-- Toast stack -->
-<div id="toasts"></div>
+<div id="toasts" aria-live="polite" aria-atomic="false"></div>
 
 <script>
 'use strict';
 
 // ── CONFIG ─────────────────────────────────────────────────────
-// Dashboard-management login worker (auth/me, auth/logout) — login.html / PHOTONdashboard.html
 const BASE_URL        = 'https://snowy-fog-b0d1.23amtics322.workers.dev';
-// NYTHERIX backend worker (pure JSON API: GET/POST /api/settings)
 const NYTHERIX_WORKER = 'https://nytherix-admin.23amtics322.workers.dev';
-// NOTE: NYTHERIX_WORKER must respond with CORS headers matching this site's origin:
-//   Access-Control-Allow-Origin: <this site's exact origin> (not *)
-//   Access-Control-Allow-Credentials: true
+
+// ── STATE ──────────────────────────────────────────────────────
+let _isLoggingOut = false;   // prevents visibilitychange re-check racing logout
+let _lastSaved    = null;    // tracks last saved {enabled, target_url} for dirty detection
 
 // ── HELPERS ────────────────────────────────────────────────────
-function toast(msg, cls) {
+function toast(msg, cls, dur = 3400) {
   const el = document.createElement('div');
   el.className = `toast ${cls}`;
   el.textContent = msg;
   document.getElementById('toasts').appendChild(el);
-  setTimeout(() => {
-    el.classList.add('out');
-    el.addEventListener('animationend', () => el.remove(), { once: true });
-  }, 3400);
+  // dual removal: animationend + fallback timeout
+  const remove = () => { el.classList.add('out'); setTimeout(() => el.remove(), 300); };
+  setTimeout(remove, dur);
 }
 
 function showAlert(id, msg, type) {
   const el = document.getElementById(id);
   el.textContent = msg;
   el.className = `alert show ${type}`;
-  if (type === 'ok') setTimeout(() => { el.className = 'alert'; }, 5000);
+  if (type === 'ok') setTimeout(() => { if (el.classList.contains('ok')) el.className = 'alert'; }, 5000);
 }
 function hideAlert(id) { document.getElementById(id).className = 'alert'; }
 
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function openModal(id) {
+  const el = document.getElementById(id);
+  el.classList.add('open');
+  // focus first focusable element inside
+  const first = el.querySelector('button, [tabindex]:not([tabindex="-1"])');
+  if (first) setTimeout(() => first.focus(), 50);
+}
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 // close on backdrop click or [data-close] buttons
@@ -608,12 +584,22 @@ document.querySelectorAll('[data-close]').forEach(b =>
 document.querySelectorAll('.modal-bg').forEach(bg =>
   bg.addEventListener('click', e => { if (e.target === bg) closeModal(bg.id); }));
 
+// ESC closes any open modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-bg.open').forEach(m => closeModal(m.id));
+  }
+});
+
+// ── DIRTY TRACKING ─────────────────────────────────────────────
+function markDirty() { document.getElementById('saveBtn').classList.add('dirty'); }
+function markClean() { document.getElementById('saveBtn').classList.remove('dirty'); }
+
 // ── PROXY STATE UI ─────────────────────────────────────────────
 function setProxyUI(enabled, targetUrl) {
   const on  = !!enabled;
   const tgt = targetUrl || '';
 
-  // Header badge
   const hBadge = document.getElementById('hdrBadge');
   const hDot   = document.getElementById('hdrDot');
   const hLbl   = document.getElementById('hdrLbl');
@@ -621,30 +607,28 @@ function setProxyUI(enabled, targetUrl) {
   hDot.className   = on ? 'pulse-dot' : 'dead-dot';
   hLbl.textContent = on ? 'PROXY LIVE' : 'PROXY OFFLINE';
 
-  // Status pill in panel
   const pill    = document.getElementById('statusPill');
   const pillDot = document.getElementById('pillDot');
   const pillLbl = document.getElementById('pillLbl');
-  pill.className    = `status-pill ${on ? 'live' : 'off'}`;
-  pillDot.className = on ? 'pulse-dot' : 'dead-dot';
+  pill.className      = `status-pill ${on ? 'live' : 'off'}`;
+  pillDot.className   = on ? 'pulse-dot' : 'dead-dot';
   pillLbl.textContent = on ? 'LIVE' : 'OFFLINE';
 
-  // Toggle checkbox
   document.getElementById('proxyToggle').checked = on;
+  document.getElementById('targetUrl').value     = tgt;
 
-  // Target input
-  document.getElementById('targetUrl').value = tgt;
-
-  // Stat cards
   const sv = document.getElementById('svProxy');
   sv.textContent = on ? 'LIVE' : 'OFFLINE';
   sv.className   = `stat-val ${on ? 'g' : 'r'}`;
   document.getElementById('svProxySub').textContent = on ? 'forwarding traffic' : 'proxy disabled';
   document.getElementById('svTarget').textContent   = tgt || '— not configured —';
+
+  // update saved baseline so we can detect future dirty state
+  _lastSaved = { enabled: on, target_url: tgt };
+  markClean();
 }
 
-// ── LOAD SETTINGS FROM NYTHERIX WORKER ────────────────────────
-// GET /api/settings → { target_url, enabled }
+// ── LOAD SETTINGS ──────────────────────────────────────────────
 async function loadSettings() {
   document.getElementById('hdrLoader').classList.add('on');
   try {
@@ -654,21 +638,19 @@ async function loadSettings() {
       credentials: 'include', signal: ctrl.signal
     });
     clearTimeout(tid);
-
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-
     setProxyUI(data.enabled ? 1 : 0, data.target_url || '');
   } catch (e) {
-    setProxyUI(0, '');
-    toast('Could not load settings from worker', 't-a');
+    // don't reset UI on a failed refresh — leave current values intact
+    const msg = e.name === 'AbortError' ? 'Worker timeout — settings not refreshed.' : `Load failed — ${e.message}`;
+    toast(msg, 't-a');
   } finally {
     document.getElementById('hdrLoader').classList.remove('on');
   }
 }
 
 // ── SAVE SETTINGS ──────────────────────────────────────────────
-// POST /api/settings  body: { target_url, enabled } → { target_url, enabled }
 async function saveSettings() {
   const btn    = document.getElementById('saveBtn');
   const on     = document.getElementById('proxyToggle').checked;
@@ -682,15 +664,14 @@ async function saveSettings() {
     const ctrl = new AbortController();
     const tid  = setTimeout(() => ctrl.abort(), 10_000);
     const res  = await fetch(NYTHERIX_WORKER + '/api/settings', {
-      method: 'POST',
+      method:  'POST',
       credentials: 'include',
-      signal: ctrl.signal,
+      signal:  ctrl.signal,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ target_url: rawUrl, enabled: on })
+      body:    JSON.stringify({ target_url: rawUrl, enabled: on })
     });
     clearTimeout(tid);
     const data = await res.json().catch(() => ({}));
-
     if (res.ok) {
       setProxyUI(data.enabled ? 1 : 0, data.target_url ?? rawUrl);
       showAlert('proxyAlert', '✅ Settings saved successfully.', 'ok');
@@ -704,105 +685,154 @@ async function saveSettings() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Apply Settings →';
+    // re-evaluate dirty state after save
+    checkDirty();
+  }
+}
+
+// check if current form state differs from last saved
+function checkDirty() {
+  if (!_lastSaved) return;
+  const on  = document.getElementById('proxyToggle').checked;
+  const tgt = document.getElementById('targetUrl').value.trim();
+  if (on !== _lastSaved.enabled || tgt !== _lastSaved.target_url) {
+    markDirty();
+  } else {
+    markClean();
   }
 }
 
 // ── LOGOUT ─────────────────────────────────────────────────────
-// Uses the same /auth/logout endpoint as PHOTONdashboard.html
 async function doLogout() {
+  _isLoggingOut = true;
   try {
     await fetch(`${BASE_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
-  } catch (e) {}
+  } catch (_) {}
   toast('Session terminated', 't-a');
   setTimeout(() => window.location.replace('index.html'), 500);
 }
 
-// ── TOGGLE SYNC ────────────────────────────────────────────────
+// ── TOGGLE SYNC (immediate visual, dirty check) ─────────────────
 document.getElementById('proxyToggle').addEventListener('change', function () {
   const on = this.checked;
-  const pill    = document.getElementById('statusPill');
-  const pillDot = document.getElementById('pillDot');
-  const pillLbl = document.getElementById('pillLbl');
-  pill.className    = `status-pill ${on ? 'live' : 'off'}`;
-  pillDot.className = on ? 'pulse-dot' : 'dead-dot';
-  pillLbl.textContent = on ? 'LIVE' : 'OFFLINE';
+  document.getElementById('statusPill').className    = `status-pill ${on ? 'live' : 'off'}`;
+  document.getElementById('pillDot').className       = on ? 'pulse-dot' : 'dead-dot';
+  document.getElementById('pillLbl').textContent     = on ? 'LIVE' : 'OFFLINE';
+  checkDirty();
 });
 
-// ── COPY URL BUTTONS ─────────────────────────────────────────────
+document.getElementById('targetUrl').addEventListener('input', checkDirty);
+
+// Ctrl+S / Cmd+S to save
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveSettings();
+  }
+});
+
+// ── COPY URL BUTTONS ───────────────────────────────────────────
 document.querySelectorAll('.copy-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
     const input = document.getElementById(btn.dataset.copyTarget);
+    const orig  = btn.textContent;
     try {
       await navigator.clipboard.writeText(input.value);
+      btn.textContent = '✓ COPIED';
+      setTimeout(() => { btn.textContent = orig; }, 1800);
       toast('✓ Copied to clipboard', 't-g');
-    } catch (e) {
+    } catch (_) {
+      // fallback: select text
+      input.removeAttribute('readonly');
       input.select();
-      toast('Select-to-copy: clipboard unavailable', 't-a');
+      input.setAttribute('readonly', '');
+      toast('Ctrl+C to copy — clipboard API unavailable', 't-a');
     }
   });
 });
 
 // ── BUTTON BINDINGS ────────────────────────────────────────────
 document.getElementById('saveBtn').addEventListener('click', saveSettings);
-
+document.getElementById('refreshBtn').addEventListener('click', () => { loadSettings(); toast('Refreshing…', 't-c', 1500); });
 document.getElementById('logoutBtn').addEventListener('click', () => openModal('nukeModal'));
-document.getElementById('nukeConfirmBtn').addEventListener('click', () => {
-  closeModal('nukeModal');
-  doLogout();
-});
+document.getElementById('nukeConfirmBtn').addEventListener('click', () => { closeModal('nukeModal'); doLogout(); });
 
-// ── AUTH GATE — mirrors PHOTONdashboard.html's init block ──────
-// Checks /auth/me with credentials. If not authenticated → index.html.
+// ── AUTH GATE ──────────────────────────────────────────────────
 (async () => {
-  const gate = document.getElementById('gate');
-  const ctrl = new AbortController();
-  const tid  = setTimeout(() => ctrl.abort(), 6000);
-  try {
-    const res = await fetch(`${BASE_URL}/auth/me`, {
-      credentials: 'include', signal: ctrl.signal
-    });
-    clearTimeout(tid);
-    if (res.ok) {
-      const data = await res.json().catch(() => ({}));
-      if (data.authenticated === true) {
-        gate.classList.add('done');  // show the page
-        loadSettings();              // pull proxy state from NYTHERIX worker
-        return;
+  const gate    = document.getElementById('gate');
+  const gateTxt = document.getElementById('gateTxt');
+  const gateErr = document.getElementById('gateErr');
+  const gateSpin = document.getElementById('gateSpin');
+
+  const tryAuth = async () => {
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 7000);
+    try {
+      const res = await fetch(`${BASE_URL}/auth/me`, { credentials: 'include', signal: ctrl.signal });
+      clearTimeout(tid);
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.authenticated === true) return true;
       }
+      return false;
+    } catch (_) {
+      clearTimeout(tid);
+      return null; // null = network error (distinct from auth failure)
     }
-  } catch (e) { clearTimeout(tid); }
-  // Not authenticated — send back to login
-  window.location.replace('index.html');
+  };
+
+  const result = await tryAuth();
+
+  if (result === true) {
+    gate.classList.add('done');
+    setTimeout(() => gate.classList.add('hidden'), 320);
+    loadSettings();
+  } else if (result === null) {
+    // network error — show retry option instead of blind redirect
+    gateTxt.textContent = 'CONNECTION ERROR';
+    gateErr.textContent = 'Could not reach auth server. Check your connection.';
+    gateErr.style.display = 'block';
+    gateSpin.style.display = 'none';
+    const retryBtn = document.createElement('button');
+    retryBtn.className = 'btn btn-cyan';
+    retryBtn.style.marginTop = '16px';
+    retryBtn.textContent = 'Retry';
+    retryBtn.onclick = () => window.location.reload();
+    gate.querySelector('.gate-inner').appendChild(retryBtn);
+  } else {
+    window.location.replace('index.html');
+  }
 })();
 
-// Re-check session whenever the tab becomes visible (same as PHOTONdashboard)
+// re-check session on tab focus (skip during logout)
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible') return;
+  if (document.visibilityState !== 'visible' || _isLoggingOut) return;
   const ctrl = new AbortController();
-  const tid  = setTimeout(() => ctrl.abort(), 6000);
+  const tid  = setTimeout(() => ctrl.abort(), 7000);
   fetch(`${BASE_URL}/auth/me`, { credentials: 'include', signal: ctrl.signal })
-    .then(r => {
-      clearTimeout(tid);
-      if (r.status === 401 || r.status === 403) { window.location.replace('index.html'); return null; }
-      return r.ok ? r.json() : null;
-    })
-    .then(d => {
-      if (d === null) return;
-      if (d?.authenticated !== true) window.location.replace('index.html');
-    })
-    .catch(() => { clearTimeout(tid); });
+    .then(r => { clearTimeout(tid); return (r.status === 401 || r.status === 403) ? null : r.ok ? r.json() : null; })
+    .then(d => { if (d === null || d?.authenticated !== true) window.location.replace('index.html'); })
+    .catch(() => clearTimeout(tid));
 });
 
 // ── BACKGROUND PARTICLES ───────────────────────────────────────
 (function () {
   const c = document.getElementById('bg-particles');
+  const frag = document.createDocumentFragment();
   for (let i = 0; i < 16; i++) {
-    const p = document.createElement('div');
-    p.className = 'pt';
+    const p  = document.createElement('div');
     const sz = Math.random() * 2 + 1;
-    p.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;animation-duration:${8+Math.random()*14}s;animation-delay:${Math.random()*12}s;--dx:${(Math.random()-.5)*80}px;background:${i%5===0?'var(--violet)':i%7===0?'var(--amber)':'var(--cyan)'};`;
-    c.appendChild(p);
+    p.className = 'pt';
+    p.style.cssText = [
+      `width:${sz}px`, `height:${sz}px`, `left:${Math.random()*100}%`,
+      `animation-duration:${8+Math.random()*14}s`,
+      `animation-delay:${Math.random()*12}s`,
+      `--dx:${(Math.random()-.5)*80}px`,
+      `background:${i%5===0?'var(--violet)':i%7===0?'var(--amber)':'var(--cyan)'}`
+    ].join(';');
+    frag.appendChild(p);
   }
+  c.appendChild(frag);
 })();
 </script>
 </body>
