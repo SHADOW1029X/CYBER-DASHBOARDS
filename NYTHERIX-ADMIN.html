@@ -63,7 +63,7 @@
     body {
       background: var(--bg); color: var(--text);
       font-family: 'Rajdhani', sans-serif;
-      min-height: 100vh; overflow-x: hidden;
+      min-height: 100vh;
     }
     :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 
@@ -98,21 +98,26 @@
     }
 
     /* ── LAYOUT ─────────────────────────────────────────── */
-    .layout { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: 0 28px 80px; }
+    :root { --layout-px: 28px; }
+    .layout { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: 0 var(--layout-px) 80px; }
     .layout-content { padding-top: 32px; }
 
     /* ── HEADER ─────────────────────────────────────────── */
     header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 22px 28px 18px;
-      border-bottom: 1px solid transparent;
-      border-image: linear-gradient(90deg, transparent, var(--border-hi) 20%, var(--cyan-dim) 50%, var(--border-hi) 80%, transparent) 1;
+      padding: 22px var(--layout-px) 18px;
       gap: 16px; flex-wrap: nowrap;
       position: sticky; top: 0; z-index: 5000;
       background: rgba(2,8,16,.92);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      margin: 0 -28px;
+      margin: 0 calc(var(--layout-px) * -1);
+    }
+    /* gradient bottom border via pseudo — avoids border-image + backdrop-filter conflict */
+    header::before {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-hi) 20%, var(--cyan-dim) 50%, var(--border-hi) 80%, transparent);
+      pointer-events: none;
     }
     header::after {
       content: ''; position: absolute; bottom: -1px; left: -5%; right: -5%; height: 1px;
@@ -120,7 +125,10 @@
       animation: hScan 4s ease-in-out infinite; opacity: .4;
     }
     @keyframes hScan { 0%,100%{transform:scaleX(0);opacity:0} 50%{transform:scaleX(1);opacity:.5} }
-    @media (max-width: 860px) { header { flex-wrap: wrap; } .hdr-right { gap: 6px; flex-wrap: wrap; } }
+    @media (max-width: 860px) {
+      :root { --layout-px: 14px; }
+      header { flex-wrap: wrap; } .hdr-right { gap: 6px; flex-wrap: wrap; }
+    }
 
     .logo-block { display: flex; flex-direction: column; gap: 3px; }
     .logo-top {
@@ -232,16 +240,21 @@
     .stat-sub   { font-family: 'Share Tech Mono', monospace; font-size: .55rem; color: var(--text-dim); margin-top: 6px; }
 
     /* ── PANEL CARD ─────────────────────────────────────── */
+    /* drop-shadow wrapper preserves glow outside clip-path */
+    .panel-wrap       { filter: drop-shadow(0 8px 32px rgba(0,0,0,.7));      margin-bottom: 16px; }
+    .panel-wrap.glow-c { filter: drop-shadow(0 0 10px rgba(0,229,255,.18)) drop-shadow(0 8px 32px rgba(0,0,0,.7)); }
+    .panel-wrap.glow-v { filter: drop-shadow(0 0 10px rgba(191,127,255,.18)) drop-shadow(0 8px 32px rgba(0,0,0,.7)); }
+    .panel-wrap.glow-g { filter: drop-shadow(0 0 10px rgba(0,255,157,.18)) drop-shadow(0 8px 32px rgba(0,0,0,.7)); }
+    .panel-wrap.glow-a { filter: drop-shadow(0 0 10px rgba(255,179,0,.18)) drop-shadow(0 8px 32px rgba(0,0,0,.7)); }
     .panel {
       background: linear-gradient(135deg, var(--panel2) 0%, #040d18 100%);
       border: 1px solid var(--border-hi); border-radius: 3px;
-      box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-c), inset 0 1px 0 rgba(0,229,255,.1);
       clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
-      overflow: hidden; margin-bottom: 16px;
+      overflow: hidden;
     }
-    .panel.v { box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-v), inset 0 1px 0 rgba(191,127,255,.1); border-color: var(--violet-dim); }
-    .panel.g { box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-g), inset 0 1px 0 rgba(0,255,157,.1);  border-color: var(--green-dim); }
-    .panel.a { box-shadow: 0 30px 80px rgba(0,0,0,.9), var(--glow-a), inset 0 1px 0 rgba(255,179,0,.1);  border-color: var(--amber-dim); }
+    .panel.v { border-color: var(--violet-dim); }
+    .panel.g { border-color: var(--green-dim); }
+    .panel.a { border-color: var(--amber-dim); }
     .panel-hdr {
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 22px; border-bottom: 1px solid var(--border);
@@ -434,6 +447,7 @@
   <main role="main">
 
   <!-- Toggle -->
+  <div class="panel-wrap glow-g">
   <div class="panel g">
     <div class="panel-hdr">
       <div class="panel-title g">◈ Proxy Playback</div>
@@ -455,8 +469,10 @@
       </div>
     </div>
   </div>
+  </div><!-- /.panel-wrap toggle -->
 
   <!-- Target URL + alert inside panel -->
+  <div class="panel-wrap glow-v">
   <div class="panel v">
     <div class="panel-hdr">
       <div class="panel-title v">⬡ Target URL</div>
@@ -479,8 +495,10 @@
       </div>
     </div>
   </div>
+  </div><!-- /.panel-wrap target -->
 
   <!-- User-Facing Sites -->
+  <div class="panel-wrap glow-a">
   <div class="panel a">
     <div class="panel-hdr">
       <div class="panel-title a">⊞ User-Facing Sites</div>
@@ -509,6 +527,7 @@
       </div>
     </div>
   </div>
+  </div><!-- /.panel-wrap sites -->
 
   </main>
   </div><!-- /.layout-content -->
