@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CAPTURES // SETTINGS</title>
   <meta name="description" content="Capture Node Telemetry Dashboard — account settings.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://unpkg.com; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev; frame-ancestors 'none'; base-uri 'none'; form-action 'none';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="Referrer-Policy" content="no-referrer">
@@ -13,6 +13,14 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020810'/%3E%3Cpolygon points='16,2 30,9 30,23 16,30 2,23 2,9' fill='none' stroke='%2300e5ff' stroke-width='1.5'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-size='13' font-weight='bold' fill='%2300e5ff'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
   <style>
     /* ── DELTHA DISPLAY FONT ──────────────────────────────────────── */
     @font-face {
@@ -71,6 +79,40 @@
       content: ''; position: fixed; inset: 0; z-index: 9998; pointer-events: none;
       background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,229,255,.007) 3px, rgba(0,229,255,.007) 4px);
     }
+    #webgl-canvas {
+      position: fixed; inset: 0; z-index: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; opacity: 1;
+    }
+    .bg-layer { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+    .bg-layer::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        linear-gradient(90deg, rgba(2,8,16,.65) 0%, rgba(2,8,16,.35) 34%, rgba(2,8,16,.04) 67%, rgba(2,8,16,.35) 100%),
+        radial-gradient(circle at 52% 54%, transparent 0%, rgba(0,0,0,.18) 70%, rgba(0,0,0,.30) 100%);
+    }
+    .bg-layer::after {
+      content: ''; position: absolute; inset: 0; opacity: .12;
+      background-image:
+        linear-gradient(rgba(0,229,255,.9) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,.9) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(circle at 63% 48%, black 0%, transparent 74%);
+    }
+    .noise {
+      position: fixed; inset: -50%; z-index: 2; pointer-events: none;
+      opacity: .035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 260 260' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation: grain 9s steps(6) infinite;
+      mix-blend-mode: overlay;
+    }
+    @keyframes grain {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-4%, 3%); }
+      40% { transform: translate(3%, -5%); }
+      60% { transform: translate(-3%, -2%); }
+      80% { transform: translate(4%, 4%); }
+    }
     #bg-grid {
       position: fixed; bottom: 0; left: 50%; z-index: 0; pointer-events: none;
       transform: translateX(-50%) rotateX(70deg); transform-origin: center bottom;
@@ -81,13 +123,14 @@
     }
     #bg-vignette {
       position: fixed; inset: 0; z-index: 1; pointer-events: none;
-      background: radial-gradient(ellipse 100% 100% at 50% 100%, transparent 20%, rgba(2,8,16,.82) 65%, rgba(2,8,16,.99) 100%);
+      background: radial-gradient(ellipse 100% 100% at 50% 100%, transparent 30%, rgba(2,8,16,.42) 70%, rgba(2,8,16,.7) 100%);
     }
     #bg-glow {
       position: fixed; top: 0; left: 50%; transform: translateX(-50%);
       width: 70vw; height: 2px; z-index: 1; pointer-events: none;
       background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-      filter: blur(1px); opacity: .5;
+      filter: blur(1px); opacity: .7;
+      box-shadow: 0 0 110px 40px rgba(0,229,255,.2);
     }
 
     /* ── LAYOUT ───────────────────────────────────────────────────── */
