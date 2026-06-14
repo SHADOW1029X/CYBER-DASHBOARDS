@@ -264,13 +264,32 @@
 
     /* password field wrapper (for show/hide toggle) */
     .pw-wrap { position: relative; }
-    .pw-wrap .field-input { padding-right: 38px; }
+    .pw-wrap .field-input { padding-right: 44px; }
     .pw-toggle {
-      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer; color: var(--text-dim);
-      font-size: .75rem; padding: 2px 4px; transition: color .15s; line-height: 1;
+      position: absolute; right: 0; top: 0; bottom: 0; width: 42px;
+      background: transparent; border: none; border-left: 1px solid var(--border);
+      color: var(--text-dim); cursor: pointer; display: flex; align-items: center;
+      justify-content: center; transition: color .2s, background .2s, border-color .2s;
+      border-radius: 0 2px 2px 0;
     }
-    .pw-toggle:hover { color: var(--cyan); }
+    .pw-toggle:hover { color: var(--cyan); background: rgba(0,229,255,.06); border-color: var(--cyan-dim); }
+    .pw-toggle:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+
+    .pw-icon-wrap {
+      position: relative; width: 18px; height: 18px;
+      transform-style: preserve-3d; transition: transform .5s cubic-bezier(.34,1.56,.64,1);
+    }
+    .pw-icon-wrap.revealed { transform: rotateY(180deg); }
+    .pw-icon-front, .pw-icon-back {
+      position: absolute; inset: 0; display: flex;
+      align-items: center; justify-content: center; backface-visibility: hidden;
+    }
+    .pw-icon-back { transform: rotateY(180deg); }
+    .pw-icon-front svg, .pw-icon-back svg {
+      width: 16px; height: 16px; stroke: currentColor; fill: none;
+      stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .field-input.pw-visible { border-color: var(--cyan-dim); box-shadow: inset 0 0 20px rgba(0,229,255,.06); }
 
     .cred-section-title {
       font-family: var(--font-deltha); font-size: .58rem;
@@ -356,11 +375,8 @@
 
     /* ── Touch devices: 44×44 minimum tap targets ── */
     @media (hover: none) and (pointer: coarse) {
-      .hdr-btn    { min-height: 44px; }
-      .btn        { min-height: 44px; }
-      .pw-toggle::before {
-        content: ''; position: absolute; inset: -11px; /* expands tap target to ~44px without resizing the visible icon */
-      }
+      .hdr-btn { min-height: 44px; }
+      .btn     { min-height: 44px; }
     }
 
     /* ── iOS input zoom prevention (font-size must be ≥16px) ── */
@@ -433,7 +449,12 @@
                      autocomplete="current-password" maxlength="128"
                      placeholder="Required to save any change"
                      aria-required="true" aria-describedby="credMsg">
-              <button class="pw-toggle" type="button" data-target="credCurrentPass" aria-label="Show/hide current password" tabindex="0">👁</button>
+              <button class="pw-toggle" type="button" data-target="credCurrentPass" aria-label="Show/hide current password" tabindex="0">
+                <span class="pw-icon-wrap" aria-hidden="true">
+                  <span class="pw-icon-front"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                  <span class="pw-icon-back"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/><line x1="2" y1="2" x2="22" y2="22"/></svg></span>
+                </span>
+              </button>
             </div>
           </div>
 
