@@ -474,7 +474,12 @@
                      autocomplete="new-password" maxlength="128"
                      placeholder="Leave blank to keep current"
                      aria-describedby="pwStrengthLbl">
-              <button class="pw-toggle" type="button" data-target="credNewPass" aria-label="Show/hide new password" tabindex="0">👁</button>
+              <button class="pw-toggle" type="button" data-target="credNewPass" aria-label="Show/hide new password" tabindex="0">
+                <span class="pw-icon-wrap" aria-hidden="true">
+                  <span class="pw-icon-front"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                  <span class="pw-icon-back"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/><line x1="2" y1="2" x2="22" y2="22"/></svg></span>
+                </span>
+              </button>
             </div>
             <div class="pw-strength" id="pwStrengthBlock" style="display:none">
               <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
@@ -488,7 +493,12 @@
               <input class="field-input" id="credNewPassConfirm" type="password"
                      autocomplete="new-password" maxlength="128"
                      placeholder="Repeat new password">
-              <button class="pw-toggle" type="button" data-target="credNewPassConfirm" aria-label="Show/hide confirm password" tabindex="0">👁</button>
+              <button class="pw-toggle" type="button" data-target="credNewPassConfirm" aria-label="Show/hide confirm password" tabindex="0">
+                <span class="pw-icon-wrap" aria-hidden="true">
+                  <span class="pw-icon-front"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                  <span class="pw-icon-back"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/><line x1="2" y1="2" x2="22" y2="22"/></svg></span>
+                </span>
+              </button>
             </div>
           </div>
 
@@ -535,12 +545,16 @@ function clearMsg() { showMsg('', ''); }
 
 // ── PASSWORD SHOW / HIDE ─────────────────────────────────────────
 document.querySelectorAll('.pw-toggle').forEach(btn => {
+  const input = document.getElementById(btn.dataset.target);
+  const iconWrap = btn.querySelector('.pw-icon-wrap');
+  const fieldName = btn.getAttribute('aria-label').replace(/^Show\/hide /i, '');
+
   btn.addEventListener('click', () => {
-    const input = document.getElementById(btn.dataset.target);
     const isHidden = input.type === 'password';
     input.type = isHidden ? 'text' : 'password';
-    btn.textContent = isHidden ? '🙈' : '👁';
-    btn.setAttribute('aria-label', (isHidden ? 'Hide' : 'Show') + '/' + 'hide ' + btn.getAttribute('aria-label').split(' ').slice(-2).join(' '));
+    input.classList.toggle('pw-visible', isHidden);
+    iconWrap.classList.toggle('revealed', isHidden);
+    btn.setAttribute('aria-label', (isHidden ? 'Hide' : 'Show') + ' ' + fieldName);
   });
 });
 
