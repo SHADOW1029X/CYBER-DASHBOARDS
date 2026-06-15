@@ -152,7 +152,7 @@
     @keyframes headerScan { 0%,100%{transform:scaleX(0);opacity:0} 50%{transform:scaleX(1);opacity:.5} }
     @media (max-width: 860px) {
       :root { --layout-px: 14px; }
-      header { flex-wrap: wrap; } .hdr-right { gap: 7px; flex-wrap: wrap; }
+      header { flex-wrap: wrap; }
     }
 
     .logo-block { display: flex; flex-direction: column; gap: 3px; }
@@ -544,6 +544,17 @@ function showMsg(text, type) {
 function clearMsg() { showMsg('', ''); }
 
 // ── PASSWORD SHOW / HIDE ─────────────────────────────────────────
+function resetPwToggle(inputId) {
+  const input = document.getElementById(inputId);
+  const btn = document.querySelector(`.pw-toggle[data-target="${inputId}"]`);
+  if (!input || !btn || input.type === 'password') return; // untouched — nothing to reset
+  input.type = 'password';
+  input.classList.remove('pw-visible');
+  btn.querySelector('.pw-icon-wrap').classList.remove('revealed');
+  const fieldName = btn.getAttribute('aria-label').replace(/^Hide /i, '');
+  btn.setAttribute('aria-label', 'Show ' + fieldName);
+}
+
 document.querySelectorAll('.pw-toggle').forEach(btn => {
   const input = document.getElementById(btn.dataset.target);
   const iconWrap = btn.querySelector('.pw-icon-wrap');
@@ -627,11 +638,13 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 
 // ── SAVE CREDENTIALS ─────────────────────────────────────────────
 async function saveCredentials() {
+  const btn = document.getElementById('credSaveBtn');
+  if (btn.disabled) return; // already in flight — ignore duplicate Enter/click
+
   const currentPass    = document.getElementById('credCurrentPass').value;
   const newUser        = document.getElementById('credNewUser').value.trim();
   const newPass        = document.getElementById('credNewPass').value;
   const newPassConfirm = document.getElementById('credNewPassConfirm').value;
-  const btn            = document.getElementById('credSaveBtn');
 
   clearMsg();
 
@@ -669,10 +682,14 @@ async function saveCredentials() {
       document.getElementById('credNewPass').value      = '';
       document.getElementById('credNewPassConfirm').value = '';
       document.getElementById('pwStrengthBlock').style.display = 'none';
+      resetPwToggle('credCurrentPass');
+      resetPwToggle('credNewPass');
+      resetPwToggle('credNewPassConfirm');
       toast('✓ Credentials updated', 't-green');
     } else {
       // only clear current password on auth failure, preserve other fields
       document.getElementById('credCurrentPass').value = '';
+      resetPwToggle('credCurrentPass');
       showMsg(`⚠ ${data.error || `Update failed (${res.status})`}`, 'err');
       document.getElementById('credCurrentPass').focus();
     }
