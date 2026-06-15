@@ -958,12 +958,13 @@ th,
 
     /* Very small phones (≤420px) */
     @media (max-width: 420px) {
-      .stats-row { grid-template-columns: 1fr 1fr; }
-      .hdr-btn   { display: none; }               /* hide text buttons; keep only logout */
-      #logoutBtn { display: flex !important; }    /* always show logout */
-      .live-badge { font-size: .6rem; padding: 3px 7px; }
-      .tab-btn  { padding: 7px 13px; font-size: .54rem; }
-      .page-btn { padding: 3px 6px; font-size: .48rem; }
+      .stats-row     { grid-template-columns: 1fr 1fr; }
+      /* Collapse nav buttons to icon-only — all three stay visible and tappable */
+      .hdr-btn       { padding: 6px 8px; min-width: 28px; justify-content: center; }
+      .hdr-btn-label { display: none; }           /* hide label text, keep icon symbol */
+      .live-badge    { font-size: .6rem; padding: 3px 7px; }
+      .tab-btn       { padding: 7px 13px; font-size: .54rem; }
+      .page-btn      { padding: 3px 6px; font-size: .48rem; }
     }
     /* ══════════════════════════════════════════════════════════════
        STORAGE INDICATOR — compact inline bar
@@ -1071,9 +1072,9 @@ th,
       </div>
       <div class="status-time" id="statusTime" aria-live="polite">—</div>
       <div class="loader" id="loader" role="status" aria-label="Loading data"></div>
-      <a href="NYTHERIX-ADMIN.html" class="btn btn-violet hdr-btn" title="Open NYTHERIX Admin">◈ NYTHERIX ADMIN</a>
-      <a href="settings.html" class="btn btn-amber hdr-btn" id="settingsBtn" title="Account settings">⚙ SETTINGS</a>
-      <button class="btn btn-red   hdr-btn" id="logoutBtn"   title="End session">⏻ DISCONNECT</button>
+      <a href="NYTHERIX-ADMIN.html" class="btn btn-violet hdr-btn" title="Open NYTHERIX Admin">◈ <span class="hdr-btn-label">NYTHERIX ADMIN</span></a>
+      <a href="settings.html" class="btn btn-amber hdr-btn" id="settingsBtn" title="Account settings">⚙ <span class="hdr-btn-label">SETTINGS</span></a>
+      <button class="btn btn-red hdr-btn" id="logoutBtn" title="End session">⏻ <span class="hdr-btn-label">DISCONNECT</span></button>
     </div>
   </header>
 
