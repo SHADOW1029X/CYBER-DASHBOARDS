@@ -175,6 +175,7 @@
             clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
             /* ── HOLOGRAPHIC BOOT ENTRANCE (plays once on load) ── */
             opacity: 0;
+            will-change: transform, opacity, filter;
             animation: holoBoot 1.45s ease-out forwards, edgeCharge 1.45s ease-out forwards;
         }
 
@@ -210,6 +211,7 @@
             position: absolute; inset: -140px; pointer-events: none;
             background: radial-gradient(circle, rgba(0,229,255,.95) 0%, rgba(0,229,255,.35) 18%, transparent 65%);
             opacity: 0;
+            will-change: transform, opacity;
             animation: coreFlash 1.4s ease-out forwards;
         }
         @keyframes coreFlash {
@@ -238,6 +240,7 @@
             position: absolute; left: 0; right: 0; height: 140px; top: 0;
             background: linear-gradient(180deg, transparent, rgba(0,229,255,.8), transparent);
             transform: translateY(-150%);
+            will-change: transform, opacity;
             animation: scanBeam 1.3s ease-out forwards;
             pointer-events: none;
         }
@@ -252,6 +255,7 @@
             position: absolute; inset: 0; pointer-events: none;
             background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,.15) 40%, rgba(0,229,255,.28) 50%, transparent 75%);
             transform: translateX(-150%);
+            will-change: transform, opacity;
             animation: surfaceSweep 1.8s ease-out forwards;
         }
         @keyframes surfaceSweep {
@@ -273,6 +277,48 @@
         @keyframes contentReveal {
             from { opacity: 0; transform: translateY(8px); }
             to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /*
+         * ── LIGHTER BOOT ANIMATION FOR MOBILE/TOUCH ──────────────────────────
+         * The three heaviest costs on mobile GPUs are:
+         *   1. filter: blur() on a large, complex element (.login-card) — repainted every frame
+         *   2. Large blurred box-shadow radii (40-180px) animated in edgeCharge — also repaint-bound
+         *   3. clip-path animation on .border-draw — not compositor-accelerated, forces repaint
+         * This block keeps the same overall sequence/feel but trims those three costs.
+         */
+        @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+            @keyframes holoBoot {
+                0%   { opacity: 0; transform: scale(var(--card-scale, 1)) scaleY(.02); filter: brightness(2.6) blur(3px); }
+                18%  { opacity: .95; transform: scale(var(--card-scale, 1)) scaleY(.02); }
+                50%  { opacity: 1; transform: scale(var(--card-scale, 1)) scaleY(1); filter: brightness(1.6); }
+                100% { opacity: 1; transform: scale(var(--card-scale, 1)) scaleY(1); filter: none; }
+            }
+            @keyframes edgeCharge {
+                0%   { box-shadow: none; }
+                40%  {
+                    box-shadow:
+                        0 0 12px rgba(0,229,255,.7),
+                        0 0 32px rgba(0,229,255,.4);
+                }
+                100% {
+                    box-shadow:
+                        0 0 0 1px rgba(0,229,255,.06),
+                        0 30px 80px rgba(0,0,0,.95),
+                        0 0 40px rgba(0,229,255,.08),
+                        inset 0 1px 0 rgba(0,229,255,.12),
+                        inset 0 -1px 0 rgba(0,0,0,.5);
+                }
+            }
+            /* Smaller painted area for the radial ignition flash */
+            .core-flash { inset: -50px; }
+            /* Swap the clip-path "draw" for a cheap opacity fade — same end result, no per-frame repaint */
+            .border-draw {
+                clip-path: inset(0 0 0 0);
+                opacity: 0;
+                animation: borderFadeIn .5s ease-out .35s forwards;
+            }
+            @keyframes borderFadeIn { to { opacity: .35; } }
         }
 
         /* Corner cut glow */
