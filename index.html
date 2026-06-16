@@ -155,13 +155,12 @@
             border: 1px solid var(--border-hi);
             border-radius: 4px;
             padding: clamp(24px, 4vw, 44px) clamp(20px, 4vw, 40px);
-            transform-style: preserve-3d;
             /*
              * FIX #1: --card-scale is consumed here so adaptToViewport's
-             * resize/orientation scaling actually takes effect.
-             * Default 1 so it has no effect until adaptToViewport sets it.
-             * The holoBoot/edgeCharge entrance animation also reads --card-scale
-             * so the responsive scale is preserved throughout the boot sequence.
+             * resize/orientation scaling takes effect. Default 1 means no
+             * scaling until adaptToViewport sets it. holoBoot also reads
+             * --card-scale so the responsive scale is preserved throughout
+             * the boot sequence.
              */
             transform: scale(var(--card-scale, 1));
             transition: transform .06s ease-out, box-shadow .3s ease;
@@ -975,7 +974,7 @@
     function saveAttemptState(s) {
         try { sessionStorage.setItem(LOCKOUT_KEY, JSON.stringify(s)); } catch {}
     }
-    function recordFailure(isNetworkError) {
+    function recordFailure() {
         const s = getAttemptState();
         // FIX #26/#2: when a lockout has fully expired, reset count to 0 — not to
         // MAX_ATTEMPTS. Resetting to MAX_ATTEMPTS meant the very next failure after
@@ -1073,6 +1072,13 @@
      * transform: scale(var(--card-scale, 1)) on .login-card.
      */
     const loginCard = document.getElementById('loginCard');
+
+    // Release the compositor layer claimed by will-change once the boot animation finishes.
+    // Keeping will-change permanently allocated after the 1.45s animation serves no purpose
+    // and wastes GPU memory for the lifetime of the page.
+    loginCard.addEventListener('animationend', () => {
+        loginCard.style.willChange = 'auto';
+    }, { once: true });
 
     function adaptToViewport() {
         const vw = window.innerWidth;
@@ -1254,7 +1260,7 @@
                 return;
             }
 
-            recordFailure(false);
+            recordFailure();
 
             // Shake card via CSS class (cardShake keyframe defined in <style>).
             loginCard.classList.remove('shake');
@@ -1293,7 +1299,7 @@
                 passEl.classList.remove('pw-visible');
             }
             // FIX #25: network/timeout errors count toward lockout
-            recordFailure(true);
+            recordFailure();
             errEl.textContent   = (e.name === 'AbortError') ? 'Request timed out.' : 'Network error.';
             errEl.style.display = 'block';
             if (getLockoutRemaining() > 0) {
