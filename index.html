@@ -1124,10 +1124,31 @@
     window.addEventListener('offline', () => setConnStatus(false));
     setConnStatus(navigator.onLine);
 
-    // ── Login handler ────────────────────────────────────────────────────────
+    // ── Debounce guard ───────────────────────────────────────────────────────
     // FIX #48: debounce guard — prevent rapid Enter/click spam before disable takes effect
     let _submitting = false;
+    let _safetyTimer = null; // FIX: store so it can be cancelled if re-entry happens
 
+    // ── bfcache reset ────────────────────────────────────────────────────────
+    // If the browser restores this page from back-forward cache after a successful
+    // login redirect, _submitting is true and the form appears permanently locked.
+    // pageshow fires with persisted=true on bfcache restore; reset UI state so the
+    // user can interact with the form rather than seeing a stuck loading state.
+    window.addEventListener('pageshow', e => {
+        if (!e.persisted) return;
+        _submitting = false;
+        if (_safetyTimer !== null) { clearTimeout(_safetyTimer); _safetyTimer = null; }
+        const btn    = document.getElementById('loginBtn');
+        const btnTxt = document.getElementById('btnText');
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        btnTxt.textContent    = '\u25BA\u00A0\u00A0AUTHENTICATE';
+        btn.style.borderColor = '';
+        btn.style.color       = '';
+        btn.style.boxShadow   = '';
+    });
+
+    // ── Login handler ────────────────────────────────────────────────────────
     async function doLogin() {
         // Guard: _submitting is only true while an actual fetch is in-flight.
         // All early validation returns happen BEFORE _submitting is set, so
@@ -1235,7 +1256,8 @@
                 // Safety net: if the redirect hasn't completed within 8s (e.g. the
                 // browser blocked it or navigation failed silently), unlock the form
                 // so the user can retry rather than being permanently stuck.
-                setTimeout(() => {
+                _safetyTimer = setTimeout(() => {
+                    _safetyTimer = null;
                     _submitting  = false;
                     btn.disabled = false;
                     btn.classList.remove('loading');
@@ -1248,7 +1270,11 @@
             }
 
             if (res.status === 429) {
-                const wait = parseInt(res.headers.get('Retry-After') || '30', 10);
+                // FIX: parseInt(header, 10) returns NaN if header is missing or non-numeric.
+                // NaN * 1000 = NaN, and Math.max(x, NaN) = NaN, which poisons s.until.
+                // Clamp to [10, 300] seconds to guard against both NaN and absurd values.
+                const rawWait = parseInt(res.headers.get('Retry-After') || '', 10);
+                const wait    = Number.isFinite(rawWait) ? Math.min(Math.max(rawWait, 10), 300) : 30;
                 const s = getAttemptState();
                 s.count = Math.max(s.count + 1, MAX_ATTEMPTS);
                 s.until = Math.max(s.until, Date.now() + wait * 1000);
