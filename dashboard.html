@@ -28,26 +28,23 @@
   <style>
     /* ── DELTHA DISPLAY FONT ──────────────────────────────────────── */
     @font-face {
-  font-family: 'Deltha';
-  src: url('./Deltha.otf') format('opentype'),
-       url('./Deltha.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+      font-family: 'Deltha';
+      src: url('./Deltha.otf') format('opentype'),
+           url('./Deltha.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
     /* ══════════════════════════════════════════════════════════════
        DESIGN TOKENS
     ══════════════════════════════════════════════════════════════ */
     :root {
       --bg:         #020810;
       --bg2:        #040d18;
-      --panel:      #07111e;
-      --panel2:     #0a1828;
       --border:     #0d3a52;
       --border-hi:  #1a6a8a;
       --cyan:       #00e5ff;
       --cyan-dim:   #007a99;
-      --cyan-deep:  #003d4d;
       --green:      #00ff9d;
       --green-dim:  #006644;
       --amber:      #ffb300;
@@ -65,22 +62,15 @@
       --glow-v:  0 0 8px #bf7fff77, 0 0 24px #bf7fff33;
       --glow-a:  0 0 8px #ffb30077, 0 0 24px #ffb30033;
       --font-deltha: 'Deltha', monospace;
+      --layout-px: 24px;
     }
 
     /* ── RESET & BASE ─────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    .logo-top,
-.panel-title,
-.btn,
-.tab-btn,
-.stat-value,
-.query-box-title,
-.modal-title,
-th,
-.sql-result-table th,
-.page-btn {
-  font-family: var(--font-deltha) !important;
-}
+    .logo-top, .panel-title, .btn, .tab-btn, .stat-value,
+    .query-box-title, .modal-title, th, .sql-result-table th, .page-btn {
+      font-family: var(--font-deltha) !important;
+    }
 
     html {
       scrollbar-width: thin;
@@ -145,7 +135,6 @@ th,
     .skip-link:focus { left: 12px; }
 
     /* ── LAYOUT ───────────────────────────────────────────────────── */
-    :root { --layout-px: 24px; }
     .layout { position: relative; z-index: 2; max-width: 1760px; margin: 0 auto; padding: 0 var(--layout-px) 80px; }
 
     /* ══════════════════════════════════════════════════════════════
@@ -212,14 +201,6 @@ th,
       display: flex; align-items: center; gap: 10px;
       flex-shrink: 0; flex-wrap: wrap;
     }
-    /* Ensure header never wraps the right cluster off screen on wide viewports */
-    @media (max-width: 860px) {
-      header { flex-wrap: wrap; }
-      .hdr-right { gap: 7px; }
-      .refresh-countdown { display: none; }
-      .status-time { display: none; }
-    }
-
     .live-badge {
       display: flex; align-items: center; gap: 7px;
       font-family: 'Share Tech Mono', monospace; font-size: .72rem;
@@ -308,7 +289,6 @@ th,
     .btn-violet:hover:not(:disabled) { background: rgba(191,127,255,.08); box-shadow: var(--glow-v); border-color: var(--violet); }
     .btn-sm { padding: 4px 10px; font-size: .52rem; }
     .hdr-btn { padding: 6px 13px; font-size: .55rem; letter-spacing: .12em; }
-    @media (max-width: 860px) { .hdr-btn { padding: 7px 10px; font-size: .55rem; } }
 
     /* ══════════════════════════════════════════════════════════════
        NAV TABS
@@ -501,9 +481,6 @@ th,
       box-shadow: 0 8px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(0,229,255,.06);
       position: relative;
     }
-    /* Scroll-hint: fades in a right-side shadow when table overflows horizontally */
-    .table-wrap { background-attachment: local, local, scroll, scroll; }
-
     /* Top glow strip */
     .table-wrap::before {
       content: '';
@@ -951,13 +928,13 @@ th,
     /* ══════════════════════════════════════════════════════════════
        RESPONSIVE
     ══════════════════════════════════════════════════════════════ */
-    /* ══════════════════ RESPONSIVE ══════════════════════ */
 
     /* ── Tablet (≤860px): layout-px, wrap header ── */
     @media (max-width: 860px) {
       :root { --layout-px: 14px; }
       header { flex-wrap: wrap; }
       .hdr-right { gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+      .hdr-btn { padding: 7px 10px; font-size: .55rem; }
       .refresh-countdown { display: none; }
       .status-time { display: none; }
       .stats-row { grid-template-columns: repeat(3, 1fr); }
