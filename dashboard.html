@@ -118,15 +118,6 @@ th,
         linear-gradient(90deg, rgba(2,8,16,.65) 0%, rgba(2,8,16,.35) 34%, rgba(2,8,16,.04) 67%, rgba(2,8,16,.35) 100%),
         radial-gradient(circle at 52% 54%, transparent 0%, rgba(0,0,0,.18) 70%, rgba(0,0,0,.30) 100%);
     }
-    .bg-layer::after {
-      content: ''; position: absolute; inset: 0; opacity: .12;
-      background-image:
-        linear-gradient(rgba(0,229,255,.9) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,229,255,.9) 1px, transparent 1px);
-      background-size: 44px 44px;
-      mask-image: radial-gradient(circle at 63% 48%, black 0%, transparent 74%);
-      -webkit-mask-image: radial-gradient(circle at 63% 48%, black 0%, transparent 74%);
-    }
     .noise {
       position: fixed; inset: -50%; z-index: 2; pointer-events: none;
       opacity: .035;
@@ -1149,7 +1140,7 @@ th,
       <div class="status-time" id="statusTime" aria-live="polite">—</div>
       <div class="loader" id="loader" role="status" aria-label="Loading data"></div>
       <a href="NYTHERIX-ADMIN.html" class="btn btn-violet hdr-btn" title="Open NYTHERIX Admin"><span aria-hidden="true">◈</span> <span class="btn-label">NYTHERIX ADMIN</span></a>
-      <a href="About.html" class="btn btn-cyan hdr-btn" title="About"><span aria-hidden="true">ℹ</span> <span class="btn-label">ABOUT</span></a>
+      <a href="About.html" class="btn btn-cyan hdr-btn" title="About"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg> <span class="btn-label">ABOUT</span></a>
       <a href="settings.html" class="btn btn-amber hdr-btn" id="settingsBtn" title="Account settings"><span aria-hidden="true">⚙</span> <span class="btn-label">SETTINGS</span></a>
       <button class="btn btn-red hdr-btn" id="logoutBtn" aria-label="Disconnect and log out"><span aria-hidden="true">⏻</span> <span class="btn-label">DISCONNECT</span></button>
     </div>
