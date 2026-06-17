@@ -48,7 +48,6 @@
       --violet-dim: #5a3a88;
       --text:       #b0d4e8;
       --text-dim:   #3d6478;
-      --text-mid:   #6a9ab8;
       --glow-c:  0 0 8px #00e5ff77, 0 0 24px #00e5ff33;
       --glow-g:  0 0 8px #00ff9d77, 0 0 24px #00ff9d33;
       --glow-r:  0 0 8px #ff3b5c77, 0 0 24px #ff3b5c33;
@@ -384,6 +383,17 @@
       .field-input { font-size: 1rem; }
     }
 
+    /* ── Reduced motion: kill animations and WebGL ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+      #webgl-canvas { display: none; }
+      .bg-layer     { background: rgba(2,8,16,.96); }
+    }
+
     /* ── Toast positioning on narrow screens ── */
     @media (max-width: 480px) {
       .toast-stack { right: 10px; left: 10px; bottom: 16px; }
@@ -433,7 +443,7 @@
     <div class="hdr-right">
       <a href="dashboard.html"      class="btn btn-cyan   hdr-btn" title="Open Dashboard"><span aria-hidden="true">⊞</span> <span class="btn-label">DASHBOARD</span></a>
       <a href="NYTHERIX-ADMIN.html" class="btn btn-violet hdr-btn" title="Open NYTHERIX Admin"><span aria-hidden="true">◈</span> <span class="btn-label">NYTHERIX ADMIN</span></a>
-      <a href="About.html"          class="btn btn-violet hdr-btn" title="About" aria-current="page"><span aria-hidden="true">◉</span> <span class="btn-label">ABOUT</span></a>
+      <a href="About.html"          class="btn btn-violet hdr-btn" title="About"><span aria-hidden="true">◉</span> <span class="btn-label">ABOUT</span></a>
       <button class="btn btn-red hdr-btn" id="logoutBtn" aria-label="Disconnect and log out"><span aria-hidden="true">⏻</span> <span class="btn-label">DISCONNECT</span></button>
     </div>
   </header>
