@@ -142,7 +142,6 @@
       #hdrBadge          { display: none; }
       #hdrLoader         { display: none; }
       .layout-content    { padding-top: 24px; }
-    } .hdr-right { gap: 6px; flex-wrap: wrap; }
     }
 
     .logo-block { display: flex; flex-direction: column; gap: 3px; }
@@ -247,7 +246,6 @@
     }
     .stat-card:hover .stat-val { transform: scale(1.04); }
     .stat-val.g { color: var(--green); text-shadow: var(--glow-g); }
-    .stat-val.a { color: var(--amber); text-shadow: var(--glow-a); }
     .stat-val.v { color: var(--violet); text-shadow: var(--glow-v); }
     .stat-val.r { color: var(--red);   text-shadow: var(--glow-r); }
     .stat-sub   { font-family: 'Share Tech Mono', monospace; font-size: .55rem; color: var(--text-dim); margin-top: 6px; }
@@ -390,12 +388,9 @@
     .modal-icon    { font-size: 2.4rem; margin-bottom: 14px; }
     .modal-body-text { font-family: 'Share Tech Mono', monospace; font-size: .74rem; color: var(--text); line-height: 1.9; }
     .kbd-hint      { background: rgba(0,229,255,.08); border: 1px solid var(--border); border-radius: 2px; padding: 1px 5px; font-size: .9em; }
+    .text-amber    { color: var(--amber); }
 
     /* ══════════════════ RESPONSIVE ══════════════════════ */
-
-    /* ── Tablet (≤860px): wrap header, tighten gap ── */
-      .layout-content    { padding-top: 24px; }
-    }
 
     /* ── Large phone (≤700px): hide non-critical header chrome ── */
     @media (max-width: 700px) {
@@ -597,7 +592,7 @@
           Press <kbd class="kbd-hint">Ctrl+S</kbd> to save.
         </div>
       </div>
-      <div class="action-row" class="action-row">
+      <div class="action-row">
         <button class="btn btn-violet" id="saveBtn">Apply Settings →</button>
         <button class="btn btn-cyan" id="refreshBtn" title="Reload settings from worker">⟳ Refresh</button>
       </div>
@@ -619,8 +614,7 @@
         <label for="urlNytherix">NYTHERIX — proxy endpoint</label>
         <div class="copy-row">
           <input type="text" id="urlNytherix" value="https://nytherix.nytherion.qzz.io"
-                 readonly tabindex="-1" spellcheck="false" aria-readonly="true"
->
+                 readonly tabindex="-1" spellcheck="false" aria-readonly="true">
           <button class="btn btn-cyan copy-btn" data-copy-target="urlNytherix" aria-label="Copy NYTHERIX URL">⧉ COPY</button>
         </div>
       </div>
@@ -628,8 +622,7 @@
         <label for="urlPhoton">PHOTON — capture node</label>
         <div class="copy-row">
           <input type="text" id="urlPhoton" value="https://photon.nytherion.qzz.io"
-                 readonly tabindex="-1" spellcheck="false" aria-readonly="true"
->
+                 readonly tabindex="-1" spellcheck="false" aria-readonly="true">
           <button class="btn btn-cyan copy-btn" data-copy-target="urlPhoton" aria-label="Copy PHOTON URL">⧉ COPY</button>
         </div>
       </div>
@@ -652,7 +645,7 @@
       <div class="modal-center">
         <div class="modal-icon" aria-hidden="true">⛔</div>
         <p class="modal-body-text">
-          Your session will be destroyed and you will be redirected to <span style="color:var(--amber)">index.html</span> to log in again.
+          Your session will be destroyed and you will be redirected to <span class="text-amber">index.html</span> to log in again.
         </p>
       </div>
     </div>
