@@ -16,6 +16,8 @@
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020810'/%3E%3Cpolygon points='16,2 30,9 30,23 16,30 2,23 2,9' fill='none' stroke='%2300e5ff' stroke-width='1.5'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-size='13' font-weight='bold' fill='%2300e5ff'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script type="importmap">
     {
@@ -1119,7 +1121,7 @@
       <div class="status-time" id="statusTime" aria-live="polite">—</div>
       <div class="loader" id="loader" role="status" aria-label="Loading data"></div>
       <a href="NYTHERIX-ADMIN.html" class="btn btn-violet hdr-btn" title="Open NYTHERIX Admin"><span aria-hidden="true">◈</span> <span class="btn-label">NYTHERIX ADMIN</span></a>
-      <a href="About.html" class="btn btn-cyan hdr-btn" title="About"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg> <span class="btn-label">ABOUT</span></a>
+      <a href="About.html" class="btn btn-cyan hdr-btn" title="About"><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="1.5" fill="currentColor"/><line x1="12" y1="12" x2="12" y2="16"/></svg> <span class="btn-label">ABOUT</span></a>
       <a href="settings.html" class="btn btn-amber hdr-btn" id="settingsBtn" title="Account settings"><span aria-hidden="true">⚙</span> <span class="btn-label">SETTINGS</span></a>
       <button class="btn btn-red hdr-btn" id="logoutBtn" aria-label="Disconnect and log out"><span aria-hidden="true">⏻</span> <span class="btn-label">DISCONNECT</span></button>
     </div>
@@ -1352,11 +1354,11 @@
         </div>
         <div class="field-group">
           <label class="field-label" for="nmName">DISPLAY NAME <span style="color:var(--red)">*</span></label>
-          <input class="field-input" id="nmName" placeholder="e.g. Target Alpha" maxlength="60" aria-required="true">
+          <input class="field-input" id="nmName" placeholder="e.g. Target Alpha" maxlength="60" aria-required="true" autocomplete="off">
         </div>
         <div class="field-group">
           <label class="field-label" for="nmNote">NOTE (optional)</label>
-          <input class="field-input" id="nmNote" placeholder="Short annotation..." maxlength="120">
+          <input class="field-input" id="nmNote" placeholder="Short annotation..." maxlength="120" autocomplete="off">
         </div>
       </div>
     </div>
@@ -1565,7 +1567,7 @@ function buildHeader() {
   const tr = document.createElement('tr');
   COLUMNS.forEach((col, i) => {
     const th = document.createElement('th');
-    th.className = (col.vis ? '' : 'hidden-col') + (col.sort ? '' : ' no-sort');
+    th.className = [col.vis ? '' : 'hidden-col', col.sort ? '' : 'no-sort'].filter(Boolean).join(' ');
     th.setAttribute('scope','col');
     if (col.key === '_act' || col.key === '_name') {
       th.textContent = col.label;
@@ -1625,11 +1627,11 @@ function refreshColVis() {
 // ── SORT ──────────────────────────────────────────────────────────────────
 function sortBy(key, colIdx) {
   if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
-  document.querySelectorAll('#tableHead th').forEach((th,i) => {
-    th.classList.remove('sort-asc','sort-desc');
-    if (COLUMNS[i]?.sort) th.setAttribute('aria-sort','none');
-  });
   const ths = document.querySelectorAll('#tableHead th');
+  ths.forEach((th, i) => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (COLUMNS[i]?.sort) th.setAttribute('aria-sort', 'none');
+  });
   if (ths[colIdx]) {
     ths[colIdx].classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
     ths[colIdx].setAttribute('aria-sort', sortDir === 1 ? 'ascending' : 'descending');
@@ -1736,6 +1738,10 @@ function clearSearch() {
 }
 document.getElementById('searchInput').addEventListener('input', () => {
   clearTimeout(searchDebounce); searchDebounce = setTimeout(applyFilter, 300);
+});
+// 'search' fires when the native clear (×) button of type='search' is clicked
+document.getElementById('searchInput').addEventListener('search', () => {
+  clearTimeout(searchDebounce); applyFilter();
 });
 
 // ── AUTO-REFRESH ──────────────────────────────────────────────────────────
@@ -1906,7 +1912,6 @@ function showUndoToast(deletedIds) {
   btn.className = 'toast-undo-btn';
   btn.textContent = 'REFRESH';
   btn.title = 'Reload data from server';
-  btn.onclick = () => { el.remove(); loadData(); };
   el.appendChild(label); el.appendChild(btn);
   const stack = document.getElementById('toastStack');
   stack.appendChild(el);
@@ -1968,7 +1973,6 @@ function openEditModal(id) {
   });
   document.getElementById('editModalTitle').textContent = `◈ EDIT RECORD #${id}`;
   openModal('editModal');
-  setTimeout(() => document.getElementById('ef__name')?.focus() || document.getElementById('ef_public_ip')?.focus(), 50);
 }
 async function saveEdit() {
   if (editingId == null) return;
@@ -2008,7 +2012,6 @@ function openNameModal(id) {
   document.getElementById('nmNote').value = obj.note || '';
   document.getElementById('nameModalTitle').textContent = `◈ NAME RECORD #${id}`;
   openModal('nameModal');
-  setTimeout(() => document.getElementById('nmName').focus(), 50);
 }
 function saveNameModal() {
   const id   = document.getElementById('nmId').value;
@@ -2110,7 +2113,7 @@ function exportPDF() {
   }).join('');
   const headers = ['ID','NAME',...visCols.map(c=>c.key.toUpperCase().replace(/_/g,' '))].map(h=>`<th>${h}</th>`).join('');
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>Captures Export ${now}</title>
+<title>Captures Export ${esc(now)}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Courier New',monospace;font-size:10px;background:#fff;color:#111;padding:20px}
