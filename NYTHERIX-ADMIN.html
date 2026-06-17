@@ -325,6 +325,7 @@
     .field input::placeholder { color: var(--text-dim); }
     .field input[readonly] { color: var(--text-mid); cursor: text; }
     .field-hint { font-family: 'Share Tech Mono', monospace; font-size: .58rem; color: var(--text-dim); line-height: 1.6; margin-top: 6px; }
+    .field-hint--mb { margin-bottom: 18px; margin-top: 0; }
 
     /* unsaved indicator on save button */
     #saveBtn.dirty { border-color: var(--amber-dim); color: var(--amber); }
@@ -607,7 +608,7 @@
       <div class="panel-title a">⊞ User-Facing Sites</div>
     </div>
     <div class="panel-body">
-      <div class="field-hint" style="margin-bottom:18px">
+      <div class="field-hint field-hint--mb">
         Live, public-facing endpoints. Share these URLs with end users.
       </div>
       <div class="field">
