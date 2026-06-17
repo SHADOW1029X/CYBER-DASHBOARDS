@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Nytherionx — Cosmic darkness that rewrites future beneath neon stars.</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap" rel="stylesheet">
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&family=Inter:wght@400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <style>
     :root {
       --void: #050508;
@@ -28,6 +30,8 @@
     }
 
     .font-playfair { font-family: 'Playfair Display', serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
 
     /* ── PARTICLES ── */
     #particle-canvas {
@@ -419,6 +423,82 @@
       font-weight: 400;
     }
 
+    /* ── BENEFITS GRID (from SimpleRoyal) ── */
+    .benefits {
+      background: var(--void);
+    }
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      background: #222;
+    }
+    @media (min-width: 768px) {
+      .benefits-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    .benefits-title-area {
+      background: #0a0a0a;
+      padding: 3rem 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      position: relative;
+    }
+    @media (min-width: 768px) {
+      .benefits-title-area {
+        grid-column: span 2;
+        min-height: 420px;
+      }
+    }
+    .webgl-container {
+      background: #0a0a0a;
+      position: relative;
+      overflow: hidden;
+      min-height: 420px;
+    }
+    @media (min-width: 768px) {
+      .webgl-container {
+        grid-column: span 2;
+        grid-row: span 2;
+      }
+    }
+    .benefit-card {
+      background: #0a0a0a;
+      padding: 2.5rem 2.5rem;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+    }
+    .benefit-card:hover {
+      background: #111;
+    }
+    .benefit-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid transparent;
+      transition: border-color 0.7s;
+    }
+    .benefit-card:hover::before {
+      border-color: rgba(249, 115, 22, 0.3);
+    }
+    .card-number {
+      font-size: 0.875rem;
+      color: var(--star);
+    }
+    .benefit-card h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
     /* ── PILLARS ── */
     .pillars { background: var(--void); }
     .section-label {
@@ -619,6 +699,106 @@
     </div>
   </section>
 
+  <!-- ── BENEFITS GRID ── -->
+  <section class="benefits" aria-label="Platform Benefits">
+    <div class="section-inner">
+      <p class="section-label sr">Platform Architecture</p>
+      <h2 class="section-heading sr sr-delay-1">IT'S ME NYTHERION.</h2>
+
+      <div class="benefits-grid">
+        <!-- Title Area -->
+        <div class="benefits-title-area col-span-1 md:col-span-2">
+          <div class="flex items-center gap-2 mb-8">
+            <div class="flex gap-0.5">
+              <span class="w-1 h-1 bg-orange-600 rounded-sm"></span>
+              <span class="w-1 h-1 bg-orange-600 rounded-sm"></span>
+              <span class="w-1 h-1 bg-orange-600 rounded-sm"></span>
+            </div>
+            <span class="text-xs text-white tracking-widest uppercase font-mono">Key Metrics</span>
+          </div>
+          <h2 class="text-5xl md:text-7xl font-semibold tracking-tighter text-white uppercase leading-none">
+            IT'S ME <br> NYTHERION.
+          </h2>
+          <p class="mt-8 text-xs text-neutral-400 uppercase tracking-widest leading-loose font-mono max-w-md">
+            A highly specialized architecture focused on scale, performance, and seamless global distribution.
+          </p>
+        </div>
+
+        <!-- WebGL Area -->
+        <div class="webgl-container col-span-1 md:col-span-2 md:row-span-2 relative">
+          <div class="absolute inset-4 border border-white/5 z-10 pointer-events-none"></div>
+          <div id="webgl-mount" class="w-full h-full absolute inset-0 z-0"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-10 pointer-events-none"></div>
+        </div>
+
+        <!-- Cards -->
+        <div class="benefit-card sr sr-delay-1">
+          <div class="flex justify-between items-center mb-12">
+            <span class="card-number font-mono">01/</span>
+            <div class="flex gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-orange-600"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-800"></span>
+            </div>
+          </div>
+          <div>
+            <h3 class="flex items-center gap-2 mb-3">Global Reach</h3>
+            <p class="text-xs text-neutral-400 leading-relaxed font-mono">
+              Expand your footprint across emerging markets with precision-targeted deployment strategies.
+            </p>
+          </div>
+        </div>
+
+        <div class="benefit-card sr sr-delay-2">
+          <div class="flex justify-between items-center mb-12">
+            <span class="card-number font-mono">02/</span>
+            <div class="flex gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-800"></span>
+            </div>
+          </div>
+          <div>
+            <h3 class="flex items-center gap-2 mb-3">Live Analytics</h3>
+            <p class="text-xs text-neutral-400 leading-relaxed font-mono">
+              Access continuous telemetry streams to measure latency and optimize user endpoints.
+            </p>
+          </div>
+        </div>
+
+        <div class="benefit-card sr sr-delay-3">
+          <div class="flex justify-between items-center mb-12">
+            <span class="card-number font-mono">03/</span>
+            <div class="flex gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-800"></span>
+            </div>
+          </div>
+          <div>
+            <h3 class="flex items-center gap-2 mb-3">Rapid Execution</h3>
+            <p class="text-xs text-neutral-400 leading-relaxed font-mono">
+              Deploy high-fidelity assets instantly through our distributed edge network.
+            </p>
+          </div>
+        </div>
+
+        <div class="benefit-card sr sr-delay-4">
+          <div class="flex justify-between items-center mb-12">
+            <span class="card-number font-mono">04/</span>
+            <div class="flex gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-800"></span>
+            </div>
+          </div>
+          <div>
+            <h3 class="flex items-center gap-2 mb-3">Process Isolation</h3>
+            <p class="text-xs text-neutral-400 leading-relaxed font-mono">
+              Operate with confidence knowing your data is segmented within encrypted environments.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ── PILLARS ── -->
   <section class="pillars" aria-label="Pillars">
     <div class="section-inner">
@@ -808,7 +988,6 @@
     }, { passive: true });
 
     hero.addEventListener('touchend', () => {
-      // fade out slowly
       setTimeout(() => {
         rawX = -999; rawY = -999;
         revealDiv.style.maskImage = 'none';
@@ -816,7 +995,7 @@
       }, 900);
     }, { passive: true });
 
-    // Gyroscope support for mobile (optional permission-based)
+    // Gyroscope support for mobile
     if (isTouch && typeof DeviceOrientationEvent !== 'undefined') {
       const requestGyro = () => {
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -829,7 +1008,7 @@
       };
       const enableGyro = () => {
         window.addEventListener('deviceorientation', e => {
-          if (touchActive) return; // prefer touch over gyro
+          if (touchActive) return;
           if (e.gamma == null || e.beta == null) return;
           const gx = Math.max(-30, Math.min(30, e.gamma));
           const gy = Math.max(-30, Math.min(30, e.beta - 25));
@@ -837,11 +1016,9 @@
           rawY = winH * 0.5 + (gy / 30) * winH * 0.45;
         }, { passive: true });
       };
-      // trigger on first touch
       document.addEventListener('touchstart', requestGyro, { once: true, passive: true });
     }
 
-    // RAF loop with smoothing
     function loop() {
       smX += (rawX - smX) * 0.1;
       smY += (rawY - smY) * 0.1;
@@ -862,6 +1039,128 @@
       });
     }, { threshold: 0.12 });
     srEls.forEach(el => io.observe(el));
+
+    // ── WEBGL ANIMATION ──
+    function initWebGL() {
+      const container = document.getElementById('webgl-mount');
+      if (!container) return;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      const vertexShader = `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `;
+
+      const fragmentShader = `
+        uniform float u_time;
+        uniform vec2 u_resolution;
+        varying vec2 vUv;
+
+        vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+        float snoise(vec2 v){
+          const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+          vec2 i  = floor(v + dot(v, C.yy) );
+          vec2 x0 = v - i + dot(i, C.xx);
+          vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+          vec4 x12 = x0.xyxy + C.xxzz;
+          x12.xy -= i1;
+          i = mod(i, 289.0);
+          vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+          vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+          m = m*m; m = m*m;
+          vec3 x = 2.0 * fract(p * C.www) - 1.0;
+          vec3 h = abs(x) - 0.5;
+          vec3 ox = floor(x + 0.5);
+          vec3 a0 = x - ox;
+          m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+          vec3 g = vec3(0.0);
+          g.x  = a0.x  * x0.x  + h.x  * x0.y;
+          g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+          return 130.0 * dot(m, g);
+        }
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+          vec2 st = uv - 0.5;
+          st.x *= u_resolution.x / u_resolution.y;
+
+          vec2 warpedSt = st + vec2(
+            snoise(st * 2.0 + u_time * 0.1),
+            snoise(st * 2.0 - u_time * 0.15)
+          ) * 0.2;
+
+          float n = snoise(warpedSt * 3.0 + u_time * 0.2);
+          float n2 = snoise(warpedSt * 5.0 - u_time * 0.1);
+
+          vec3 bg = vec3(0.03, 0.03, 0.04);
+          vec3 col1 = vec3(0.9, 0.2, 0.0);
+          vec3 col2 = vec3(0.9, 0.7, 0.2);
+          vec3 col3 = vec3(0.1, 0.4, 0.9);
+
+          vec3 color = bg;
+          float dist = length(st);
+          float mask = smoothstep(0.8, 0.1, dist);
+
+          color = mix(color, col1, smoothstep(0.1, 0.8, n) * mask);
+          color = mix(color, col2, smoothstep(0.4, 1.0, n * n2) * mask);
+          color = mix(color, col3, smoothstep(0.5, 1.0, n2) * mask * 0.5);
+          color *= smoothstep(1.0, 0.2, dist * 0.8);
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      `;
+
+      const geometry = new THREE.PlaneGeometry(2, 2);
+      const material = new THREE.ShaderMaterial({
+        vertexShader,
+        fragmentShader,
+        uniforms: {
+          u_time: { value: 0.0 },
+          u_resolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) }
+        }
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+      camera.position.z = 1;
+
+      let time = 0;
+      function animate() {
+        requestAnimationFrame(animate);
+        time += 0.016;
+        material.uniforms.u_time.value = time;
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      // Resize handler
+      let resizeTimeout;
+      function handleResize() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          const width = container.clientWidth;
+          const height = container.clientHeight;
+          renderer.setSize(width, height);
+          material.uniforms.u_resolution.value.set(width, height);
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+        }, 100);
+      }
+      window.addEventListener('resize', handleResize);
+    }
+
+    // Initialize WebGL after DOM load
+    window.addEventListener('load', initWebGL);
 
   })();
   </script>
