@@ -1218,7 +1218,7 @@
       <!-- FOOTER BAR -->
       <div class="footer-bar" role="navigation" aria-label="Pagination controls">
         <span>SHOWING <span class="row-count" id="rowCount">0</span> / <span id="rowTotal">0</span> RECORDS</span>
-        <div class="pagination" id="pagination" role="navigation" aria-label="Table pages"></div>
+        <div class="pagination" id="pagination" aria-label="Table pages"></div>
         <div style="display:flex;align-items:center;gap:8px;">
           <label for="pageSizeSelect" style="font-size:.6rem;letter-spacing:.1em">ROWS/PAGE</label>
           <select class="page-size-select" id="pageSizeSelect"
@@ -1369,54 +1369,16 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     JAVASCRIPT — ALL LOGIC PRESERVED VERBATIM
+     JAVASCRIPT
 ══════════════════════════════════════════════════════════════ -->
 <script>
 "use strict";
-/*
- * dashboard_upgraded.html — Security & quality improvements
- * ──────────────────────────────────────────────────────────
- * SECURITY
- *   • CSP tightened: added upgrade-insecure-requests, base-uri 'self'
- *   • exportPDF: replaced document.write() + popup with Blob URL + <a download> fallback
- *   • runQuery: mutating SQL (DELETE/UPDATE/DROP…) requires user confirmation
- *   • confirmDelete: warning text built via DOM API, not innerHTML
- *   • COLUMNS render: inline onclick replaced with data-action + event delegation
- *   • AUTH_URL constant separated from WORKER_URL for clarity
- *
- * RELIABILITY
- *   • loadData: isDataLoading guard prevents overlapping concurrent requests
- *   • Auto-refresh: exponential backoff on error (30s → 60 → 120 → 240 → 300s max)
- *   • visibilitychange: no longer calls startCountdown() separately (prevents stacking)
- *   • executeDelete: tries batch request first, falls back to sequential per-item
- *   • saveEdit / saveNameModal: rebuild search index after local data patch
- *   • 15s AbortController timeout on loadData fetch
- *
- * USABILITY
- *   • Refresh toast appears after any delete (soft undo prompt)
- *   • ROWS/PAGE extended: 25 / 50 / 100 / 250 / 500 / ALL
- *   • exportPDF uses Blob URL — no popup permission required
- *   • Modal focus trap: Tab/Shift+Tab cycles within open modal
- *   • Modal auto-focus: first focusable element receives focus on open
- *   • Badge-name spans keyboard-activatable (Enter / Space)
- *
- * PERFORMANCE
- *   • getNames(): in-memory cache (_namesCache); no repeated JSON.parse per render
- *   • buildSearchIndex(): pre-indexes targeted text fields once per data load
- *   • applyFilter(): uses pre-built index; replaces JSON.stringify on every row
- *
- * CODE QUALITY
- *   • :root {} closed before reset styles (was leaking selector context)
- *   • FOCUSABLE selector constant shared by openModal and focus trap handler
- *   • Undo toast CSS added (.toast-undo-btn)
- */
-
 // ── CONFIG ───────────────────────────────────────────────────────────────
 // Keep WORKER_URL out of public repos / committed source. Use a build-time
 // env injection (e.g. __WORKER_URL__ replaced by your bundler) in production.
 const WORKER_URL = "https://snowy-fog-b0d1.23amtics322.workers.dev/";
 const AUTH_URL   = new URL(WORKER_URL).origin; // base for /auth/me, /auth/logout
-const CACHE_BUST = () => '_=' + Date.now();
+function cacheBust() { return '_=' + Date.now(); }
 
 // ── STATE ────────────────────────────────────────────────────────────────
 let allData          = [];
@@ -1431,7 +1393,10 @@ let searchDebounce   = null;
 let isDataLoading    = false;   // guard against concurrent loadData calls
 let refreshBackoff   = 30;      // seconds; doubles on error, resets on success
 let queryHistory     = (() => {
-  try { return JSON.parse(localStorage.getItem('qhist') || '[]'); } catch { return []; }
+  try {
+    const v = JSON.parse(localStorage.getItem('qhist') || '[]');
+    return Array.isArray(v) ? v : [];
+  } catch { return []; }
 })();
 
 // ── NAMES (localStorage) ─────────────────────────────────────────────────
@@ -1475,7 +1440,8 @@ function screenRes(r) {
   if (typeof s === 'string') return s;
   const w = s.width ?? s.availWidth;
   const h = s.height ?? s.availHeight;
-  return (w && h) ? `${w}×${h}` : JSON.stringify(s);
+  if (w && h) return `${w}\u00d7${h}`;
+  const raw = JSON.stringify(s); return raw.length > 80 ? raw.substring(0, 77) + '…' : raw;
 }
 
 // ── COLUMN DEFINITIONS ────────────────────────────────────────────────────
@@ -1493,7 +1459,7 @@ const COLUMNS = [
     if (!c) return '<span style="color:var(--text-dim)">—</span>';
     const la = c.lat.toFixed(4), lo = c.lon.toFixed(4);
     const ac = c.acc ? ` <span style="color:var(--text-dim);font-size:.67rem">±${Math.round(c.acc)}m</span>` : '';
-    return `<a class="coord-link" href="https://maps.google.com/?q=${la},${lo}" target="_blank" rel="noopener">${la}/${lo}</a>${ac}`;
+    return `<a class="coord-link" href="https://maps.google.com/?q=${la},${lo}" target="_blank" rel="noopener noreferrer">${la}/${lo}</a>${ac}`;
   }},
   { key: 'front_photo',          label: 'FRONT',     vis: true,  sort: false, render: r => {
     if (!r.front_photo) return '<span class="badge badge-no">NULL</span>';
@@ -1549,7 +1515,7 @@ const COLUMNS = [
     return `<a href="${esc(safeUrl)}" target="_blank" rel="noopener noreferrer" style="font-family:'Share Tech Mono';font-size:.68rem;color:var(--cyan);word-break:break-all">${esc(safeUrl.substring(0,60))}${safeUrl.length>60?'…':''}</a>`;
   }},
   { key: 'session_id',           label: 'SESSION',   vis: false, sort: true,  render: r => fmtM(r.session_id) },
-  { key: '_act',                 label: 'ACTIONS',   vis: true,  sort: false, render: r => `
+  { key: '_act',                 label: 'ACTIONS',   vis: true,  sort: false, render: () => `
     <div class="row-actions">
       <button class="btn btn-cyan btn-sm" data-action="edit"   title="Edit record">✎ EDIT</button>
       <button class="btn btn-red btn-sm"  data-action="delete" title="Delete record">⛌ DEL</button>
@@ -1557,7 +1523,12 @@ const COLUMNS = [
 ];
 
 function esc(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 function fmtM(v) {
   return v ? `<span style="font-family:'Share Tech Mono';font-size:.72rem;color:var(--cyan)">${esc(v)}</span>` : '<span style="color:var(--text-dim)">—</span>';
@@ -1634,10 +1605,16 @@ function toggleColDropdown() {
   const open = dd.classList.toggle('open');
   document.getElementById('colToggleBtn').setAttribute('aria-expanded', String(open));
 }
+// Close dropdowns when clicking outside
 document.addEventListener('click', e => {
   if (!e.target.closest('.column-toggle-wrap')) {
     document.getElementById('colDropdown').classList.remove('open');
-    document.getElementById('colToggleBtn').setAttribute('aria-expanded','false');
+    document.getElementById('colToggleBtn').setAttribute('aria-expanded', 'false');
+  }
+  const exportWrap = document.getElementById('exportWrap');
+  if (exportWrap && !exportWrap.contains(e.target)) {
+    document.getElementById('exportDropdown').classList.remove('open');
+    document.getElementById('exportBtn').setAttribute('aria-expanded', 'false');
   }
 });
 
@@ -1800,7 +1777,7 @@ async function loadData() {
   loader.classList.add('active');
   errorBar.style.display = 'none';
   try {
-    const url = WORKER_URL + (WORKER_URL.includes('?') ? '&' : '?') + CACHE_BUST();
+    const url = WORKER_URL + (WORKER_URL.includes('?') ? '&' : '?') + cacheBust();
     const ctrl = new AbortController();
     const tid  = setTimeout(() => ctrl.abort(), 15_000);
     const res  = await fetch(url, { cache:'no-store', credentials:'include', signal: ctrl.signal });
@@ -2087,14 +2064,6 @@ function toggleExportDropdown() {
   const open = dd.classList.toggle('open');
   btn.setAttribute('aria-expanded', String(open));
 }
-// Close export dropdown when clicking outside
-document.addEventListener('click', e => {
-  const wrap = document.getElementById('exportWrap');
-  if (wrap && !wrap.contains(e.target)) {
-    document.getElementById('exportDropdown').classList.remove('open');
-    document.getElementById('exportBtn').setAttribute('aria-expanded','false');
-  }
-});
 
 // ── EXPORT TXT ────────────────────────────────────────────────────────────
 function exportTXT() {
