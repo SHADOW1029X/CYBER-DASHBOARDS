@@ -220,10 +220,7 @@
     .btn-violet:hover:not(:disabled) { background: rgba(191,127,255,.08); box-shadow: var(--glow-v); border-color: var(--violet); }
 
     /* ── BUTTON ICONS ────────────────────────────────────────────── */
-    .btn-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .btn-icon svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
-    .btn:hover .btn-icon svg { transform: scale(1.12); }
-    .hdr-btn .btn-icon svg { width: 16px; height: 16px; }
+    .btn svg, .hdr-btn svg { flex-shrink: 0; display: block; }
     /* Action buttons: slightly larger icon */
 
 
@@ -532,10 +529,10 @@
         <span id="hdrLbl">CHECKING…</span>
       </div>
       <div id="hdrLoader" class="loader" aria-hidden="true"></div>
-      <a href="dashboard.html"      class="btn btn-cyan   hdr-btn" title="Open Dashboard"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span><span class="btn-label">DASHBOARD</span></a>
-      <a href="About.html"          class="btn btn-violet hdr-btn" title="About"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8.5" r="1" fill="currentColor" stroke="none"/><polyline points="11,11 12,11 12,16"/></svg></span><span class="btn-label">ABOUT</span></a>
-      <a href="settings.html"       class="btn btn-amber  hdr-btn" title="Account settings"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></span><span class="btn-label">SETTINGS</span></a>
-      <button class="btn btn-red hdr-btn" id="logoutBtn" aria-label="Disconnect and log out"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span class="btn-label">DISCONNECT</span></button>
+      <a href="dashboard.html"      class="btn btn-cyan   hdr-btn" title="Open Dashboard"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> <span class="btn-label">DASHBOARD</span></a>
+      <a href="About.html"          class="btn btn-violet hdr-btn" title="About"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="1" fill="currentColor" stroke="none"/><line x1="12" y1="12" x2="12" y2="16"/></svg> <span class="btn-label">ABOUT</span></a>
+      <a href="settings.html"       class="btn btn-amber  hdr-btn" title="Account settings"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span class="btn-label">SETTINGS</span></a>
+      <button class="btn btn-red hdr-btn" id="logoutBtn" aria-label="Disconnect and log out"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg> <span class="btn-label">DISCONNECT</span></button>
     </div>
   </header>
 
@@ -602,8 +599,8 @@
         </div>
       </div>
       <div class="action-row">
-        <button class="btn btn-violet" id="saveBtn"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg></span><span class="btn-label">Apply Settings</span></button>
-        <button class="btn btn-cyan" id="refreshBtn" title="Reload settings from worker"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></span><span class="btn-label">Refresh</span></button>
+        <button class="btn btn-violet" id="saveBtn"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg><span class="btn-label">Apply Settings</span></button>
+        <button class="btn btn-cyan" id="refreshBtn" title="Reload settings from worker"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="btn-label">Refresh</span></button>
       </div>
     </div>
   </div>
@@ -624,7 +621,7 @@
         <div class="copy-row">
           <input type="text" id="urlNytherix" value="https://nytherix.nytherion.qzz.io"
                  readonly tabindex="-1" spellcheck="false" aria-readonly="true">
-          <button class="btn btn-cyan copy-btn" data-copy-target="urlNytherix" aria-label="Copy NYTHERIX URL"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span><span class="btn-label">COPY</span></button>
+          <button class="btn btn-cyan copy-btn" data-copy-target="urlNytherix" aria-label="Copy NYTHERIX URL"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="btn-label">COPY</span></button>
         </div>
       </div>
       <div class="field field-mt">
@@ -632,7 +629,7 @@
         <div class="copy-row">
           <input type="text" id="urlPhoton" value="https://photon.nytherion.qzz.io"
                  readonly tabindex="-1" spellcheck="false" aria-readonly="true">
-          <button class="btn btn-cyan copy-btn" data-copy-target="urlPhoton" aria-label="Copy PHOTON URL"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span><span class="btn-label">COPY</span></button>
+          <button class="btn btn-cyan copy-btn" data-copy-target="urlPhoton" aria-label="Copy PHOTON URL"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="btn-label">COPY</span></button>
         </div>
       </div>
     </div>
@@ -659,8 +656,8 @@
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-cyan" data-close="nukeModal"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span><span class="btn-label">Cancel</span></button>
-      <button class="btn btn-red" id="nukeConfirmBtn"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span class="btn-label">Logout</span></button>
+      <button class="btn btn-cyan" data-close="nukeModal"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span class="btn-label">Cancel</span></button>
+      <button class="btn btn-red" id="nukeConfirmBtn"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="btn-label">Logout</span></button>
     </div>
   </div>
 </div>
@@ -845,7 +842,7 @@ async function saveSettings() {
     showAlert('proxyAlert', `⚠ ${msg}`, 'err');
   } finally {
     btn.disabled = false;
-    btn.innerHTML   = `<span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg></span><span class=\'btn-label\'>Apply Settings</span>`;
+    btn.innerHTML   = `<svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg><span class=\'btn-label\'>Apply Settings</span>`;
     // re-evaluate dirty state after save
     checkDirty();
   }
