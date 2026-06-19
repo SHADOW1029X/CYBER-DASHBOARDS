@@ -469,8 +469,10 @@
       position:absolute;inset:0;z-index:1;overflow:hidden;
       /* Slightly oversized so the parallax translate never exposes an edge */
       transform:translate3d(0,0,0) scale(1.06);
-      will-change:transform;
       backface-visibility:hidden;
+    }
+    @media(pointer:fine){
+      .warrior-stage{will-change:transform;}
     }
     .warrior-video{
       position:absolute;inset:0;width:100%;height:100%;
@@ -1035,6 +1037,9 @@
         src="warrior.mp4"
         muted
         playsinline
+        webkit-playsinline="true"
+        x5-playsinline="true"
+        disableRemotePlayback
         preload="auto"
         aria-hidden="true"
       ></video>
@@ -2295,29 +2300,69 @@
       if (isFinite(video.duration) && video.duration > 0) duration = video.duration;
     });
 
-    let lastTime = -1;
-    function updateScrub() {
+    // Mobile decoders mostly seek fast to keyframes only (typically every
+    // 1-2s of video) — anything in between is decoded forward from there,
+    // which feels laggy if requested every scroll tick. So on coarse
+    // pointers we: (a) only issue a new seek every MIN_SEEK_GAP ms instead
+    // of every frame, and (b) lerp the *displayed* time toward the scroll
+    // target so the throttled steps still read as continuous motion rather
+    // than visible jumps.
+    const MIN_SEEK_GAP = coarsePtr ? 110 : 0;   // ms between actual seeks
+    const SEEK_EPS     = coarsePtr ? 0.05 : 0.01; // s — ignore sub-threshold moves
+    const TIME_LERP    = coarsePtr ? 0.35 : 1;   // 1 = snap straight to target (desktop)
+
+    let targetTime  = 0;   // where scroll says we should be
+    let shownTime   = 0;   // what we've actually asked the video to show
+    let lastSeekAt  = 0;
+    let pendingSeek = false;
+
+    function readScrollProgress() {
       const rect      = section.getBoundingClientRect();
       const pinHeight = rect.height - window.innerHeight;
-      if (pinHeight <= 0) return;
-
+      if (pinHeight <= 0) return null;
       const progress = clamp(-rect.top / pinHeight, 0, 1);
-      // Frame-accurate-ish: clamp just inside the end so the last frame holds
-      const t = clamp(progress * duration, 0, Math.max(0, duration - 0.04));
+      return clamp(progress * duration, 0, Math.max(0, duration - 0.04));
+    }
 
-      // Avoid redundant seeks (currentTime writes are not free), avoid
-      // stacking a new seek before the previous one resolves (the main
-      // source of visible stutter when scrubbing via currentTime), and
-      // only touch the video element once it actually has data to seek into.
-      if (Math.abs(t - lastTime) > 0.01 && video.readyState >= 1 && !video.seeking) {
-        lastTime = t;
+    function onScrollOrResize() {
+      const t = readScrollProgress();
+      if (t !== null) targetTime = t;
+    }
+    window.addEventListener('scroll', () => requestAnimationFrame(onScrollOrResize), { passive: true });
+    window.addEventListener('resize', () => requestAnimationFrame(onScrollOrResize), { passive: true });
+    {
+      const t0 = readScrollProgress();
+      if (t0 !== null) { targetTime = t0; shownTime = t0; }
+    }
+
+    function seekTo(t) {
+      if (video.readyState >= 1 && !video.seeking) {
         video.currentTime = t;
+        lastSeekAt = performance.now();
+      } else {
+        // Decoder/seek wasn't ready — retry shortly rather than dropping the frame
+        pendingSeek = true;
       }
     }
 
-    window.addEventListener('scroll', () => requestAnimationFrame(updateScrub), { passive: true });
-    window.addEventListener('resize', () => requestAnimationFrame(updateScrub), { passive: true });
-    updateScrub(); // initialise on load (e.g. deep link or scroll-restored page)
+    // Drives the actual seeking. Runs every animation frame but only issues
+    // a real seek when the throttle/epsilon/visibility gates allow it.
+    function scrubLoop() {
+      if (sectionVisible) {
+        shownTime += (targetTime - shownTime) * TIME_LERP;
+
+        const now        = performance.now();
+        const dueForSeek = pendingSeek || (now - lastSeekAt >= MIN_SEEK_GAP);
+        const movedEnough = Math.abs(shownTime - video.currentTime) > SEEK_EPS;
+
+        if (dueForSeek && movedEnough) {
+          pendingSeek = false;
+          seekTo(shownTime);
+        }
+      }
+      requestAnimationFrame(scrubLoop);
+    }
+    requestAnimationFrame(scrubLoop);
 
     // Video is purely scroll-driven: ensure it never free-runs on its own.
     video.addEventListener('play', () => video.pause());
