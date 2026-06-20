@@ -435,22 +435,13 @@
 
     /* ── WARRIOR CINEMATIC VIDEO ── */
     #warriorSection .pinStick{justify-content:center;}
-    .warrior-stage{
-      position:absolute;inset:0;z-index:1;overflow:hidden;
-      /* Slightly oversized so the parallax translate never exposes an edge */
-      transform:translate3d(0,0,0) scale(1.06);
-      backface-visibility:hidden;
-    }
     .warrior-video{
       position:absolute;inset:0;width:100%;height:100%;
       object-fit:cover;object-position:center;
       display:block;background:#000;
-      transform:translateZ(0);
-      backface-visibility:hidden;
     }
     .warrior-vignette{
       position:absolute;inset:0;z-index:2;pointer-events:none;
-      transform:translateZ(0);
       background:
         radial-gradient(ellipse 90% 55% at 50% 0%,rgba(5,5,7,.4) 0%,transparent 100%),
         radial-gradient(ellipse 100% 60% at 50% 100%,rgba(5,5,7,.7) 0%,transparent 100%);
@@ -463,24 +454,6 @@
     .warrior-sub{
       font-family:var(--mono);font-size:12px;letter-spacing:0.2em;text-transform:uppercase;
       color:var(--faint);
-    }
-    .warrior-diag{
-      position:absolute;bottom:14px;left:14px;z-index:4;
-      font-family:var(--mono);font-size:10px;line-height:1.6;letter-spacing:0.02em;
-      color:rgba(214,220,240,0.55);background:rgba(5,5,7,0.55);
-      border:1px solid var(--line);border-radius:6px;padding:6px 9px;
-      pointer-events:none;white-space:pre;
-    }
-    /* will-change only where something actually animates: the stage moves
-       via mouse parallax (desktop only) and currentTime updates repaint the
-       video itself. Scoped to fine pointers — mobile never animates the
-       stage, so forcing a persistent GPU layer there has no benefit. */
-    @media(pointer:fine){
-      .warrior-stage,.warrior-video{will-change:transform;}
-    }
-    /* Touch devices: skip mouse parallax headroom, keep full cover, no jitter */
-    @media(pointer:coarse){
-      .warrior-stage{transform:translate3d(0,0,0) scale(1);}
     }
 
     /* ── PIPELINE SCRUB ── */
@@ -1010,21 +983,19 @@
 
 <div class="cyber-divider"></div>
 
-<!-- ── WARRIOR CINEMATIC VIDEO (scroll-scrubbed + mouse parallax) ── -->
+<!-- ── WARRIOR CINEMATIC VIDEO (scroll-scrubbed) ── -->
 <section class="pin" id="warriorSection" style="height:320vh;">
   <div class="pinStick">
-    <div class="warrior-stage" id="warriorStage">
-      <video
-        id="warriorVideo"
-        class="warrior-video"
-        muted
-        playsinline
-        preload="auto"
-        aria-hidden="true"
-      >
-        <source src="warrior-optimized.mp4" type="video/mp4">
-      </video>
-    </div>
+    <video
+      id="warriorVideo"
+      class="warrior-video"
+      muted
+      playsinline
+      preload="auto"
+      aria-hidden="true"
+    >
+      <source src="warrior-optimized.mp4" type="video/mp4">
+    </video>
 
     <div class="warrior-vignette"></div>
 
@@ -1033,11 +1004,6 @@
       <h2 class="sec-heading warrior-heading">The <span>Warrior</span></h2>
       <p class="warrior-sub">Scroll to direct the sequence.</p>
     </div>
-
-    <!-- Visible diagnostic readout — shows live video state directly on
-         the page so a deploy issue can be seen without opening devtools.
-         Safe to delete this block once playback is confirmed working. -->
-    <div id="warriorDiag" class="warrior-diag" aria-hidden="true"></div>
   </div>
 </section>
 
@@ -2259,177 +2225,43 @@
 
   // ══════════════════════════════════════════════════
   // SYSTEM 9: WARRIOR CINEMATIC VIDEO
-  // Pure vanilla JS — no external library/CDN dependency. Scroll position
-  // drives video.currentTime directly inside a single RAF loop. Frame
-  // rate and seek granularity are both reduced on detected low-power
-  // devices so this stays smooth on weaker hardware rather than fighting
-  // it for every available frame.
-  // No autoplay — the video only ever advances via scroll position.
+  // Minimal scroll-scrub: scroll position drives video.currentTime
+  // directly inside one RAF loop. No autoplay — the video only ever
+  // advances via scroll position.
   // ══════════════════════════════════════════════════
   (function setupWarriorSection() {
     const section = document.getElementById('warriorSection');
-    const stage   = document.getElementById('warriorStage');
     const video   = document.getElementById('warriorVideo');
-    const diag    = document.getElementById('warriorDiag');
-    if (!section || !stage || !video) return;
-
-    const coarsePtr    = window.matchMedia('(pointer:coarse)').matches;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    // Low-power heuristic: low core count or low device memory (when the
-    // browser reports them — both are optional/undefined on many
-    // browsers, so this only ever makes things MORE conservative, never
-    // less, when the signal is unavailable) OR any touch/coarse pointer
-    // device, since phones are the devices most likely to be underpowered
-    // relative to this section's decode cost.
-    const lowPower =
-      coarsePtr ||
-      (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
-      (navigator.deviceMemory && navigator.deviceMemory <= 4);
-
-    // Video is purely scroll-driven: ensure it never free-runs on its own.
-    video.addEventListener('play', () => video.pause());
-    video.addEventListener('error', () => {
-      console.error('[warrior] video element error:', video.error, video.error && video.error.code);
-    });
+    if (!section || !video) return;
 
     video.preload = 'auto';
-    try { video.load(); } catch (e) {}
+    video.addEventListener('play', () => video.pause()); // never free-runs on its own
 
-    // ── Mobile unlock ──
-    // Some mobile browsers restrict video buffering until a genuine user
-    // gesture. One shared listener covers touch/pointer/scroll, plus a
-    // short timeout fallback for a long page where the gesture might not
-    // reach this section quickly.
-    let mobileUnlocked = false;
-    function unlockMobileVideo() {
-      if (mobileUnlocked) return;
-      mobileUnlocked = true;
-      try { video.load(); } catch (e) {}
-      const p = video.play();
-      if (p && typeof p.then === 'function') {
-        p.then(() => video.pause()).catch(() => {});
-      } else {
-        try { video.pause(); } catch (e) {}
-      }
-    }
-    if (coarsePtr) {
-      const unlockOpts = { passive: true, once: true };
-      ['touchstart', 'pointerdown', 'scroll'].forEach(evt =>
-        window.addEventListener(evt, unlockMobileVideo, unlockOpts)
-      );
-      setTimeout(unlockMobileVideo, 1500);
-    }
-
-    // sectionVisible only gates the (non-critical) parallax loop for perf.
-    // The scrub seek itself is driven purely by scroll position via
-    // readScrollProgress() below, which already correctly no-ops when out
-    // of range — no separate visibility signal required for correctness.
-    let sectionVisible = false;
-    const warriorIO = new IntersectionObserver(entries => {
-      sectionVisible = entries[0].isIntersecting;
-      if (sectionVisible && coarsePtr) unlockMobileVideo();
-    }, { threshold: 0 });
-    warriorIO.observe(section);
-
-    // ── Live on-page diagnostic ──
-    // Throttled to a few times a second rather than every frame — it was
-    // costing two layout-forcing getBoundingClientRect() calls plus
-    // string building 60x/sec, real overhead on weak hardware for a
-    // debug-only feature. Safe to delete this whole block (and the
-    // #warriorDiag element) once playback is confirmed working for you.
-    function updateDiag() {
-      if (!diag) return;
-      const readyNames = ['HAVE_NOTHING','HAVE_METADATA','HAVE_CURRENT_DATA','HAVE_FUTURE_DATA','HAVE_ENOUGH_DATA'];
-      const netNames = ['NETWORK_EMPTY','NETWORK_IDLE','NETWORK_LOADING','NETWORK_NO_SOURCE'];
-      const stickRect = stage.parentElement.getBoundingClientRect();
-      diag.textContent =
-        'readyState: ' + video.readyState + ' (' + (readyNames[video.readyState] || '?') + ')\n' +
-        'network: '    + (netNames[video.networkState] || video.networkState) + '\n' +
-        'duration: '   + (isFinite(video.duration) ? video.duration.toFixed(2) + 's' : 'NaN') + '\n' +
-        'currentTime: '+ video.currentTime.toFixed(2) + 's\n' +
-        'targetTime: ' + targetTime.toFixed(2) + 's\n' +
-        'pinStick.top: '+ Math.round(stickRect.top) + 'px (should be ~0 if sticky works)\n' +
-        'lowPower: '   + lowPower +
-        (coarsePtr ? '\nmobile unlock: ' + (mobileUnlocked ? 'fired' : 'waiting for touch/scroll') : '') +
-        (video.error ? '\nERROR: code ' + video.error.code : '');
-    }
-    if (diag) setInterval(updateDiag, 250);
-
-    // ── Scroll-driven scrubbing ──
     let duration = 6;
     video.addEventListener('loadedmetadata', () => {
       if (isFinite(video.duration) && video.duration > 0) duration = video.duration;
     });
 
     let targetTime = 0;
-
-    function readScrollProgress() {
+    function onScroll() {
       const rect      = section.getBoundingClientRect();
       const pinHeight = rect.height - window.innerHeight;
-      if (pinHeight <= 0) return null;
+      if (pinHeight <= 0) return;
       const progress = clamp(-rect.top / pinHeight, 0, 1);
-      return clamp(progress * duration, 0, Math.max(0, duration - 0.04));
+      targetTime = progress * duration;
     }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    onScroll();
 
-    function onScrollOrResize() {
-      const t = readScrollProgress();
-      if (t !== null) targetTime = t;
-    }
-    window.addEventListener('scroll', onScrollOrResize, { passive: true });
-    window.addEventListener('resize', onScrollOrResize, { passive: true });
-    {
-      const t0 = readScrollProgress();
-      if (t0 !== null) targetTime = t0;
-    }
-
-    // Single RAF loop. readyState>=2 (HAVE_CURRENT_DATA) is the correct
-    // minimum for a seek target to have decodable data behind it.
-    // video.seeking guards against stacking a new request before the
-    // last one resolves. On low-power devices the loop itself is capped
-    // to ~24fps (instead of running uncapped at the display's native
-    // rate) and the seek epsilon is widened — fewer, larger jumps cost
-    // the decoder less than a constant stream of tiny ones, and an
-    // uncapped RAF loop is often the actual bottleneck on weak hardware,
-    // not the video decode itself.
-    const SEEK_EPS  = lowPower ? 0.08 : 0.04;
-    const MIN_FRAME = lowPower ? 1000 / 24 : 0; // ms between loop iterations
-
-    let lastSeekTime = -1;
-    let lastFrameAt  = 0;
-    (function scrubLoop(now) {
-      if (!MIN_FRAME || !lastFrameAt || (now - lastFrameAt) >= MIN_FRAME) {
-        lastFrameAt = now || performance.now();
-        if (video.readyState >= 2 && !video.seeking) {
-          if (Math.abs(targetTime - lastSeekTime) > SEEK_EPS) {
-            lastSeekTime = targetTime;
-            try { video.currentTime = targetTime; } catch (e) {}
-          }
-        }
+    let lastSeek = -1;
+    (function loop() {
+      if (video.readyState >= 2 && !video.seeking && Math.abs(targetTime - lastSeek) > 0.05) {
+        lastSeek = targetTime;
+        try { video.currentTime = targetTime; } catch (e) {}
       }
-      requestAnimationFrame(scrubLoop);
+      requestAnimationFrame(loop);
     })();
-
-    // ── Mouse parallax (desktop/fine-pointer only) ──
-    if (!coarsePtr && !reduceMotion) {
-      const MAX_X = 20, MAX_Y = 10; // px
-      const LERP  = 0.08;
-      let targetX = 0, targetY = 0, curX = 0, curY = 0;
-
-      window.addEventListener('mousemove', e => {
-        targetX = ((e.clientX - innerWidth  / 2) / (innerWidth  / 2)) * MAX_X;
-        targetY = ((e.clientY - innerHeight / 2) / (innerHeight / 2)) * MAX_Y;
-      }, { passive: true });
-
-      (function parallaxLoop() {
-        if (sectionVisible) {
-          curX += (targetX - curX) * LERP;
-          curY += (targetY - curY) * LERP;
-          stage.style.transform = `translate3d(${curX.toFixed(2)}px, ${curY.toFixed(2)}px, 0) scale(1.06)`;
-        }
-        requestAnimationFrame(parallaxLoop);
-      })();
-    }
   })();
 
 })();
