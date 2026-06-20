@@ -2398,15 +2398,17 @@
 
     // Single RAF loop, running unconditionally from page load — not gated
     // behind sectionVisible (see note above) or any single readiness
-    // event. readyState>=1 (HAVE_METADATA) is used rather than the
-    // stricter >=2 (HAVE_CURRENT_DATA): some Android Chrome/hardware
-    // decoder combinations report readyState inconsistently around that
-    // boundary, and attempting the seek regardless is harmless — the
-    // browser itself will simply ignore/queue a seek it isn't ready for.
+    // event. readyState>=2 (HAVE_CURRENT_DATA) is the W3C-correct minimum
+    // for a seek target to actually have decodable data behind it; on a
+    // slower/contended mobile decoder, allowing seeks at readyState 1
+    // (metadata only) risks queuing requests for data that isn't buffered
+    // yet, which is exactly the kind of request that can sit pending
+    // longer than expected. video.seeking guards against stacking a new
+    // request before the last one resolves.
     let lastSeekTime = -1;
     (function scrubLoop() {
-      if (video.readyState >= 1 && !video.seeking) {
-        if (Math.abs(targetTime - lastSeekTime) > 0.02) {
+      if (video.readyState >= 2 && !video.seeking) {
+        if (Math.abs(targetTime - lastSeekTime) > 0.04) {
           lastSeekTime = targetTime;
           try { video.currentTime = targetTime; } catch (e) { /* ignore transient seek errors */ }
         }
