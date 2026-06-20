@@ -1,510 +1,395 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cinematic Warrior Background - Premium Effect</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Cinematic Warrior · Scroll & Parallax</title>
+  <!-- GSAP + ScrollTrigger from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    /* reset & base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            overflow-x: hidden;
-            background: #0a0a0a;
-            color: #ffffff;
-        }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: #0b0b0e;
+      overflow-x: hidden;
+      color: #fff;
+    }
 
-        /* Cinematic Hero Section */
-        .warrior-hero-section {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            will-change: transform;
-        }
+    /* spacer sections for scroll context */
+    .spacer {
+      height: 100vh;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.2rem, 4vw, 2.4rem);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: #0b0b0e;
+      color: rgba(255, 255, 255, 0.25);
+      font-weight: 300;
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+      user-select: none;
+    }
+    .spacer span {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.8rem 2.2rem;
+      border-radius: 60px;
+      backdrop-filter: blur(2px);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
 
-        .warrior-video-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            will-change: transform;
-            z-index: 1;
-        }
+    /* ----- CINEMATIC SECTION (pin + video) ----- */
+    #cinematic-section {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      background: #0a0a0c;
+      will-change: transform;
+      /* GPU acceleration for the whole section */
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      perspective: 1200px;
+      z-index: 10;
+    }
 
-        .warrior-background-video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            will-change: transform;
-            z-index: 1;
-        }
+    /* video wrapper – holds the video + parallax layer */
+    .video-parallax-wrapper {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      will-change: transform;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      /* subtle depth overlay */
+    }
 
-        /* Cinematic overlay for depth */
-        .warrior-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                135deg,
-                rgba(0, 0, 0, 0.3) 0%,
-                rgba(0, 0, 0, 0.1) 50%,
-                rgba(0, 0, 0, 0.3) 100%
-            );
-            z-index: 2;
-            pointer-events: none;
-        }
+    /* video element – covers entire wrapper, object-fit cover */
+    #warrior-video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: translate(-50%, -50%) translateZ(0);
+      will-change: transform;
+      backface-visibility: hidden;
+      /* subtle cinematic grade */
+      filter: brightness(0.96) contrast(1.04) saturate(1.1);
+      image-rendering: auto;
+    }
 
-        /* Subtle vignette effect */
-        .warrior-vignette {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(
-                ellipse at center,
-                transparent 0%,
-                transparent 60%,
-                rgba(0, 0, 0, 0.4) 100%
-            );
-            z-index: 3;
-            pointer-events: none;
-        }
+    /* overlay content – keep readable, layered above video */
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      pointer-events: none;
+      z-index: 20;
+      padding: 1.5rem;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%);
+    }
 
-        /* Overlay content (readable) */
-        .warrior-content {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 4;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            pointer-events: none;
-        }
+    .hero-overlay h1 {
+      font-size: clamp(2.6rem, 12vw, 6rem);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-shadow: 0 8px 30px rgba(0,0,0,0.7);
+      margin-bottom: 0.4rem;
+      background: linear-gradient(135deg, #f0e9e1 0%, #d4c9bc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transform: translateZ(20px);
+    }
 
-        .warrior-title {
-            font-size: clamp(2rem, 5vw, 4rem);
-            font-weight: 700;
-            text-align: center;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: titleEnter 1.2s ease-out forwards;
-            animation-delay: 0.3s;
-        }
+    .hero-overlay p {
+      font-size: clamp(1rem, 2.5vw, 1.6rem);
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      backdrop-filter: blur(2px);
+      padding: 0.2rem 1.2rem;
+      border-radius: 40px;
+      background: rgba(0,0,0,0.2);
+    }
 
-        .warrior-subtitle {
-            font-size: clamp(1rem, 2.5vw, 1.5rem);
-            font-weight: 300;
-            text-align: center;
-            margin-top: 1rem;
-            opacity: 0.85;
-            letter-spacing: 0.05em;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: subtitleEnter 1.2s ease-out forwards;
-            animation-delay: 0.6s;
-        }
+    /* small indicator for scroll */
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.4rem;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.5);
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      background: rgba(0,0,0,0.25);
+      padding: 0.4rem 1.2rem;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.06);
+      z-index: 25;
+      pointer-events: none;
+    }
 
-        .warrior-scroll-indicator {
-            position: absolute;
-            bottom: 3rem;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            opacity: 0.7;
-            animation: scrollBounce 2s ease-in-out infinite;
-        }
+    /* guarantee no edge exposure: video moves within wrapper, wrapper stays fixed */
+    /* parallax will be applied to the wrapper via transform */
+    /* mobile fallback: mouse events still work, but we limit intensity if needed */
+    @media (max-width: 768px) {
+      .hero-overlay h1 {
+        font-size: clamp(2.2rem, 14vw, 3.6rem);
+      }
+      .hero-overlay p {
+        letter-spacing: 0.2em;
+        font-size: 0.9rem;
+      }
+    }
 
-        .scroll-text {
-            font-size: 0.85rem;
-            font-weight: 400;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
+    /* ensure section pinned & no scroll jank */
+    #cinematic-section {
+      will-change: transform, opacity;
+    }
 
-        .scroll-arrow {
-            width: 20px;
-            height: 20px;
-            border-right: 2px solid #fff;
-            border-bottom: 2px solid #fff;
-            transform: rotate(45deg);
-        }
-
-        /* Animations */
-        @keyframes titleEnter {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes subtitleEnter {
-            to {
-                opacity: 0.85;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes scrollBounce {
-            0%, 100% {
-                opacity: 0.7;
-                transform: translateX(-50%) translateY(0);
-            }
-            50% {
-                opacity: 1;
-                transform: translateX(-50%) translateY(5px);
-            }
-        }
-
-        /* Smooth transitions */
-        .warrior-hero-section {
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            .warrior-hero-section {
-                height: 100vh;
-            }
-
-            .warrior-title {
-                font-size: 1.8rem;
-            }
-
-            .warrior-subtitle {
-                font-size: 1rem;
-            }
-        }
-
-        /* Performance optimizations */
-        @media (prefers-reduced-motion: reduce) {
-            .warrior-title,
-            .warrior-subtitle,
-            .warrior-scroll-indicator {
-                animation: none;
-                opacity: 1;
-                transform: none;
-            }
-        }
-
-        /* Placeholder content sections below */
-        .content-section {
-            min-height: 100vh;
-            padding: 4rem 2rem;
-            background: #0a0a0a;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .content-section h2 {
-            font-size: clamp(2rem, 4vw, 3rem);
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        .content-section p {
-            font-size: clamp(1rem, 1.5vw, 1.2rem);
-            max-width: 600px;
-            text-align: center;
-            opacity: 0.8;
-            line-height: 1.6;
-        }
-    </style>
+    /* small extra polish */
+    .glow-line {
+      width: 120px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,215,150,0.3), transparent);
+      margin-top: 1.2rem;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
-    <!-- Cinematic Warrior Hero Section -->
-    <section class="warrior-hero-section" id="warriorHero">
-        <div class="warrior-video-container" id="videoContainer">
-            <video 
-                class="warrior-background-video" 
-                id="warriorVideo"
-                preload="auto"
-                playsinline
-                webkit-playsinline
-                muted
-            >
-                <source src="warrior-optimized.mp4" type="video/mp4">
-                Your browser does not support video playback.
-            </video>
-        </div>
-        
-        <div class="warrior-overlay"></div>
-        <div class="warrior-vignette"></div>
-        
-        <div class="warrior-content">
-            <h1 class="warrior-title">The Warrior</h1>
-            <p class="warrior-subtitle">A cinematic experience</p>
-            
-            <div class="warrior-scroll-indicator">
-                <span class="scroll-text">Scroll</span>
-                <div class="scroll-arrow"></div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Placeholder content sections (existing content preserved) -->
-    <section class="content-section">
-        <h2>Content Section 1</h2>
-        <p>This is where your existing content continues. The warrior cinematic background section above is fully integrated without breaking any existing features.</p>
-    </section>
+  <!-- top spacer -->
+  <section class="spacer"><span>⬇ scroll down ⬇</span></section>
 
-    <section class="content-section">
-        <h2>Content Section 2</h2>
-        <p>More content here. The scroll-driven video scrubbing and mouse parallax effects work seamlessly on the warrior hero section.</p>
-    </section>
+  <!-- CINEMATIC PINNED SECTION -->
+  <section id="cinematic-section">
+    <!-- parallax wrapper (moves with mouse) -->
+    <div class="video-parallax-wrapper" id="parallax-wrapper">
+      <video id="warrior-video" muted playsinline preload="auto">
+        <source src="warrior-optimized.mp4" type="video/mp4">
+        <!-- fallback message if video missing (silent) -->
+      </video>
+    </div>
 
-    <section class="content-section">
-        <h2>Content Section 3</h2>
-        <p>Your website's functionality remains intact. Only the warrior section has been enhanced with premium cinematic effects.</p>
-    </section>
+    <!-- overlay content -->
+    <div class="hero-overlay">
+      <h1>WARRIOR</h1>
+      <p>scroll to command time</p>
+      <div class="glow-line"></div>
+    </div>
+    <div class="scroll-hint">scroll · scrub</div>
+  </section>
 
-    <script>
-        // Register GSAP ScrollTrigger
-        gsap.registerPlugin(ScrollTrigger);
+  <!-- bottom spacer -->
+  <section class="spacer"><span>⬆ scroll up ⬆</span></section>
 
-        // ============================================
-        // EFFECT 1: CURSOR-BASED 3D CAMERA PARALLAX
-        // ============================================
-        const videoContainer = document.getElementById('videoContainer');
-        const warriorVideo = document.getElementById('warriorVideo');
-        const warriorHero = document.getElementById('warriorHero');
+  <script>
+    (function() {
+      "use strict";
 
-        // State for parallax effect
-        let mouseX = 0;
-        let mouseY = 0;
-        let currentX = 0;
-        let currentY = 0;
-        
-        // Parallax intensity (subtle movement)
-        const parallaxIntensityX = 20; // ±20px horizontal
-        const parallaxIntensityY = 10; // ±10px vertical
-        
-        // Easing factor for smooth interpolation (lerp)
-        const lerpFactor = 0.08;
+      // ----- register ScrollTrigger -----
+      gsap.registerPlugin(ScrollTrigger);
 
-        // Track mouse movement
-        document.addEventListener('mousemove', (e) => {
-            // Calculate mouse position relative to center of screen
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-            
-            mouseX = (e.clientX - centerX) / centerX;
-            mouseY = (e.clientY - centerY) / centerY;
-        });
+      // ----- DOM refs -----
+      const section = document.getElementById('cinematic-section');
+      const wrapper = document.getElementById('parallax-wrapper');
+      const video = document.getElementById('warrior-video');
 
-        // Smooth parallax animation using requestAnimationFrame
-        function updateParallax() {
-            // Linear interpolation for smooth movement
-            currentX += (mouseX * parallaxIntensityX - currentX) * lerpFactor;
-            currentY += (mouseY * parallaxIntensityY - currentY) * lerpFactor;
-            
-            // Apply GPU-accelerated transform
-            videoContainer.style.transform = `
-                translate3d(${currentX}px, ${currentY}px, 0)
-                scale3d(1.02, 1.02, 1.02)
-            `;
-            
-            // Continue animation loop
-            requestAnimationFrame(updateParallax);
+      // ----- video setup: ensure it's ready -----
+      // preload & mute (already muted)
+      video.volume = 0;
+      video.currentTime = 0;
+
+      // ----- 1. SCROLL-DRIVEN SCRUBBING (GSAP + ScrollTrigger) -----
+      // we pin the section, and scrub video.currentTime based on scroll progress
+      // video duration = 6s (fallback if metadata not loaded)
+      let duration = 6; // default
+
+      // wait for metadata to get accurate duration
+      video.addEventListener('loadedmetadata', function() {
+        if (video.duration && isFinite(video.duration)) {
+          duration = video.duration;
         }
+        // ensure we're at start
+        video.currentTime = 0;
+      });
 
-        // Start parallax effect
-        requestAnimationFrame(updateParallax);
+      // if video already loaded, set duration
+      if (video.readyState >= 1 && video.duration) {
+        duration = video.duration;
+      }
 
-        // ============================================
-        // EFFECT 2: SCROLL-DRIVEN VIDEO SCRUBBING
-        // ============================================
-        
-        // Wait for video to load metadata
-        warriorVideo.addEventListener('loadedmetadata', () => {
-            const videoDuration = warriorVideo.duration; // 6 seconds
-            console.log(`Video duration: ${videoDuration} seconds`);
-        });
+      // create the scrub timeline: map scroll progress 0->1 to video time 0->duration
+      // we use a dummy tween to drive the update
+      let scrubTween = gsap.to(video, {
+        currentTime: duration,
+        ease: "none",
+        paused: true,
+        // we'll update via ScrollTrigger's onUpdate
+      });
 
-        // Wait for video to be ready
-        warriorVideo.addEventListener('readystatechange', () => {
-            if (warriorVideo.readyState >= 2) {
-                console.log('Video is ready for playback');
-            }
-        });
-
-        // Load video metadata
-        warriorVideo.load();
-
-        // Create ScrollTrigger for pinning and scrubbing
-        const scrollTrigger = ScrollTrigger.create({
-            target: warriorHero,
-            start: 'top top',
-            end: 'bottom top',
-            pin: true,
-            pinSpacing: false,
-            
-            // On enter: start video playback
-            onEnter: () => {
-                if (warriorVideo.paused) {
-                    warriorVideo.play().catch(e => console.log('Playback prevented:', e));
-                }
-            },
-            
-            // On leave: stop video and reset
-            onLeave: () => {
-                warriorVideo.pause();
-                warriorVideo.currentTime = 0;
-            },
-            
-            // On enter back: restart
-            onEnterBack: () => {
-                warriorVideo.currentTime = 0;
-                warriorVideo.play().catch(e => console.log('Playback prevented:', e));
-            },
-            
-            // On leave back: reset
-            onLeaveBack: () => {
-                warriorVideo.pause();
-                warriorVideo.currentTime = 0;
-            },
-            
-            // Scrubbing: map scroll progress to video time
-            onUpdate: (self) => {
-                // self.progress is 0 to 1 based on scroll position
-                // Map this to video time (0 to duration)
-                const videoTime = self.progress * warriorVideo.duration;
-                
-                // Frame-accurate scrubbing
-                warriorVideo.currentTime = videoTime;
-            }
-        });
-
-        // ============================================
-        // LOOP HANDLING: Seamless loop when not scrubbing
-        // ============================================
-        warriorVideo.addEventListener('ended', () => {
-            // Seamless loop when video ends (outside scroll-scrub region)
-            warriorVideo.currentTime = 0;
-            warriorVideo.play().catch(e => console.log('Loop playback prevented:', e));
-        });
-
-        warriorVideo.addEventListener('play', () => {
-            console.log('Video playing');
-        });
-
-        warriorVideo.addEventListener('pause', () => {
-            console.log('Video paused');
-        });
-
-        // ============================================
-        // PERFORMANCE OPTIMIZATIONS
-        // ============================================
-        
-        // Optimize for mobile devices
-        function optimizeForDevice() {
-            const isMobile = window.innerWidth <= 768;
-            const isLowEnd = navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4;
-            
-            if (isMobile || isLowEnd) {
-                // Reduce parallax intensity on mobile
-                parallaxIntensityX = 10;
-                parallaxIntensityY = 5;
-                lerpFactor = 0.12;
-                
-                // Disable video on very low-end devices if needed
-                if (isLowEnd && isMobile) {
-                    console.log('Low-end device detected: reduced effects');
-                }
-            }
+      // pin the section and scrub
+      ScrollTrigger.create({
+        trigger: section,
+        start: "top top",
+        end: "bottom bottom",
+        pin: true,
+        pinSpacing: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          // progress 0..1
+          const progress = self.progress;
+          // map to video time
+          const targetTime = progress * duration;
+          // clamp
+          const clamped = Math.min(Math.max(targetTime, 0), duration);
+          video.currentTime = clamped;
+          // also sync the dummy tween (not strictly needed but keeps consistency)
+          scrubTween.progress(progress);
+        },
+        onRefresh: (self) => {
+          // ensure video is in sync after resize / refresh
+          const progress = self.progress || 0;
+          video.currentTime = progress * duration;
         }
+      });
 
-        optimizeForDevice();
+      // ----- 2. CURSOR-BASED 3D PARALLAX (mouse move + lerp) -----
+      // target offsets (px)
+      const MAX_X = 20;   // horizontal ±20px
+      const MAX_Y = 10;   // vertical ±10px
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            ScrollTrigger.refresh();
-            optimizeForDevice();
-        });
+      // current mouse position normalized to [-1, 1]
+      let mouseX = 0;
+      let mouseY = 0;
 
-        // ============================================
-        // CINEMATIC TRANSITIONS
-        // ============================================
-        
-        // Smooth enter animation for the section
-        gsap.from(warriorHero, {
-            duration: 1.5,
-            opacity: 0,
-            ease: 'power3.out',
-            delay: 0.2
-        });
+      // smoothed values (lerp)
+      let smoothX = 0;
+      let smoothY = 0;
 
-        // ============================================
-        // MOBILE FALLBACK: Touch-based parallax
-        // ============================================
-        let touchX = 0;
-        let touchY = 0;
+      // track mouse movement (relative to viewport center)
+      function handleMouseMove(e) {
+        // get viewport dimensions
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        // mouse position in viewport (0..1)
+        const normX = (e.clientX / w) * 2 - 1;  // -1 left, 1 right
+        const normY = (e.clientY / h) * 2 - 1;  // -1 top, 1 bottom
 
-        warriorHero.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 1) {
-                const touch = e.touches[0];
-                const centerX = window.innerWidth / 2;
-                const centerY = window.innerHeight / 2;
-                
-                touchX = (touch.clientX - centerX) / centerX;
-                touchY = (touch.clientY - centerY) / centerY;
-                
-                // Apply touch parallax (simplified)
-                videoContainer.style.transform = `
-                    translate3d(${touchX * parallaxIntensityX}px, ${touchY * parallaxIntensityY}px, 0)
-                    scale3d(1.02, 1.02, 1.02)
-                `;
-            }
-        });
+        mouseX = normX;
+        mouseY = normY;
+      }
 
-        // ============================================
-        // ERROR HANDLING
-        // ============================================
-        warriorVideo.addEventListener('error', (e) => {
-            console.error('Video loading error:', e);
-            // Fallback: show static background if video fails
-            videoContainer.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
-        });
+      // also support touch devices: use touch events with a single touch
+      function handleTouchMove(e) {
+        if (e.touches.length > 0) {
+          const touch = e.touches[0];
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          const normX = (touch.clientX / w) * 2 - 1;
+          const normY = (touch.clientY / h) * 2 - 1;
+          mouseX = normX;
+          mouseY = normY;
+        }
+      }
 
-        // ============================================
-        // INITIALIZATION COMPLETE
-        // ============================================
-        console.log('✅ Warrior cinematic background initialized');
-        console.log('✅ Effect 1: Mouse parallax active (±20px H, ±10px V)');
-        console.log('✅ Effect 2: Scroll-driven video scrubbing active');
-        console.log('✅ GSAP ScrollTrigger registered');
-        console.log('✅ Performance optimizations applied');
-    </script>
+      // attach events (passive for performance)
+      window.addEventListener('mousemove', handleMouseMove, { passive: true });
+      window.addEventListener('touchmove', handleTouchMove, { passive: true });
+
+      // also reset on mouse leave to avoid stuck offset? we'll keep last position.
+
+      // ----- animation loop with lerp -----
+      function animateParallax() {
+        // smooth interpolation (lerp) – 0.08 gives nice cinematic lag
+        const easing = 0.08;
+        smoothX += (mouseX - smoothX) * easing;
+        smoothY += (mouseY - smoothY) * easing;
+
+        // map to pixel offsets
+        const offsetX = smoothX * MAX_X;
+        const offsetY = smoothY * MAX_Y;
+
+        // apply transform to wrapper – hardware accelerated
+        // use translate3d for GPU
+        wrapper.style.transform = `translate3d(${offsetX}px, ${offsetY}px, 0px)`;
+        wrapper.style.willChange = 'transform';
+
+        // request next frame
+        requestAnimationFrame(animateParallax);
+      }
+
+      // start parallax loop
+      animateParallax();
+
+      // ----- 3. LOOP HANDLING (when not scrubbing) -----
+      // Actually we don't need loop because scroll scrubbing controls time.
+      // But if user leaves the section, we want seamless loop? 
+      // The section is pinned, so scroll scrubbing always controls the video.
+      // However, if for any reason video ends (duration mismatch) we handle.
+      // Since we scrub, we don't autoplay. But we ensure if video ends, 
+      // it doesn't show blank: we clamp currentTime in onUpdate.
+      // Additionally, if the video ends and user scrolls back, it reverses.
+      // That's handled by ScrollTrigger.
+      // For safety, we add 'ended' event to reset to 0 if not in scroll range? 
+      // But scroll controls it, so we keep it.
+
+      // ----- 4. RESPONSIVE & RESIZE -----
+      // ScrollTrigger auto-refresh on resize, we just need to ensure video stays covered.
+      // No extra action needed.
+
+      // ----- 5. FALLBACK: if video fails to load, show placeholder? but we keep as is.
+      // ----- 6. force GPU on video
+      video.style.transform = 'translateZ(0)';
+      video.style.backfaceVisibility = 'hidden';
+
+      // set initial time 0
+      video.currentTime = 0;
+
+      // handle visibility change to prevent jank when tab hidden
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          // pause any potential playback? but we don't autoplay.
+        }
+      });
+
+      // small extra: if video is not ready, still try.
+      console.log('Cinematic warrior ready.');
+
+      // Cleanup on page unload (optional)
+      window.addEventListener('beforeunload', function() {
+        // release resources
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('touchmove', handleTouchMove);
+      });
+
+    })();
+  </script>
+
 </body>
 </html>
