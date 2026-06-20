@@ -452,9 +452,8 @@
     .warrior-vignette{
       position:absolute;inset:0;z-index:2;pointer-events:none;
       background:
-        radial-gradient(ellipse 90% 60% at 50% 0%,rgba(5,5,7,.55) 0%,transparent 100%),
-        radial-gradient(ellipse 100% 65% at 50% 100%,rgba(5,5,7,.85) 0%,transparent 100%),
-        linear-gradient(rgba(5,5,7,.15),rgba(5,5,7,.15));
+        radial-gradient(ellipse 90% 55% at 50% 0%,rgba(5,5,7,.4) 0%,transparent 100%),
+        radial-gradient(ellipse 100% 60% at 50% 100%,rgba(5,5,7,.7) 0%,transparent 100%);
     }
     .warrior-content{
       position:relative;z-index:3;text-align:center;
@@ -2267,21 +2266,28 @@
       if (isFinite(video.duration) && video.duration > 0) duration = video.duration;
     });
 
-    // Mobile decoders mostly seek fast to keyframes only (typically every
-    // 1-2s of video) — anything in between is decoded forward from there,
-    // which feels laggy if requested every scroll tick. So on coarse
-    // pointers we: (a) only issue a new seek every MIN_SEEK_GAP ms instead
-    // of every frame, and (b) lerp the *displayed* time toward the scroll
-    // target so the throttled steps still read as continuous motion rather
-    // than visible jumps.
-    const MIN_SEEK_GAP = coarsePtr ? 110 : 0;   // ms between actual seeks
-    const SEEK_EPS     = coarsePtr ? 0.05 : 0.01; // s — ignore sub-threshold moves
-    const TIME_LERP    = coarsePtr ? 0.35 : 1;   // 1 = snap straight to target (desktop)
+    // The lag on both desktop and mobile came from the same root cause:
+    // requesting a new video.currentTime seek on nearly every animation
+    // frame (~60/sec). Seeking is never instant — the decoder has to land
+    // on (or decode forward to) the right frame — so stacking new seek
+    // requests before the previous one has actually painted is what reads
+    // as stutter, on any device. The fix is to never issue a new seek
+    // until the browser confirms the last one is actually done:
+    //  - requestVideoFrameCallback (when available) fires the instant a
+    //    new frame has been *presented*, the most accurate "ready for the
+    // next seek" signal there is.
+    //  - Falls back to the 'seeked' event (fires once a seek completes)
+    //    on browsers without rVFC.
+    // A scroll target is still tracked continuously and lerped, so once
+    // the decoder catches up the video smoothly glides to the latest
+    // position instead of jumping through every intermediate frame.
+    const hasRVFC = typeof video.requestVideoFrameCallback === 'function';
+    const LERP     = coarsePtr ? 0.3 : 0.5; // how fast displayed time chases the scroll target
+    const SEEK_EPS = 0.02; // s — ignore sub-threshold moves, not worth a seek
 
-    let targetTime  = 0;   // where scroll says we should be
-    let shownTime   = 0;   // what we've actually asked the video to show
-    let lastSeekAt  = 0;
-    let pendingSeek = false;
+    let targetTime = 0;  // where scroll says we should be
+    let shownTime  = 0;  // smoothed time we're chasing toward
+    let seekBusy   = false;
 
     function readScrollProgress() {
       const rect      = section.getBoundingClientRect();
@@ -2302,28 +2308,26 @@
       if (t0 !== null) { targetTime = t0; shownTime = t0; }
     }
 
-    function seekTo(t) {
-      if (video.readyState >= 1 && !video.seeking) {
-        video.currentTime = t;
-        lastSeekAt = performance.now();
-      } else {
-        // Decoder/seek wasn't ready — retry shortly rather than dropping the frame
-        pendingSeek = true;
-      }
+    function markSeekDone() { seekBusy = false; }
+    if (!hasRVFC) {
+      video.addEventListener('seeked', markSeekDone);
     }
 
-    // Drives the actual seeking. Runs every animation frame but only issues
-    // a real seek when the throttle/epsilon/visibility gates allow it.
+    function seekTo(t) {
+      if (video.readyState < 1 || seekBusy) return;
+      seekBusy = true;
+      video.currentTime = t;
+      if (hasRVFC) video.requestVideoFrameCallback(markSeekDone);
+      // Safety net: never let a missed callback permanently freeze scrubbing.
+      setTimeout(() => { seekBusy = false; }, 250);
+    }
+
+    // Drives the actual seeking. Runs every animation frame but only ever
+    // issues a real seek once the decoder has confirmed it's caught up.
     function scrubLoop() {
       if (sectionVisible) {
-        shownTime += (targetTime - shownTime) * TIME_LERP;
-
-        const now        = performance.now();
-        const dueForSeek = pendingSeek || (now - lastSeekAt >= MIN_SEEK_GAP);
-        const movedEnough = Math.abs(shownTime - video.currentTime) > SEEK_EPS;
-
-        if (dueForSeek && movedEnough) {
-          pendingSeek = false;
+        shownTime += (targetTime - shownTime) * LERP;
+        if (!seekBusy && Math.abs(shownTime - video.currentTime) > SEEK_EPS) {
           seekTo(shownTime);
         }
       }
