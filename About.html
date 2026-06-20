@@ -2260,11 +2260,10 @@
   // ══════════════════════════════════════════════════
   // SYSTEM 9: WARRIOR CINEMATIC VIDEO
   // Pure vanilla JS — no external library/CDN dependency. Scroll position
-  // drives video.currentTime directly inside a single RAF loop that starts
-  // immediately on page load. There is no "wait for this one event, then
-  // initialize" step anywhere: the loop simply checks the video's actual
-  // readiness (readyState) on every frame and seeks whenever it's safe to,
-  // so there's no single point of failure that can leave it stuck.
+  // drives video.currentTime directly inside a single RAF loop. Frame
+  // rate and seek granularity are both reduced on detected low-power
+  // devices so this stays smooth on weaker hardware rather than fighting
+  // it for every available frame.
   // No autoplay — the video only ever advances via scroll position.
   // ══════════════════════════════════════════════════
   (function setupWarriorSection() {
@@ -2277,31 +2276,31 @@
     const coarsePtr    = window.matchMedia('(pointer:coarse)').matches;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // Low-power heuristic: low core count or low device memory (when the
+    // browser reports them — both are optional/undefined on many
+    // browsers, so this only ever makes things MORE conservative, never
+    // less, when the signal is unavailable) OR any touch/coarse pointer
+    // device, since phones are the devices most likely to be underpowered
+    // relative to this section's decode cost.
+    const lowPower =
+      coarsePtr ||
+      (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+      (navigator.deviceMemory && navigator.deviceMemory <= 4);
+
     // Video is purely scroll-driven: ensure it never free-runs on its own.
     video.addEventListener('play', () => video.pause());
     video.addEventListener('error', () => {
       console.error('[warrior] video element error:', video.error, video.error && video.error.code);
     });
-    video.addEventListener('stalled', () => console.warn('[warrior] stalled'));
-    video.addEventListener('suspend', () => console.warn('[warrior] suspend'));
-    video.addEventListener('abort',   () => console.warn('[warrior] abort'));
 
-    // Surface Chrome's Data Saver / Lite mode, which can throttle or block
-    // video preloading regardless of the preload attribute — this is
-    // Chrome-specific and was not covered by the previous iOS-focused fix.
-    const conn = navigator.connection || navigator.webkitConnection || navigator.mozConnection;
-    const dataSaverOn = !!(conn && conn.saveData);
-
-    // Force eager loading unconditionally (not gated behind any touch/
-    // scroll/gesture event) — Chrome's autoplay restrictions are far more
-    // permissive for muted video than iOS Safari's, so gating this behind
-    // a gesture was solving for the wrong browser. Setting preload/load()
-    // directly, immediately, covers both: if Chrome doesn't need a
-    // gesture, this is sufficient on its own; if some Chrome build does
-    // restrict it, the touch/scroll fallback below still re-attempts it.
     video.preload = 'auto';
     try { video.load(); } catch (e) {}
 
+    // ── Mobile unlock ──
+    // Some mobile browsers restrict video buffering until a genuine user
+    // gesture. One shared listener covers touch/pointer/scroll, plus a
+    // short timeout fallback for a long page where the gesture might not
+    // reach this section quickly.
     let mobileUnlocked = false;
     function unlockMobileVideo() {
       if (mobileUnlocked) return;
@@ -2309,30 +2308,23 @@
       try { video.load(); } catch (e) {}
       const p = video.play();
       if (p && typeof p.then === 'function') {
-        p.then(() => video.pause()).catch(() => { /* blocked — loop below keeps retrying readiness regardless */ });
+        p.then(() => video.pause()).catch(() => {});
       } else {
         try { video.pause(); } catch (e) {}
       }
     }
     if (coarsePtr) {
-      window.addEventListener('touchstart', unlockMobileVideo, { passive: true, once: true });
-      window.addEventListener('pointerdown', unlockMobileVideo, { passive: true, once: true });
-      window.addEventListener('scroll', unlockMobileVideo, { passive: true, once: true });
-      // Also retry unconditionally after a short delay in case no gesture
-      // fires before the user reaches the section on a long page.
+      const unlockOpts = { passive: true, once: true };
+      ['touchstart', 'pointerdown', 'scroll'].forEach(evt =>
+        window.addEventListener(evt, unlockMobileVideo, unlockOpts)
+      );
       setTimeout(unlockMobileVideo, 1500);
     }
 
-    // sectionVisible is used only to pause the (non-critical) parallax
-    // loop for perf — NOT to gate the scrub seek itself. The scrub's own
-    // readScrollProgress() below already correctly no-ops when the
-    // section is out of scroll range via getBoundingClientRect(), so
-    // depending on a second, separate visibility signal (IntersectionObserver)
-    // for the seek was a redundant, riskier single point of failure: if
-    // that observer were ever slow to fire its first callback on a given
-    // mobile browser/layout combo (a real quirk with position:sticky
-    // inside tall pinned containers), the seek would never run even
-    // though scroll position itself was correct the whole time.
+    // sectionVisible only gates the (non-critical) parallax loop for perf.
+    // The scrub seek itself is driven purely by scroll position via
+    // readScrollProgress() below, which already correctly no-ops when out
+    // of range — no separate visibility signal required for correctness.
     let sectionVisible = false;
     const warriorIO = new IntersectionObserver(entries => {
       sectionVisible = entries[0].isIntersecting;
@@ -2341,41 +2333,36 @@
     warriorIO.observe(section);
 
     // ── Live on-page diagnostic ──
-    // Updated continuously so the actual state of the video element is
-    // visible directly on the deployed page, no devtools required.
-    // Delete the #warriorDiag element (and this block) once confirmed working.
+    // Throttled to a few times a second rather than every frame — it was
+    // costing two layout-forcing getBoundingClientRect() calls plus
+    // string building 60x/sec, real overhead on weak hardware for a
+    // debug-only feature. Safe to delete this whole block (and the
+    // #warriorDiag element) once playback is confirmed working for you.
     function updateDiag() {
       if (!diag) return;
       const readyNames = ['HAVE_NOTHING','HAVE_METADATA','HAVE_CURRENT_DATA','HAVE_FUTURE_DATA','HAVE_ENOUGH_DATA'];
       const netNames = ['NETWORK_EMPTY','NETWORK_IDLE','NETWORK_LOADING','NETWORK_NO_SOURCE'];
-      const rect = video.getBoundingClientRect();
-      const secRect = section.getBoundingClientRect();
-      const pinH = secRect.height - window.innerHeight;
-      const stickRect = stage.parentElement.getBoundingClientRect(); // .pinStick — should read top≈0 while sticky is engaged
+      const stickRect = stage.parentElement.getBoundingClientRect();
       diag.textContent =
-        'src: '        + (video.currentSrc || '(none — check file path/case)') + '\n' +
         'readyState: ' + video.readyState + ' (' + (readyNames[video.readyState] || '?') + ')\n' +
         'network: '    + (netNames[video.networkState] || video.networkState) + '\n' +
         'duration: '   + (isFinite(video.duration) ? video.duration.toFixed(2) + 's' : 'NaN') + '\n' +
         'currentTime: '+ video.currentTime.toFixed(2) + 's\n' +
         'targetTime: ' + targetTime.toFixed(2) + 's\n' +
-        'section.top: '+ Math.round(secRect.top) + 'px  pinHeight: ' + Math.round(pinH) + 'px\n' +
         'pinStick.top: '+ Math.round(stickRect.top) + 'px (should be ~0 if sticky works)\n' +
-        'rendered size: ' + Math.round(rect.width) + 'x' + Math.round(rect.height) +
-        (dataSaverOn ? '\nDATA SAVER: ON (may block preload)' : '') +
+        'lowPower: '   + lowPower +
         (coarsePtr ? '\nmobile unlock: ' + (mobileUnlocked ? 'fired' : 'waiting for touch/scroll') : '') +
         (video.error ? '\nERROR: code ' + video.error.code : '');
     }
+    if (diag) setInterval(updateDiag, 250);
 
     // ── Scroll-driven scrubbing ──
-    // duration defaults to the known 6s runtime until the browser reports
-    // a real one, so scrubbing is correct from frame one either way.
     let duration = 6;
     video.addEventListener('loadedmetadata', () => {
       if (isFinite(video.duration) && video.duration > 0) duration = video.duration;
     });
 
-    let targetTime = 0; // where scroll says we should be
+    let targetTime = 0;
 
     function readScrollProgress() {
       const rect      = section.getBoundingClientRect();
@@ -2396,28 +2383,34 @@
       if (t0 !== null) targetTime = t0;
     }
 
-    // Single RAF loop, running unconditionally from page load — not gated
-    // behind sectionVisible (see note above) or any single readiness
-    // event. readyState>=2 (HAVE_CURRENT_DATA) is the W3C-correct minimum
-    // for a seek target to actually have decodable data behind it; on a
-    // slower/contended mobile decoder, allowing seeks at readyState 1
-    // (metadata only) risks queuing requests for data that isn't buffered
-    // yet, which is exactly the kind of request that can sit pending
-    // longer than expected. video.seeking guards against stacking a new
-    // request before the last one resolves.
+    // Single RAF loop. readyState>=2 (HAVE_CURRENT_DATA) is the correct
+    // minimum for a seek target to have decodable data behind it.
+    // video.seeking guards against stacking a new request before the
+    // last one resolves. On low-power devices the loop itself is capped
+    // to ~24fps (instead of running uncapped at the display's native
+    // rate) and the seek epsilon is widened — fewer, larger jumps cost
+    // the decoder less than a constant stream of tiny ones, and an
+    // uncapped RAF loop is often the actual bottleneck on weak hardware,
+    // not the video decode itself.
+    const SEEK_EPS  = lowPower ? 0.08 : 0.04;
+    const MIN_FRAME = lowPower ? 1000 / 24 : 0; // ms between loop iterations
+
     let lastSeekTime = -1;
-    (function scrubLoop() {
-      if (video.readyState >= 2 && !video.seeking) {
-        if (Math.abs(targetTime - lastSeekTime) > 0.04) {
-          lastSeekTime = targetTime;
-          try { video.currentTime = targetTime; } catch (e) { /* ignore transient seek errors */ }
+    let lastFrameAt  = 0;
+    (function scrubLoop(now) {
+      if (!MIN_FRAME || !lastFrameAt || (now - lastFrameAt) >= MIN_FRAME) {
+        lastFrameAt = now || performance.now();
+        if (video.readyState >= 2 && !video.seeking) {
+          if (Math.abs(targetTime - lastSeekTime) > SEEK_EPS) {
+            lastSeekTime = targetTime;
+            try { video.currentTime = targetTime; } catch (e) {}
+          }
         }
       }
-      updateDiag();
       requestAnimationFrame(scrubLoop);
     })();
 
-    // ── Mouse parallax (desktop only — disabled on coarse/touch pointers) ──
+    // ── Mouse parallax (desktop/fine-pointer only) ──
     if (!coarsePtr && !reduceMotion) {
       const MAX_X = 20, MAX_Y = 10; // px
       const LERP  = 0.08;
