@@ -489,6 +489,9 @@
       position:sticky;top:0;height:100vh;overflow:hidden;
       display:flex;align-items:center;
     }
+    @supports (height: 100dvh){
+      .pinStick{height:100dvh;}
+    }
     #pipeHead{
       position:absolute;top:clamp(80px,12vh,130px);left:0;right:0;z-index:5;
     }
@@ -2277,38 +2280,59 @@
     // Video is purely scroll-driven: ensure it never free-runs on its own.
     video.addEventListener('play', () => video.pause());
     video.addEventListener('error', () => {
-      console.error('[warrior] video element error:', video.error);
+      console.error('[warrior] video element error:', video.error, video.error && video.error.code);
     });
+    video.addEventListener('stalled', () => console.warn('[warrior] stalled'));
+    video.addEventListener('suspend', () => console.warn('[warrior] suspend'));
+    video.addEventListener('abort',   () => console.warn('[warrior] abort'));
 
-    // ── Mobile unlock ──
-    // iOS Safari (and several Android browsers, especially on cellular)
-    // suspend video loading/decoding entirely until a genuine user gesture
-    // occurs — this is documented Apple/WebKit behavior, not a bug in this
-    // code. Without a gesture, readyState can stay stuck at HAVE_NOTHING/
-    // HAVE_METADATA forever, which is exactly "frozen on frame 1": the
-    // scrub loop's readyState>=2 gate below never passes. A muted, silent
-    // play()-then-immediately-pause() inside the very first touch/pointer
-    // event is the standard way to "unlock" decoding without the video
-    // ever visibly auto-playing. Desktop doesn't need this (no such
-    // restriction), so it's a no-op there if it ever runs.
+    // Surface Chrome's Data Saver / Lite mode, which can throttle or block
+    // video preloading regardless of the preload attribute — this is
+    // Chrome-specific and was not covered by the previous iOS-focused fix.
+    const conn = navigator.connection || navigator.webkitConnection || navigator.mozConnection;
+    const dataSaverOn = !!(conn && conn.saveData);
+
+    // Force eager loading unconditionally (not gated behind any touch/
+    // scroll/gesture event) — Chrome's autoplay restrictions are far more
+    // permissive for muted video than iOS Safari's, so gating this behind
+    // a gesture was solving for the wrong browser. Setting preload/load()
+    // directly, immediately, covers both: if Chrome doesn't need a
+    // gesture, this is sufficient on its own; if some Chrome build does
+    // restrict it, the touch/scroll fallback below still re-attempts it.
+    video.preload = 'auto';
+    try { video.load(); } catch (e) {}
+
     let mobileUnlocked = false;
     function unlockMobileVideo() {
       if (mobileUnlocked) return;
       mobileUnlocked = true;
-      video.load();
+      try { video.load(); } catch (e) {}
       const p = video.play();
       if (p && typeof p.then === 'function') {
-        p.then(() => video.pause()).catch(() => { /* blocked — scrubLoop will keep retrying readiness regardless */ });
+        p.then(() => video.pause()).catch(() => { /* blocked — loop below keeps retrying readiness regardless */ });
       } else {
-        video.pause();
+        try { video.pause(); } catch (e) {}
       }
     }
     if (coarsePtr) {
       window.addEventListener('touchstart', unlockMobileVideo, { passive: true, once: true });
       window.addEventListener('pointerdown', unlockMobileVideo, { passive: true, once: true });
       window.addEventListener('scroll', unlockMobileVideo, { passive: true, once: true });
+      // Also retry unconditionally after a short delay in case no gesture
+      // fires before the user reaches the section on a long page.
+      setTimeout(unlockMobileVideo, 1500);
     }
 
+    // sectionVisible is used only to pause the (non-critical) parallax
+    // loop for perf — NOT to gate the scrub seek itself. The scrub's own
+    // readScrollProgress() below already correctly no-ops when the
+    // section is out of scroll range via getBoundingClientRect(), so
+    // depending on a second, separate visibility signal (IntersectionObserver)
+    // for the seek was a redundant, riskier single point of failure: if
+    // that observer were ever slow to fire its first callback on a given
+    // mobile browser/layout combo (a real quirk with position:sticky
+    // inside tall pinned containers), the seek would never run even
+    // though scroll position itself was correct the whole time.
     let sectionVisible = false;
     const warriorIO = new IntersectionObserver(entries => {
       sectionVisible = entries[0].isIntersecting;
@@ -2324,12 +2348,15 @@
       if (!diag) return;
       const readyNames = ['HAVE_NOTHING','HAVE_METADATA','HAVE_CURRENT_DATA','HAVE_FUTURE_DATA','HAVE_ENOUGH_DATA'];
       const netNames = ['NETWORK_EMPTY','NETWORK_IDLE','NETWORK_LOADING','NETWORK_NO_SOURCE'];
+      const rect = video.getBoundingClientRect();
       diag.textContent =
         'src: '        + (video.currentSrc || '(none — check file path/case)') + '\n' +
         'readyState: ' + video.readyState + ' (' + (readyNames[video.readyState] || '?') + ')\n' +
         'network: '    + (netNames[video.networkState] || video.networkState) + '\n' +
         'duration: '   + (isFinite(video.duration) ? video.duration.toFixed(2) + 's' : 'NaN') + '\n' +
-        'currentTime: '+ video.currentTime.toFixed(2) + 's' +
+        'currentTime: '+ video.currentTime.toFixed(2) + 's\n' +
+        'rendered size: ' + Math.round(rect.width) + 'x' + Math.round(rect.height) +
+        (dataSaverOn ? '\nDATA SAVER: ON (may block preload)' : '') +
         (coarsePtr ? '\nmobile unlock: ' + (mobileUnlocked ? 'fired' : 'waiting for touch/scroll') : '') +
         (video.error ? '\nERROR: code ' + video.error.code : '');
     }
@@ -2363,14 +2390,16 @@
       if (t0 !== null) targetTime = t0;
     }
 
-    // Single RAF loop, running unconditionally from page load. No event
-    // gate, no "wait for canplaythrough/loadedmetadata then start" step —
-    // it just checks readiness every frame and seeks when it can.
-    // HAVE_CURRENT_DATA (2) is the W3C-correct minimum for currentTime to
-    // be meaningfully seekable.
+    // Single RAF loop, running unconditionally from page load — not gated
+    // behind sectionVisible (see note above) or any single readiness
+    // event. readyState>=1 (HAVE_METADATA) is used rather than the
+    // stricter >=2 (HAVE_CURRENT_DATA): some Android Chrome/hardware
+    // decoder combinations report readyState inconsistently around that
+    // boundary, and attempting the seek regardless is harmless — the
+    // browser itself will simply ignore/queue a seek it isn't ready for.
     let lastSeekTime = -1;
     (function scrubLoop() {
-      if (sectionVisible && video.readyState >= 2 && !video.seeking) {
+      if (video.readyState >= 1 && !video.seeking) {
         if (Math.abs(targetTime - lastSeekTime) > 0.02) {
           lastSeekTime = targetTime;
           try { video.currentTime = targetTime; } catch (e) { /* ignore transient seek errors */ }
