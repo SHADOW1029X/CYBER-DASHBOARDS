@@ -81,7 +81,7 @@
     @keyframes blink{0%,100%{opacity:.45}50%{opacity:1}}
 
     /* ── NAV ── */
-    nav{position:fixed;top:0;left:0;right:0;z-index:75;display:flex;justify-content:space-between;align-items:center;
+    nav{position:fixed;top:0;left:0;right:0;z-index:210;display:flex;justify-content:space-between;align-items:center;
     padding:22px clamp(20px,4vw,46px);mix-blend-mode:difference;
     padding-left:max(clamp(20px,4vw,46px),env(safe-area-inset-left));
     padding-right:max(clamp(20px,4vw,46px),env(safe-area-inset-right));
@@ -414,7 +414,8 @@
       font-size:clamp(64px,18vw,220px);letter-spacing:-0.05em;
       line-height:0.8;color:var(--ink);font-variant-numeric:tabular-nums;
     }
-    .pc-digit{position:relative;overflow:hidden;height:0.85em;width:0.62em;}
+    .pc-digit{position:relative;overflow:hidden;height:0.85em;width:0.62em;transition:width .32s var(--ease);}
+    .pc-digit.empty{width:0;}
     .pc-digit i{
       position:absolute;left:0;top:0;display:block;
       font-style:normal;transform:translateY(0);
@@ -1894,19 +1895,27 @@
     if (reduceMotion) { pre.classList.add('gone'); return; }
 
     // ── Build the digit-flip counter cells ──
-    // Three fixed cells ("0".."100") so the layout never reflows as the
-    // number grows from one digit to three; each cell masks a sliding
-    // <i> pair (old digit / new digit) so changes flip instead of snap.
+    // Three fixed-width cells so the layout never reflows as the number
+    // grows from one digit ("0") to three ("100"). Leading cells that
+    // have no digit yet collapse to zero width via the .pc-digit.empty
+    // class below, so the number grows from the right like an odometer
+    // instead of reserving a permanent blank gap on the left.
+    //
+    // #preCount's markup starts as a plain "0" text node (a sane no-JS/
+    // static fallback) — that has to be cleared before appending the
+    // generated cells, or it renders as a literal extra leading zero
+    // alongside the real digits (e.g. "100%" rendering as "0100%").
+    preCount.textContent = '';
     const DIGITS = 3;
     const cells = [];
     for (let i = 0; i < DIGITS; i++) {
       const cell = document.createElement('span');
-      cell.className = 'pc-digit';
+      cell.className = 'pc-digit empty';
       const i1 = document.createElement('i');
-      i1.textContent = '0';
+      i1.textContent = '';
       cell.appendChild(i1);
       preCount.appendChild(cell);
-      cells.push({ el: cell, i: i1, shown: '0' });
+      cells.push({ el: cell, i: i1, shown: '', pendingRemoval: null, pendingRemovalTimer: null });
     }
     const pct = document.createElement('span');
     pct.className = 'pc-pct';
@@ -1919,8 +1928,30 @@
         const ch = str[i] === ' ' ? '' : str[i];
         const c = cells[i];
         if (ch !== c.shown) {
+          c.el.classList.toggle('empty', ch === '');
           // Slide the old digit up and out, drop in the new one beneath —
-          // a quick flip rather than an instant text replace.
+          // a quick flip rather than an instant text replace. `outgoing`
+          // captures the specific element being replaced *right now*; the
+          // rAF below must act on this exact element, not on c.i read
+          // fresh when it fires — c.i can already have moved on to a
+          // newer digit by then (changes happen on nearly every animation
+          // frame during the fastest part of the count-up), which
+          // previously applied the exit transform to the wrong element.
+          const outgoing = c.i;
+
+          // If an earlier flip's outgoing element is still waiting on its
+          // own removal timer, drop it immediately rather than letting it
+          // ride out the full exit duration. Once a newer digit starts
+          // sliding in, the older one is already hidden behind it (this
+          // cell clips with overflow:hidden), so nothing is lost visually
+          // — but during the fast part of the count-up (digit changes
+          // roughly every 17ms, far quicker than the 340ms exit anim)
+          // skipping this would let dozens of stale nodes pile up at once.
+          if (c.pendingRemoval && c.pendingRemoval !== outgoing) {
+            clearTimeout(c.pendingRemovalTimer);
+            if (c.pendingRemoval.parentNode) c.pendingRemoval.remove();
+          }
+
           const next = document.createElement('i');
           next.textContent = ch;
           next.style.transform = 'translateY(1em)';
@@ -1929,10 +1960,14 @@
           void next.getBoundingClientRect(); // force layout so the transform-none start state is committed before animating
           next.style.transition = '';
           requestAnimationFrame(() => {
-            c.i.style.transform = 'translateY(-1em)';
+            outgoing.style.transform = 'translateY(-1em)';
             next.style.transform = 'translateY(0)';
           });
-          setTimeout(() => { if (c.i.parentNode) c.i.remove(); }, 340);
+          c.pendingRemoval = outgoing;
+          c.pendingRemovalTimer = setTimeout(() => {
+            if (outgoing.parentNode) outgoing.remove();
+            if (c.pendingRemoval === outgoing) c.pendingRemoval = null;
+          }, 340);
           c.i = next;
           c.shown = ch;
         }
