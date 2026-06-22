@@ -216,7 +216,7 @@
     #how-it-works{background:rgba(8,10,18,0.6);}
 
     /* capability grid */
-    .capability-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;border-top:1px solid var(--line);}
+    .capability-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0;border-top:1px solid var(--line);}
     .cap-card{
       padding:clamp(28px,4vw,52px) clamp(16px,2vw,28px) clamp(28px,4vw,52px) 0;
       border-bottom:1px solid var(--line);border-right:1px solid var(--line);
@@ -591,13 +591,6 @@
       font-family:var(--mono);font-size:12px;letter-spacing:0.2em;text-transform:uppercase;
       color:var(--faint);
     }
-    .warrior-diag{
-      position:absolute;bottom:14px;left:14px;z-index:4;
-      font-family:var(--mono);font-size:10px;line-height:1.6;letter-spacing:0.02em;
-      color:rgba(214,220,240,0.55);background:rgba(5,5,7,0.55);
-      border:1px solid var(--line);border-radius:6px;padding:6px 9px;
-      pointer-events:none;white-space:pre;
-    }
     /* will-change only where something actually animates: the stage moves
        via mouse parallax (desktop only) and currentTime updates repaint the
        video itself. Scoped to fine pointers — mobile never animates the
@@ -748,7 +741,7 @@
        rather than the JS-driven hidden starting state. */
     @media print{
       #pre,#prog,#grain,nav,.mobile-menu,.hero-hint,.touch-hint,.pre-hud,
-      canvas,video,.warrior-diag,.scroll-line,#directBar{display:none!important;}
+      canvas,video,.scroll-line,#directBar{display:none!important;}
       *{background:#fff!important;color:#111!important;box-shadow:none!important;text-shadow:none!important;}
       .reveal,.sr,.word-shell>i,.word>i{opacity:1!important;transform:none!important;filter:none!important;}
       a{color:#1a4fd6!important;}
@@ -1224,11 +1217,6 @@
       <h2 class="sec-heading warrior-heading">The <span>Warrior</span></h2>
       <p class="warrior-sub">Scroll to direct the sequence.</p>
     </div>
-
-    <!-- Visible diagnostic readout — shows live video state directly on
-         the page so a deploy issue can be seen without opening devtools.
-         Safe to delete this block once playback is confirmed working. -->
-    <div id="warriorDiag" class="warrior-diag" aria-hidden="true"></div>
   </div>
 </section>
 
@@ -2668,7 +2656,6 @@ window.addEventListener('unhandledrejection', e => {
     const section = document.getElementById('warriorSection');
     const stage   = document.getElementById('warriorStage');
     const video   = document.getElementById('warriorVideo');
-    const diag    = document.getElementById('warriorDiag');
     if (!section || !stage || !video) return;
 
     const coarsePtr    = window.matchMedia('(pointer:coarse)').matches;
@@ -2682,12 +2669,6 @@ window.addEventListener('unhandledrejection', e => {
     video.addEventListener('stalled', () => console.warn('[warrior] stalled'));
     video.addEventListener('suspend', () => console.warn('[warrior] suspend'));
     video.addEventListener('abort',   () => console.warn('[warrior] abort'));
-
-    // Surface Chrome's Data Saver / Lite mode, which can throttle or block
-    // video preloading regardless of the preload attribute — this is
-    // Chrome-specific and was not covered by the previous iOS-focused fix.
-    const conn = navigator.connection || navigator.webkitConnection || navigator.mozConnection;
-    const dataSaverOn = !!(conn && conn.saveData);
 
     // Force eager loading unconditionally (not gated behind any touch/
     // scroll/gesture event) — Chrome's autoplay restrictions are far more
@@ -2734,33 +2715,6 @@ window.addEventListener('unhandledrejection', e => {
     }, { threshold: 0 });
     warriorIO.observe(section);
 
-    // ── Live on-page diagnostic ──
-    // Updated continuously so the actual state of the video element is
-    // visible directly on the deployed page, no devtools required.
-    // Delete the #warriorDiag element (and this block) once confirmed working.
-    function updateDiag() {
-      if (!diag) return;
-      const readyNames = ['HAVE_NOTHING','HAVE_METADATA','HAVE_CURRENT_DATA','HAVE_FUTURE_DATA','HAVE_ENOUGH_DATA'];
-      const netNames = ['NETWORK_EMPTY','NETWORK_IDLE','NETWORK_LOADING','NETWORK_NO_SOURCE'];
-      const rect = video.getBoundingClientRect();
-      const secRect = section.getBoundingClientRect();
-      const pinH = secRect.height - window.innerHeight;
-      const stickRect = stage.parentElement.getBoundingClientRect(); // .pinStick — should read top≈0 while sticky is engaged
-      diag.textContent =
-        'src: '        + (video.currentSrc || '(none — check file path/case)') + '\n' +
-        'readyState: ' + video.readyState + ' (' + (readyNames[video.readyState] || '?') + ')\n' +
-        'network: '    + (netNames[video.networkState] || video.networkState) + '\n' +
-        'duration: '   + (isFinite(video.duration) ? video.duration.toFixed(2) + 's' : 'NaN') + '\n' +
-        'currentTime: '+ video.currentTime.toFixed(2) + 's\n' +
-        'targetTime: ' + targetTime.toFixed(2) + 's\n' +
-        'section.top: '+ Math.round(secRect.top) + 'px  pinHeight: ' + Math.round(pinH) + 'px\n' +
-        'pinStick.top: '+ Math.round(stickRect.top) + 'px (should be ~0 if sticky works)\n' +
-        'rendered size: ' + Math.round(rect.width) + 'x' + Math.round(rect.height) +
-        (dataSaverOn ? '\nDATA SAVER: ON (may block preload)' : '') +
-        (coarsePtr ? '\nmobile unlock: ' + (mobileUnlocked ? 'fired' : 'waiting for touch/scroll') : '') +
-        (video.error ? '\nERROR: code ' + video.error.code : '');
-    }
-
     // ── Scroll-driven scrubbing ──
     // duration defaults to the known 6s runtime until the browser reports
     // a real one, so scrubbing is correct from frame one either way.
@@ -2805,7 +2759,6 @@ window.addEventListener('unhandledrejection', e => {
           try { video.currentTime = targetTime; } catch (e) { /* ignore transient seek errors */ }
         }
       }
-      updateDiag();
       requestAnimationFrame(scrubLoop);
     })();
 
