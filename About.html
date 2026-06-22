@@ -398,7 +398,7 @@
     .footer-mark{font-weight:700;letter-spacing:-0.04em;font-size:clamp(52px,10vw,130px);line-height:0.8;}
     .footer-mark .d{color:var(--blue);}
     .footer-cols{display:flex;gap:clamp(28px,6vw,80px);flex-wrap:wrap;font-size:13px;}
-    .footer-cols .col h4{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;font-weight:500;}
+    .footer-cols .col h3{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;font-weight:500;}
     .footer-cols .col a{display:block;color:var(--muted);margin:8px 0;transition:color .2s;}
     .footer-cols .col a:hover{color:var(--ink);}
     .footer-base{margin-top:clamp(40px,7vh,80px);padding-top:24px;border-top:1px solid var(--line);
@@ -1628,14 +1628,14 @@
       <div class="footer-mark">NYTHERION<span class="d">.</span></div>
       <div class="footer-cols">
         <div class="col">
-          <h4>Navigate</h4>
+          <h3>Navigate</h3>
           <a href="#hero">Overview</a>
           <a href="#how-it-works">Architecture</a>
           <a href="#pages">Components</a>
           <a href="#stack">Tech Stack</a>
         </div>
         <div class="col">
-          <h4>System</h4>
+          <h3>System</h3>
           <a href="#">Documentation</a>
           <a href="#">API Reference</a>
           <a href="#">Changelog</a>
@@ -1694,6 +1694,16 @@ window.addEventListener('unhandledrejection', e => {
     prog.style.width = (Math.min(window.scrollY / Math.max(docH, 1), 1) * 100) + '%';
   });
 
+  // ── PLACEHOLDER LINKS ──
+  // href="#" placeholder links (footer: Documentation/API Reference/
+  // Changelog) would otherwise trigger the global smooth-scroll-to-top
+  // behavior on click — jarring on a page this tall. Real same-page
+  // anchors (href="#hero" etc.) use a non-empty fragment and are
+  // unaffected by this selector.
+  document.querySelectorAll('a[href="#"]').forEach(a => {
+    a.addEventListener('click', e => e.preventDefault());
+  });
+
   // ── MOBILE MENU ──
   const ham = document.getElementById('hamburger');
   const mob = document.getElementById('mobile-menu');
@@ -1722,7 +1732,7 @@ window.addEventListener('unhandledrejection', e => {
   });
 
   // ── PAGE TABS (ARIA tabs pattern: click + arrow-key navigation) ──
-  (function setupPageTabs() {
+  try { (function setupPageTabs() {
     const tabs = Array.from(document.querySelectorAll('.page-tab'));
     if (!tabs.length) return;
 
@@ -1753,7 +1763,7 @@ window.addEventListener('unhandledrejection', e => {
         if (next) { e.preventDefault(); activate(next, { focus: true }); }
       });
     });
-  })();
+  })(); } catch (e) { console.error('[NYTHERION] setupPageTabs failed:', e); }
 
   // ── SCROLL REVEAL ──
   const revealEls = document.querySelectorAll('.reveal, .sr');
@@ -1933,7 +1943,7 @@ window.addEventListener('unhandledrejection', e => {
   // ══════════════════════════════════════════════════
   // SYSTEM 1: PRELOADER
   // ══════════════════════════════════════════════════
-  (function runPreloader() {
+  try { (function runPreloader() {
     const pre      = document.getElementById('pre');
     const preCount = document.getElementById('preCount');
     const preWord  = document.getElementById('preWord');
@@ -2063,12 +2073,12 @@ window.addEventListener('unhandledrejection', e => {
       }
     }
     requestAnimationFrame(tick);
-  })();
+  })(); } catch (e) { console.error('[NYTHERION] runPreloader failed:', e); }
 
   // ══════════════════════════════════════════════════
   // SYSTEM 2: TRUE FOCUS
   // ══════════════════════════════════════════════════
-  (function setupTrueFocus() {
+  try { (function setupTrueFocus() {
     const container = document.getElementById('trueFocus');
     if (!container) return;
     const frame = container.querySelector('.focus-frame');
@@ -2122,12 +2132,12 @@ window.addEventListener('unhandledrejection', e => {
 
     window.addEventListener('resize', () => placeFrame(manual ? manualIdx : autoIdx), { passive: true });
     setTimeout(() => placeFrame(0), 140);
-  })();
+  })(); } catch (e) { console.error('[NYTHERION] setupTrueFocus failed:', e); }
 
   // ══════════════════════════════════════════════════
   // SYSTEM 3: PIPELINE HORIZONTAL SCRUB
   // ══════════════════════════════════════════════════
-  (function setupPipeline() {
+  try { (function setupPipeline() {
     const physicsSec = document.getElementById('physicsSection');
     const pipeTrack  = document.getElementById('pipeTrack');
     if (!physicsSec || !pipeTrack) return;
@@ -2166,12 +2176,12 @@ window.addEventListener('unhandledrejection', e => {
 
     onScroll(updatePipe);
     updatePipe(); // initialise state on load (e.g. scroll-restored or deep-linked pages)
-  })();
+  })(); } catch (e) { console.error('[NYTHERION] setupPipeline failed:', e); }
 
   // ══════════════════════════════════════════════════
   // SYSTEM 4: ENGINE WORD MORPH SCRUB
   // ══════════════════════════════════════════════════
-  (function setupEngineScrub() {
+  try { (function setupEngineScrub() {
     const engineSec = document.getElementById('engineSection');
     const dWord     = document.getElementById('directWord');
     const dDesc     = document.getElementById('directDesc');
@@ -2248,12 +2258,12 @@ window.addEventListener('unhandledrejection', e => {
 
     onScroll(updateEngine);
     updateEngine(); // initialise state on load (e.g. scroll-restored or deep-linked pages)
-  })();
+  })(); } catch (e) { console.error('[NYTHERION] setupEngineScrub failed:', e); }
 
   // ══════════════════════════════════════════════════
   // SYSTEM 5: IDEA — STAGGERED WORD REVEAL
   // ══════════════════════════════════════════════════
-  (function setupIdeaSection() {
+  try { (function setupIdeaSection() {
     const paras = document.querySelectorAll('.stagger-paragraph');
     if (!paras.length) return;
 
@@ -2302,12 +2312,12 @@ window.addEventListener('unhandledrejection', e => {
     }, { threshold: 0.18 });
 
     paras.forEach(p => ideaIO.observe(p));
-  })();
+  })(); } catch (e) { console.error('[NYTHERION] setupIdeaSection failed:', e); }
 
   // ══════════════════════════════════════════════════
   // SYSTEM 6: TOUCH — INTERACTIVE GRID PROXIMITY
   // ══════════════════════════════════════════════════
-  (function setupTouchGrid() {
+  try { (function setupTouchGrid() {
     const gridItems = document.querySelectorAll('#touchSection .grid-item');
     if (!gridItems.length) return;
 
@@ -2416,12 +2426,12 @@ window.addEventListener('unhandledrejection', e => {
         inner.style.setProperty('--mouse-y', '50%');
       }
     }
-  })();
+  })(); } catch (e) { console.error('[NYTHERION] setupTouchGrid failed:', e); }
 
   // ══════════════════════════════════════════════════
   // SYSTEM 7: MANIFESTO — STAGGERED LINES + TICKER
   // ══════════════════════════════════════════════════
-  (function setupManifesto() {
+  try { (function setupManifesto() {
     // Assign stagger delays to each .word inside .manifesto-line
     // (mirrors Ink's per-word delay pattern)
     document.querySelectorAll('.manifesto-line').forEach(line => {
@@ -2459,14 +2469,14 @@ window.addEventListener('unhandledrejection', e => {
       }, { threshold: 0 });
       tickerIO.observe(tickerSection);
     }
-  })();
+  })(); } catch (e) { console.error('[NYTHERION] setupManifesto failed:', e); }
 
   // ══════════════════════════════════════════════════
   // SYSTEM 8: AETHER DRIVE — WebGL plasma shader on page tabs
   // (ported verbatim from the Aether Drive reference button;
   //  same vertex/fragment shaders & easing, run per-button)
   // ══════════════════════════════════════════════════
-  (function setupAetherTabs() {
+  try { (function setupAetherTabs() {
     const tabs = document.querySelectorAll('.page-tab');
     if (!tabs.length) return;
 
@@ -2644,7 +2654,7 @@ window.addEventListener('unhandledrejection', e => {
 
       btn.classList.add('gl-ready');
     });
-  })();
+  })(); } catch (e) { console.error('[NYTHERION] setupAetherTabs failed:', e); }
 
   // ══════════════════════════════════════════════════
   // SYSTEM 9: WARRIOR CINEMATIC VIDEO
@@ -2654,7 +2664,7 @@ window.addEventListener('unhandledrejection', e => {
   // "wait for one event then init" step, so nothing can leave it stuck.
   // No autoplay — the video only ever advances via scroll position.
   // ══════════════════════════════════════════════════
-  (function setupWarriorSection() {
+  try { (function setupWarriorSection() {
     const section = document.getElementById('warriorSection');
     const stage   = document.getElementById('warriorStage');
     const video   = document.getElementById('warriorVideo');
@@ -2819,7 +2829,7 @@ window.addEventListener('unhandledrejection', e => {
         requestAnimationFrame(parallaxLoop);
       })();
     }
-  })();
+  })(); } catch (e) { console.error('[NYTHERION] setupWarriorSection failed:', e); }
 
 })();
 </script>
