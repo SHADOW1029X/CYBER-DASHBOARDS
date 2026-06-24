@@ -11,7 +11,7 @@
   --accent:#4fc3f7;
   --accent2:#a78bfa;
   --text:#f0f4ff;
-  --muted:rgba(200,210,255,0.5);
+  --muted:rgba(200,210,255,0.48);
   --ff:'Space Grotesk',system-ui,sans-serif;
 }
 html,body{
@@ -20,8 +20,6 @@ html,body{
   font-family:var(--ff);
   overflow-x:hidden;
 }
-
-/* Fixed canvas always behind everything */
 #c{
   position:fixed;
   top:0;left:0;
@@ -30,174 +28,80 @@ html,body{
   pointer-events:none;
   display:block;
 }
+#page{position:relative;z-index:2;}
 
-/* Scrollable page sits on top */
-#page{ position:relative; z-index:2; }
-
-/* ── Navbar ── */
+/* ── NAV ── */
 nav{
   position:fixed;top:0;left:0;right:0;z-index:100;
   display:flex;align-items:center;justify-content:space-between;
   padding:20px 52px;
-  background:linear-gradient(180deg,rgba(7,9,26,0.95) 0%,rgba(7,9,26,0.0) 100%);
+  background:linear-gradient(180deg,rgba(7,9,26,0.96) 0%,transparent 100%);
 }
-.nav-logo{
-  display:flex;align-items:center;gap:10px;
-  font-size:1.0rem;font-weight:700;letter-spacing:0.06em;
-  color:var(--text);text-decoration:none;
-}
-.nav-logo-dot{
-  width:26px;height:26px;border-radius:50%;
-  background:linear-gradient(135deg,var(--accent2),var(--accent));
-  flex-shrink:0;
-}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:700;letter-spacing:.06em;color:var(--text);text-decoration:none;}
+.nav-dot{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));flex-shrink:0;}
 .nav-links{display:flex;align-items:center;gap:4px;}
-.nav-links a{
-  font-size:0.82rem;letter-spacing:0.03em;
-  color:rgba(200,210,255,0.72);text-decoration:none;
-  padding:7px 13px;border-radius:100px;
-  transition:color .2s,background .2s;
-}
-.nav-links a:hover{color:var(--text);background:rgba(255,255,255,0.06);}
-.nav-right{display:flex;align-items:center;gap:10px;}
-.nav-login{font-size:.82rem;color:var(--muted);text-decoration:none;padding:7px 12px;transition:color .2s;}
-.nav-login:hover{color:var(--text);}
-.nav-talk{
-  font-size:.82rem;font-weight:600;color:var(--text);text-decoration:none;
-  padding:9px 20px;border-radius:100px;
-  border:1.5px solid rgba(255,255,255,0.22);transition:border-color .2s;
-}
-.nav-talk:hover{border-color:rgba(255,255,255,0.55);}
-.nav-start{
-  font-size:.82rem;font-weight:700;color:#fff;text-decoration:none;
-  padding:10px 22px;border-radius:100px;
-  background:linear-gradient(135deg,#3b2f8a,#1e3fa8);
-  transition:opacity .2s;
-}
-.nav-start:hover{opacity:.85;}
+.nav-links a{font-size:.82rem;color:rgba(200,210,255,.7);text-decoration:none;padding:7px 13px;border-radius:100px;transition:color .2s,background .2s;}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.06);}
+.nav-r{display:flex;align-items:center;gap:10px;}
+.nl{font-size:.82rem;color:var(--muted);text-decoration:none;padding:7px 12px;transition:color .2s;}
+.nl:hover{color:var(--text);}
+.nt{font-size:.82rem;font-weight:600;color:var(--text);text-decoration:none;padding:9px 20px;border-radius:100px;border:1.5px solid rgba(255,255,255,.22);transition:border-color .2s;}
+.nt:hover{border-color:rgba(255,255,255,.55);}
+.ns{font-size:.82rem;font-weight:700;color:#fff;text-decoration:none;padding:10px 22px;border-radius:100px;background:linear-gradient(135deg,#3b2f8a,#1e3fa8);transition:opacity .2s;}
+.ns:hover{opacity:.85;}
 
-/* Progress */
-#prog{
-  position:fixed;top:0;left:0;height:2px;
-  background:linear-gradient(90deg,var(--accent2),var(--accent));
-  z-index:200;width:0%;box-shadow:0 0 6px var(--accent);
-}
+/* ── PROGRESS ── */
+#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--accent2),var(--accent));z-index:200;width:0%;box-shadow:0 0 6px var(--accent);}
 
-/* ── Sections ── */
-.sec{
-  position:relative;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-}
+/* ── SECTIONS ── */
+.sec{position:relative;min-height:100vh;display:flex;align-items:center;}
 .sec.L{justify-content:flex-start;}
 .sec.R{justify-content:flex-end;}
-.sec.C{justify-content:center;text-align:center;}
-
 .card{
-  max-width:440px;
-  padding:120px 60px 80px;
-  opacity:0;
-  transform:translateY(24px);
+  max-width:440px;padding:120px 60px 80px;
+  opacity:0;transform:translateY(24px);
   transition:opacity .65s ease,transform .65s ease;
   pointer-events:none;
 }
 .card.show{opacity:1;transform:translateY(0);}
-
-.eyebrow{
-  font-size:.67rem;letter-spacing:.22em;text-transform:uppercase;
-  color:var(--accent);margin-bottom:16px;
-  display:flex;align-items:center;gap:8px;
-}
-.eyebrow::before{content:'';display:block;width:18px;height:1px;background:var(--accent);}
-h1.d{
-  font-size:clamp(2.6rem,5vw,4.4rem);font-weight:700;
-  line-height:1.03;letter-spacing:-.03em;margin-bottom:20px;
-}
-h2.d{
-  font-size:clamp(1.9rem,3.8vw,3.2rem);font-weight:700;
-  line-height:1.06;letter-spacing:-.025em;margin-bottom:18px;
-}
-.body{font-size:.97rem;line-height:1.75;color:var(--muted);margin-bottom:28px;}
-.btns{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:34px;}
-.btn{
-  font-family:var(--ff);font-size:.82rem;font-weight:600;letter-spacing:.04em;
-  padding:11px 24px;border-radius:100px;
-  border:1.5px solid rgba(255,255,255,0.22);
-  color:var(--text);background:transparent;
-  cursor:pointer;text-decoration:none;
-  transition:border-color .2s,background .2s;
-}
+.ey{font-size:.67rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.ey::before{content:'';display:block;width:18px;height:1px;background:var(--accent);}
+h1.d{font-size:clamp(2.6rem,5vw,4.4rem);font-weight:700;line-height:1.03;letter-spacing:-.03em;margin-bottom:20px;}
+h2.d{font-size:clamp(1.9rem,3.8vw,3.2rem);font-weight:700;line-height:1.06;letter-spacing:-.025em;margin-bottom:18px;}
+.bd{font-size:.97rem;line-height:1.75;color:var(--muted);margin-bottom:28px;}
+.btns{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px;}
+.btn{font-family:var(--ff);font-size:.82rem;font-weight:600;letter-spacing:.04em;padding:11px 24px;border-radius:100px;border:1.5px solid rgba(255,255,255,.22);color:var(--text);background:transparent;cursor:pointer;text-decoration:none;transition:border-color .2s,background .2s;}
 .btn:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.04);}
 .btn.p{background:var(--text);color:#07091a;border-color:var(--text);}
 .btn.p:hover{opacity:.87;}
 .stats{display:flex;gap:32px;flex-wrap:wrap;}
-.sn{
-  font-size:1.9rem;font-weight:700;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;line-height:1;margin-bottom:3px;
-}
+.sn{font-size:1.9rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:3px;}
 .sl{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
-.pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;}
-.pill{
-  font-size:.7rem;letter-spacing:.05em;padding:5px 13px;border-radius:100px;
-  border:1px solid rgba(79,195,247,.28);color:var(--accent);
-  background:rgba(79,195,247,.05);
-}
-.arrlink{
-  display:inline-flex;align-items:center;gap:8px;
-  font-size:.88rem;font-weight:600;color:var(--text);text-decoration:none;
-  letter-spacing:.04em;transition:gap .2s;
-}
-.arrlink:hover{gap:13px;}
+.al{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;color:var(--text);text-decoration:none;letter-spacing:.04em;transition:gap .2s;}
+.al:hover{gap:13px;}
 
-/* Scroll hint — bottom right like peachweb */
-#hint{
-  position:fixed;bottom:32px;right:36px;z-index:50;
-  background:linear-gradient(135deg,#3b2f8a,#1e3fa8);
-  border-radius:18px;padding:18px 24px;max-width:170px;
-  opacity:1;transition:opacity .5s;
-  pointer-events:none;
-}
-#hint.gone{opacity:0;}
+/* ── HINT ── */
+#hint{position:fixed;bottom:32px;right:36px;z-index:50;background:linear-gradient(135deg,#3b2f8a,#1e3fa8);border-radius:18px;padding:18px 24px;max-width:170px;opacity:1;transition:opacity .5s;}
+#hint.gone{opacity:0;pointer-events:none;}
 .ht{font-size:.9rem;font-weight:700;line-height:1.3;margin-bottom:5px;}
 .hs{font-size:.7rem;color:rgba(255,255,255,.55);}
-.ha{
-  width:30px;height:30px;border-radius:50%;
-  background:rgba(255,255,255,.14);
-  display:flex;align-items:center;justify-content:center;
-  margin-top:10px;animation:bY 1.5s ease infinite;
-}
+.ha{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;margin-top:10px;animation:bY 1.5s ease infinite;}
 @keyframes bY{0%,100%{transform:translateY(0);}50%{transform:translateY(4px);}}
 
-/* Loader */
-#loader{
-  position:fixed;inset:0;background:var(--bg);z-index:500;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
-  transition:opacity .85s;
-}
+/* ── LOADER ── */
+#loader{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .85s;}
 #loader.out{opacity:0;pointer-events:none;}
-.lr{
-  width:46px;height:46px;
-  border:2px solid rgba(79,195,247,.1);border-top-color:var(--accent);
-  border-radius:50%;animation:sp .8s linear infinite;
-}
+.lr{width:46px;height:46px;border:2px solid rgba(79,195,247,.1);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;}
 .lt{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
 @keyframes sp{to{transform:rotate(360deg);}}
 
-/* Telemetry */
-#telem{
-  position:fixed;bottom:34px;left:34px;z-index:50;
-  font-family:'Space Mono',monospace;font-size:.6rem;
-  letter-spacing:.06em;color:rgba(79,195,247,.4);
-  line-height:1.9;opacity:0;transition:opacity 1s;pointer-events:none;
-}
+/* ── TELEMETRY ── */
+#telem{position:fixed;bottom:34px;left:34px;z-index:50;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.06em;color:rgba(79,195,247,.4);line-height:1.9;opacity:0;transition:opacity 1s;pointer-events:none;}
 #telem.show{opacity:1;}
 
 @media(max-width:768px){
   nav{padding:16px 22px;}
-  .nav-links,.nav-login{display:none;}
+  .nav-links,.nl{display:none;}
   .card{padding:100px 26px 60px;max-width:100%;}
   .sec.R{justify-content:flex-start;}
   #hint{right:18px;bottom:20px;}
@@ -214,17 +118,15 @@ h2.d{
 <canvas id="c"></canvas>
 
 <nav>
-  <a href="#" class="nav-logo">
-    <div class="nav-logo-dot"></div>K07 Drone
-  </a>
+  <a href="#" class="nav-logo"><div class="nav-dot"></div>K07 Drone</a>
   <div class="nav-links">
     <a href="#">Product ↓</a><a href="#">Use Cases ↓</a>
     <a href="#">Resources ↓</a><a href="#">Pricing</a>
   </div>
-  <div class="nav-right">
-    <a href="#" class="nav-login">Login</a>
-    <a href="#" class="nav-talk">Talk to Us</a>
-    <a href="#" class="nav-start">Get Started</a>
+  <div class="nav-r">
+    <a href="#" class="nl">Login</a>
+    <a href="#" class="nt">Talk to Us</a>
+    <a href="#" class="ns">Get Started</a>
   </div>
 </nav>
 
@@ -243,19 +145,13 @@ h2.d{
   BAT <span id="tb">100</span>%
 </div>
 
-<!-- PAGE CONTENT -->
 <div id="page">
-
-  <!-- S0: Hero — LEFT text, drone center-right -->
   <section class="sec L" id="s0">
     <div class="card" id="c0">
-      <div class="eyebrow">Autonomous Aerial Platform</div>
+      <div class="ey">Autonomous Aerial Platform</div>
       <h1 class="d">3D Websites<br>in Minutes.<br><span style="background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">K07.</span></h1>
-      <p class="body">No-Code Builder for<br>WebGL 3D Websites.</p>
-      <div class="btns">
-        <a href="#" class="btn">Talk to Us</a>
-        <a href="#" class="btn p">Get Started</a>
-      </div>
+      <p class="bd">No-Code Builder for WebGL 3D Websites.</p>
+      <div class="btns"><a href="#" class="btn">Talk to Us</a><a href="#" class="btn p">Get Started</a></div>
       <div class="stats">
         <div><div class="sn">42m</div><div class="sl">Flight Time</div></div>
         <div><div class="sn">12km</div><div class="sl">Range</div></div>
@@ -263,403 +159,330 @@ h2.d{
       </div>
     </div>
   </section>
-
-  <!-- S1: LEFT -->
   <section class="sec L" id="s1">
     <div class="card" id="c1">
-      <div class="eyebrow">Intelligent Navigation</div>
+      <div class="ey">Intelligent Navigation</div>
       <h2 class="d">No-Code Builder<br>for WebGL 3D<br>Websites.</h2>
-      <div class="btns">
-        <a href="#" class="btn">Talk to Us</a>
-        <a href="#" class="btn p">Get started — free</a>
-      </div>
+      <div class="btns"><a href="#" class="btn">Talk to Us</a><a href="#" class="btn p">Get started — free</a></div>
     </div>
   </section>
-
-  <!-- S2: RIGHT -->
   <section class="sec R" id="s2">
     <div class="card" id="c2">
-      <div class="eyebrow">USE CASE</div>
+      <div class="ey">USE CASE</div>
       <h2 class="d">Ecommerce</h2>
-      <p class="body">Launch high-performance interactive 3D product landing pages that boost engagement — no code required.</p>
-      <a href="#" class="arrlink">Explore Now →</a>
+      <p class="bd">Launch high-performance interactive 3D product pages that boost engagement — no code required.</p>
+      <a href="#" class="al">Explore Now →</a>
     </div>
   </section>
-
-  <!-- S3: LEFT -->
   <section class="sec L" id="s3">
     <div class="card" id="c3">
-      <div class="eyebrow">USE CASE</div>
+      <div class="ey">USE CASE</div>
       <h2 class="d">Tech</h2>
-      <p class="body">Leverage WebGL visuals and best-in-class 3D websites to elevate your online presence — no code required.</p>
-      <a href="#" class="arrlink">Explore Now →</a>
+      <p class="bd">Leverage WebGL visuals to elevate your online presence with best-in-class 3D websites — no code required.</p>
+      <a href="#" class="al">Explore Now →</a>
     </div>
   </section>
-
-  <!-- S4: RIGHT -->
   <section class="sec R" id="s4">
     <div class="card" id="c4">
-      <div class="eyebrow">USE CASE</div>
+      <div class="ey">USE CASE</div>
       <h2 class="d">Creative</h2>
-      <p class="body">Craft captivating 3D websites with drag-and-drop tools and keyframe animations to wow every visitor.</p>
-      <a href="#" class="arrlink">Explore Now →</a>
+      <p class="bd">Craft captivating 3D websites with drag-and-drop tools and keyframe animations to wow every visitor.</p>
+      <a href="#" class="al">Explore Now →</a>
     </div>
   </section>
-
-  <!-- S5: LEFT CTA -->
   <section class="sec L" id="s5">
     <div class="card" id="c5">
       <h2 class="d">Launch your Visually<br>Stunning Interactive<br>3D Website.</h2>
-      <div class="btns">
-        <a href="#" class="btn">Talk to Us</a>
-        <a href="#" class="btn p">Browse Gallery</a>
-      </div>
+      <div class="btns"><a href="#" class="btn">Talk to Us</a><a href="#" class="btn p">Browse Gallery</a></div>
     </div>
   </section>
-
-</div><!-- /page -->
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/DRACOLoader.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-
 <script>
 gsap.registerPlugin(ScrollTrigger);
 
-/* ══ RENDERER ══════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   RENDERER — alpha:true so our CSS bg shows through
+   We paint our own gradient on the canvas via CSS,
+   letting Three.js canvas be transparent.
+══════════════════════════════════════════════════ */
 const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 1.15;
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-// Force dark clear — this is critical so GLB doesn't bring its own white bg
-renderer.setClearColor(0x07091a, 1);
+// CRITICAL: transparent clear — our CSS bg shows through canvas
+renderer.setClearColor(0x000000, 0);
+renderer.setClearAlpha(0);
 
-/* ══ SCENE ══════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   CSS GRADIENT ON CANVAS via body background
+   The canvas is transparent, so the body gradient
+   shows through as the background.
+══════════════════════════════════════════════════ */
+document.body.style.background =
+  'linear-gradient(160deg, #07091a 0%, #0d1140 40%, #120e35 70%, #07091a 100%)';
+
+/* ══════════════════════════════════════════════════
+   SCENE — NO background set, so it renders transparent
+══════════════════════════════════════════════════ */
 const scene = new THREE.Scene();
-// Scene fog matches bg color — hides any background remnants
-scene.background = new THREE.Color(0x07091a);
-scene.fog = new THREE.FogExp2(0x07091a, 0.04);
+// Do NOT set scene.background — let it be transparent
+// Do NOT set scene.fog — it would be grey
 
-/* ══ CAMERA ════════════════════════════════════
-   FOV 42, camera at z=12
-   At z=0: visible half-width = 12*tan(21°) ≈ 4.6 units
-   Visible half-height ≈ 2.6 units (16:9)
-   Drone scale ~0.9 → drone height ~1.8 units → ~35% viewport
-   That's roughly the fish size on peachweb
-══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   CAMERA
+   FOV 42, z=12
+   Visible half-w ≈ 4.6 units, half-h ≈ 2.6 units (16:9)
+══════════════════════════════════════════════════ */
 const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 200);
 camera.position.set(0, 0, 12);
 camera.lookAt(0, 0, 0);
 
-/* ══ LIGHTS ════════════════════════════════════ */
-// Strong ambient so drone is well lit on all sides
-scene.add(new THREE.AmbientLight(0x3040b0, 4.0));
+/* ══════════════════════════════════════════════════
+   LIGHTS
+══════════════════════════════════════════════════ */
+scene.add(new THREE.AmbientLight(0x4060d0, 5.0));
 
-const key = new THREE.DirectionalLight(0xb0d0ff, 5.0);
-key.position.set(3, 5, 7);
+const key = new THREE.DirectionalLight(0xb0d0ff, 6.0);
+key.position.set(4, 6, 8);
 key.castShadow = true;
 scene.add(key);
 
-const rim = new THREE.DirectionalLight(0xc084fc, 3.5);
-rim.position.set(-5, 2, -4);
+const rim = new THREE.DirectionalLight(0xd084fc, 4.0);
+rim.position.set(-6, 3, -5);
 scene.add(rim);
 
-const fill = new THREE.DirectionalLight(0x38bdf8, 2.2);
-fill.position.set(0, -6, 5);
+const fill = new THREE.DirectionalLight(0x38bdf8, 2.5);
+fill.position.set(0, -6, 6);
 scene.add(fill);
 
-// Drone glow — follows drone position
-const gA = new THREE.PointLight(0x38bdf8, 5, 8);
-const gB = new THREE.PointLight(0xc084fc, 3.5, 6);
+const gA = new THREE.PointLight(0x38bdf8, 6, 9);
+const gB = new THREE.PointLight(0xd084fc, 4, 7);
 scene.add(gA, gB);
 
-/* ══ BACKGROUND GRADIENT ═══════════════════════
-   Rendered as a fullscreen quad BEFORE main scene
-   so the navy gradient always shows behind the drone
-══════════════════════════════════════════════ */
-const bgScene = new THREE.Scene();
-const bgCam   = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-const bgMesh  = new THREE.Mesh(
-  new THREE.PlaneGeometry(2, 2),
-  new THREE.ShaderMaterial({
-    depthWrite: false,
-    uniforms: { t: { value: 0 } },
-    vertexShader: `
-      varying vec2 vUv;
-      void main(){ vUv=uv; gl_Position=vec4(position,1.0); }
-    `,
-    fragmentShader: `
-      varying vec2 vUv;
-      uniform float t;
-      void main(){
-        // Top of screen: very dark navy
-        vec3 top    = mix(vec3(0.022,0.028,0.088), vec3(0.038,0.030,0.120), t);
-        // Bottom: slightly warmer deep blue
-        vec3 bottom = mix(vec3(0.042,0.055,0.150), vec3(0.060,0.045,0.175), t);
-        vec3 col    = mix(bottom, top, vUv.y);
-        // Subtle radial vignette darkens edges
-        vec2 centered = vUv * 2.0 - 1.0;
-        float vign = 1.0 - dot(centered, centered) * 0.22;
-        col *= vign;
-        gl_FragColor = vec4(col, 1.0);
-      }
-    `
-  })
-);
-bgScene.add(bgMesh);
-
-/* ══ PARTICLES ════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   SUBTLE STAR PARTICLES (depth, atmosphere)
+══════════════════════════════════════════════════ */
 (function(){
-  const n = 600;
-  const p = new Float32Array(n * 3);
-  for(let i = 0; i < n; i++){
-    p[i*3]   = (Math.random() - 0.5) * 28;
-    p[i*3+1] = (Math.random() - 0.5) * 20;
-    p[i*3+2] = (Math.random() - 0.5) * 10 - 2;
+  const n = 500, p = new Float32Array(n*3);
+  for(let i=0;i<n;i++){
+    p[i*3]=(Math.random()-.5)*30;
+    p[i*3+1]=(Math.random()-.5)*22;
+    p[i*3+2]=(Math.random()-.5)*8-4;
   }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(p,3));
   scene.add(new THREE.Points(g,
-    new THREE.PointsMaterial({ size: 0.055, color: 0x7dd3fc, transparent: true, opacity: 0.4 })
+    new THREE.PointsMaterial({size:.055,color:0x7dd3fc,transparent:true,opacity:.35})
   ));
 })();
 
-/* ══ FLIGHT PATH ═══════════════════════════════
-   World-space X/Y at z=0, camera at z=12, FOV 42
-   Screen edges: x ≈ ±4.6,  y ≈ ±2.6
-
-   Matching peachweb clown fish exactly:
-   ─ Screenshot 1 (0%):   fish at center-right, slightly above mid
-   ─ Screenshot 2 (20%):  fish nose-diving, center-screen, tilted ~80° down
-   ─ Screenshot 3 (50%):  fish at right side, mid height
-   ─ Screenshot 4 (75%):  fish at left side, mid height, level
-══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   FLIGHT PATH
+   X: -4.0 (far left) ↔ +4.0 (far right)
+   Y: -2.0 (bottom)   ↔ +1.5 (top)
+══════════════════════════════════════════════════ */
 const PATH = new THREE.CatmullRomCurve3([
-  new THREE.Vector3( 1.8,  0.3, 0),   // 0%  : center-right, mid (HERO)
-  new THREE.Vector3( 1.2, -0.5, 0),   // 10% : begin tilting down
-  new THREE.Vector3( 0.3, -2.0, 0),   // 22% : steep nose-dive, near center (screenshot 2)
-  new THREE.Vector3(-1.4, -1.2, 0),   // 33% : pulling left at bottom
-  new THREE.Vector3(-3.0,  0.1, 0),   // 45% : far left, level
-  new THREE.Vector3(-1.8,  1.0, 0),   // 55% : climbing left
-  new THREE.Vector3( 0.2,  0.8, 0),   // 62% : back center
-  new THREE.Vector3( 2.8,  0.4, 0),   // 72% : far right (screenshot 3)
-  new THREE.Vector3( 2.2, -0.3, 0),   // 80% : right, slight dip
-  new THREE.Vector3( 0.0,  0.1, 0),   // 88% : center
-  new THREE.Vector3(-2.6,  0.3, 0),   // 100%: left side (screenshot 4)
+  new THREE.Vector3( 1.8,  0.3, 0),   // 0%   HERO: center-right, mid
+  new THREE.Vector3( 1.3, -0.4, 0),   // 10%  start diving
+  new THREE.Vector3( 0.2, -1.9, 0),   // 22%  steep nose-dive near center
+  new THREE.Vector3(-1.5, -1.0, 0),   // 33%  pulling left at bottom
+  new THREE.Vector3(-3.2,  0.2, 0),   // 45%  far left, level
+  new THREE.Vector3(-2.0,  1.1, 0),   // 55%  climbing left
+  new THREE.Vector3( 0.1,  0.9, 0),   // 63%  back to center
+  new THREE.Vector3( 3.0,  0.4, 0),   // 73%  far right
+  new THREE.Vector3( 2.1, -0.2, 0),   // 81%  right, slight dip
+  new THREE.Vector3( 0.0,  0.2, 0),   // 89%  center
+  new THREE.Vector3(-2.8,  0.4, 0),   // 100% far left final
 ], false, 'catmullrom', 0.5);
 
-/* ══ STATE ════════════════════════════════════ */
-let drone = null, mixer = null;
-const clock = new THREE.Clock();
-const scroll = { t: 0 };
-const livePos = new THREE.Vector3(1.8, 0.3, 0);
-let liveYaw = 0, livePitch = 0, liveRoll = 0;
-let prevT = 0;
+/* ══════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════ */
+let drone=null, mixer=null;
+const clock=new THREE.Clock();
+const scroll={t:0};
+const livePos=new THREE.Vector3(1.8,0.3,0);
+let liveYaw=0, livePitch=0, liveRoll=0, prevT=0;
 
-/* ══ SCROLL DRIVER ════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   SCROLL
+══════════════════════════════════════════════════ */
 ScrollTrigger.create({
-  trigger: document.body,
-  start: 'top top',
-  end: 'bottom bottom',
-  scrub: 1.6,
-  onUpdate(self){
-    scroll.t = self.progress;
-    document.getElementById('prog').style.width = (self.progress * 100) + '%';
-    bgMesh.material.uniforms.t.value = self.progress;
-    showCards(self.progress);
-    updateTelemetry(self.progress);
+  trigger:document.body,start:'top top',end:'bottom bottom',
+  scrub:1.6,
+  onUpdate(s){
+    scroll.t=s.progress;
+    document.getElementById('prog').style.width=(s.progress*100)+'%';
+    showCards(s.progress);
+    updateTelemetry(s.progress);
   }
 });
 
-/* ══ CARDS ════════════════════════════════════ */
-const WINS = [
-  [0.00, 0.15],
-  [0.15, 0.30],
-  [0.30, 0.47],
-  [0.47, 0.63],
-  [0.63, 0.80],
-  [0.80, 1.00],
-];
+const WINS=[[0,.15],[.15,.30],[.30,.47],[.47,.63],[.63,.80],[.80,1]];
 function showCards(t){
-  WINS.forEach(([a,b], i) => {
-    const el = document.getElementById('c'+i);
-    if(el) el.classList.toggle('show', t >= a && t <= b);
+  WINS.forEach(([a,b],i)=>{
+    const el=document.getElementById('c'+i);
+    if(el) el.classList.toggle('show',t>=a&&t<=b);
   });
 }
-
-/* ══ TELEMETRY ════════════════════════════════ */
 function updateTelemetry(t){
-  const a=document.getElementById('ta');
-  const s=document.getElementById('ts');
-  const h=document.getElementById('th');
-  const b=document.getElementById('tb');
-  if(a) a.textContent = String(Math.round(80 + t*140)).padStart(3,'0');
-  if(s) s.textContent = String(Math.round(60 + Math.sin(t*Math.PI*5)*20 + t*28)).padStart(3,'0');
-  if(h) h.textContent = String(Math.round((t*500)%360)).padStart(3,'0');
-  if(b) b.textContent = String(Math.round(100 - t*14));
+  const a=document.getElementById('ta'),s=document.getElementById('ts'),
+        h=document.getElementById('th'),b=document.getElementById('tb');
+  if(a)a.textContent=String(Math.round(80+t*140)).padStart(3,'0');
+  if(s)s.textContent=String(Math.round(60+Math.sin(t*Math.PI*5)*20+t*28)).padStart(3,'0');
+  if(h)h.textContent=String(Math.round((t*500)%360)).padStart(3,'0');
+  if(b)b.textContent=String(Math.round(100-t*14));
 }
 
-/* ══ LOAD GLB ═════════════════════════════════ */
-const gltfLoader = new THREE.GLTFLoader();
+/* ══════════════════════════════════════════════════
+   LOAD GLB
+   KEY FIX: We extract ONLY the meshes from the GLB,
+   discarding any cameras, lights, backgrounds, or
+   scene-level objects that carry the grey environment.
+══════════════════════════════════════════════════ */
+const gltfLoader=new THREE.GLTFLoader();
 try{
-  const draco = new THREE.DRACOLoader();
+  const draco=new THREE.DRACOLoader();
   draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/libs/draco/');
   gltfLoader.setDRACOLoader(draco);
 }catch(e){}
 
+// Root group that holds ONLY the drone meshes
+const droneRoot = new THREE.Group();
+scene.add(droneRoot);
+
 gltfLoader.load('k07_drone.glb', gltf => {
 
-  drone = gltf.scene;
-
-  // ── CRITICAL: strip any background the GLB carries
-  // Some GLBs embed their own scene background — remove it
-  if(gltf.scene.background) gltf.scene.background = null;
+  // ── STRIP the scene: remove all non-mesh/non-bone objects
+  // that carry embedded environment data
   gltf.scene.traverse(obj => {
-    if(obj.isScene) obj.background = null;
-    // Also force-remove any environment-mapped sky that bleeds through
-    if(obj.isMesh && obj.material){
+    // Remove embedded cameras
+    if(obj.isCamera) { obj.parent && obj.parent.remove(obj); return; }
+    // Null out any background on sub-scenes
+    if(obj.isScene || obj.isObject3D) {
+      obj.background = null;
+      obj.environment = null;
+    }
+    // Strip meshes that are clearly "ground plane" type objects
+    // (large flat planes that are the grey floor in the GLB)
+    if(obj.isMesh){
+      const bbox = new THREE.Box3().setFromObject(obj);
+      const size = new THREE.Vector3();
+      bbox.getSize(size);
+      // If the mesh is extremely flat and wide (ground plane), hide it
+      if(size.y < 0.05 && size.x > 2) {
+        obj.visible = false;
+        return;
+      }
+      obj.castShadow = true;
+      obj.receiveShadow = false;
+      // Ensure materials are not emitting a background
       const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
       mats.forEach(m => {
-        // Keep material but remove any embedded envMap that causes white bg
-        // m.envMap = null;  // uncomment if white bg persists
-        m.envMapIntensity = 1.5;
+        if(!m) return;
+        m.envMapIntensity = 1.8;
         m.needsUpdate = true;
       });
     }
   });
 
-  // Scale: at z=0, camera z=12, FOV=42
-  // Object scale 0.9 → ~1.8u tall → ~35% viewport height → fish-like prominence
-  drone.scale.setScalar(0.9);
+  drone = gltf.scene;
+  // Scale: prominent like the fish — about 30% viewport height
+  drone.scale.setScalar(0.88);
 
-  drone.traverse(c => {
-    if(c.isMesh){
-      c.castShadow = true;
-      c.receiveShadow = true;
-    }
-  });
+  droneRoot.add(drone);
 
-  scene.add(drone);
-
-  // Play ALL embedded animations forever
-  if(gltf.animations && gltf.animations.length > 0){
-    mixer = new THREE.AnimationMixer(drone);
-    gltf.animations.forEach(clip => {
-      mixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity).play();
+  // Animations
+  if(gltf.animations?.length){
+    mixer=new THREE.AnimationMixer(drone);
+    gltf.animations.forEach(clip=>{
+      mixer.clipAction(clip).setLoop(THREE.LoopRepeat,Infinity).play();
     });
   }
 
-  // Set initial position
-  const p0 = PATH.getPoint(0);
-  drone.position.copy(p0);
+  const p0=PATH.getPoint(0);
+  droneRoot.position.copy(p0);
   livePos.copy(p0);
 
-  // Hide loader
-  const ld = document.getElementById('loader');
-  ld.classList.add('out');
-  setTimeout(() => ld.style.display = 'none', 950);
+  document.getElementById('loader').classList.add('out');
+  setTimeout(()=>document.getElementById('loader').style.display='none',950);
   document.getElementById('telem').classList.add('show');
   showCards(0);
 
-}, undefined, err => {
-  document.querySelector('#loader .lt').textContent = 'Error loading model';
+},undefined,err=>{
+  document.querySelector('#loader .lt').textContent='Error loading model';
   console.error(err);
 });
 
-/* ══ DRONE ANIMATION ═══════════════════════════
-   Replicates fish movement:
-   • Position: smooth lerp along path
-   • Yaw:   face direction of travel in XY plane
-   • Pitch: nose up/down matching path tangent Y — DRAMATIC
-   • Roll:  bank into turns
-   • Bob:   subtle idle float
-══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   ANIMATE
+══════════════════════════════════════════════════ */
 function animateDrone(t){
   if(!drone) return;
-  const tc = Math.max(0.0001, Math.min(0.9999, t));
-  const elapsed = clock.getElapsedTime();
+  const tc=Math.max(.0001,Math.min(.9999,t));
+  const elapsed=clock.getElapsedTime();
 
-  // Target position
-  const target = PATH.getPoint(tc);
+  const target=PATH.getPoint(tc);
+  livePos.lerp(target,0.08);
 
-  // Smooth pursuit (0.08 = organic lag, not instant)
-  livePos.lerp(target, 0.08);
+  droneRoot.position.x=livePos.x+Math.cos(elapsed*.9)*.018;
+  droneRoot.position.y=livePos.y+Math.sin(elapsed*1.7)*.05;
+  droneRoot.position.z=livePos.z;
 
-  // Idle hover bob — always alive
-  drone.position.x = livePos.x + Math.cos(elapsed * 0.9) * 0.018;
-  drone.position.y = livePos.y + Math.sin(elapsed * 1.7) * 0.05;
-  drone.position.z = livePos.z;
+  const tan=PATH.getTangent(tc);
+  const tgtYaw=Math.atan2(tan.x,Math.abs(tan.z)+0.6)*1.5;
+  const tgtPitch=-tan.y*2.0;
+  const dT=tc-prevT;
+  const lateral=dT*60;
+  const tgtRoll=Math.max(-.65,Math.min(.65,-lateral*2.0*Math.PI));
 
-  // Tangent = direction of movement
-  const tan = PATH.getTangent(tc);
+  const lag=0.07;
+  liveYaw  +=(tgtYaw   -liveYaw)  *lag;
+  livePitch+=(tgtPitch -livePitch)*lag;
+  liveRoll +=(tgtRoll  -liveRoll) *lag;
 
-  // Yaw: horizontal facing (left/right)
-  // tan.x drives yaw — amplify so drone turns to face direction
-  const tgtYaw = Math.atan2(tan.x, Math.abs(tan.z) + 0.6) * 1.5;
+  droneRoot.rotation.order='YXZ';
+  droneRoot.rotation.y=liveYaw;
+  droneRoot.rotation.x=livePitch;
+  droneRoot.rotation.z=liveRoll;
 
-  // Pitch: nose up/down — DRAMATIC like the fish dive
-  // tan.y drives pitch, amplify strongly
-  const tgtPitch = -tan.y * 2.0;
-
-  // Roll: bank into horizontal turns
-  const dT = tc - prevT;
-  const lateral = dT * 60;
-  const tgtRoll = -lateral * 2.0 * Math.PI;
-  const clampedRoll = Math.max(-0.65, Math.min(0.65, tgtRoll));
-
-  // Smooth orientations — lag factor 0.07
-  const lag = 0.07;
-  liveYaw   += (tgtYaw        - liveYaw)   * lag;
-  livePitch += (tgtPitch      - livePitch) * lag;
-  liveRoll  += (clampedRoll   - liveRoll)  * lag;
-
-  drone.rotation.order = 'YXZ';
-  drone.rotation.y = liveYaw;
-  drone.rotation.x = livePitch;
-  drone.rotation.z = liveRoll;
-
-  // Glow lights orbit slightly around drone
-  gA.position.set(drone.position.x + 1.0, drone.position.y + 0.5, drone.position.z + 2.5);
-  gB.position.set(drone.position.x - 0.8, drone.position.y - 0.3, drone.position.z + 1.8);
-
-  prevT = tc;
+  gA.position.set(livePos.x+1,livePos.y+.5,livePos.z+2.5);
+  gB.position.set(livePos.x-.8,livePos.y-.3,livePos.z+1.8);
+  prevT=tc;
 }
 
-/* ══ RENDER LOOP ══════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   RENDER
+══════════════════════════════════════════════════ */
 function render(){
   requestAnimationFrame(render);
-  const delta = clock.getDelta();
+  const delta=clock.getDelta();
   if(mixer) mixer.update(delta);
   animateDrone(scroll.t);
-
-  // 1) Draw bg gradient (clears to navy)
-  renderer.autoClear = true;
-  renderer.render(bgScene, bgCam);
-
-  // 2) Draw drone scene on top (no clear)
-  renderer.autoClear = false;
-  renderer.render(scene, camera);
+  // Single render pass, transparent background shows CSS gradient
+  renderer.render(scene,camera);
 }
 render();
 
-/* ══ RESIZE ══════════════════════════════════ */
-window.addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
+window.addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
+  renderer.setSize(innerWidth,innerHeight);
 });
-
-/* ══ HINT ════════════════════════════════════ */
-window.addEventListener('scroll', () => {
-  if(scrollY > 80) document.getElementById('hint').classList.add('gone');
-}, { passive: true });
+window.addEventListener('scroll',()=>{
+  if(scrollY>80) document.getElementById('hint').classList.add('gone');
+},{passive:true});
 
 showCards(0);
 updateTelemetry(0);
