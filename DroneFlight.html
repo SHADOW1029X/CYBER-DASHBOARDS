@@ -3,287 +3,418 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DRONE — Cinematic Flight</title>
+<title>K07 Drone — Flight Experience</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#07091a;
+  --bg2:#0d1035;
+  --accent:#4fc3f7;
+  --accent2:#a78bfa;
+  --text:#f0f4ff;
+  --muted:rgba(200,210,255,0.5);
+  --ff:'Space Grotesk',system-ui,sans-serif;
+}
+html,body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--ff);
+  overflow-x:hidden;
+}
 
-  :root {
-    --ink: #0a0c12;
-    --sky-top: #050810;
-    --sky-mid: #0d1a3a;
-    --sky-low: #1a0a2e;
-    --accent: #4fc3f7;
-    --accent2: #7c4dff;
-    --text: rgba(255,255,255,0.88);
-    --muted: rgba(255,255,255,0.38);
-    --ff-display: 'Space Grotesk', system-ui, sans-serif;
-    --ff-body: 'Inter', system-ui, sans-serif;
-  }
+/* ── Fixed canvas — always full viewport ── */
+#c{
+  position:fixed;
+  top:0;left:0;
+  width:100vw;
+  height:100vh;
+  z-index:0;
+  pointer-events:none;
+}
 
-  html { scroll-behavior: auto; }
+/* ── Scrollable page ── */
+#page{
+  position:relative;
+  z-index:2;
+}
 
-  body {
-    background: var(--ink);
-    color: var(--text);
-    font-family: var(--ff-body);
-    overflow-x: hidden;
-  }
+/* ── Navbar ── */
+nav{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:100;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:20px 52px;
+  background:linear-gradient(180deg,rgba(7,9,26,0.92) 0%,transparent 100%);
+  backdrop-filter:blur(0px);
+}
+.nav-logo{
+  display:flex;align-items:center;gap:10px;
+  font-size:1.05rem;font-weight:700;letter-spacing:0.06em;
+  color:var(--text);text-decoration:none;
+}
+.nav-logo-dot{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  flex-shrink:0;
+}
+.nav-links{display:flex;align-items:center;gap:8px;}
+.nav-links a{
+  font-size:0.82rem;letter-spacing:0.04em;
+  color:rgba(200,210,255,0.75);text-decoration:none;
+  padding:8px 14px;border-radius:100px;
+  transition:color 0.2s,background 0.2s;
+}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,0.06);}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-login{
+  font-size:0.82rem;color:var(--muted);
+  text-decoration:none;padding:8px 14px;
+  transition:color 0.2s;
+}
+.nav-login:hover{color:var(--text);}
+.nav-talk{
+  font-size:0.82rem;font-weight:600;
+  color:var(--text);text-decoration:none;
+  padding:9px 20px;border-radius:100px;
+  border:1.5px solid rgba(255,255,255,0.25);
+  transition:border-color 0.2s;
+}
+.nav-talk:hover{border-color:rgba(255,255,255,0.6);}
+.nav-start{
+  font-size:0.82rem;font-weight:700;
+  color:#fff;text-decoration:none;
+  padding:10px 22px;border-radius:100px;
+  background:linear-gradient(135deg,#3b2f8a,#1e40af);
+  transition:opacity 0.2s;
+}
+.nav-start:hover{opacity:0.85;}
 
-  /* ─── Canvas ─────────────────────────────────── */
-  #canvas-container {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-  }
-  #canvas-container canvas {
-    display: block;
-    width: 100% !important;
-    height: 100% !important;
-  }
+/* ── Progress ── */
+#prog{
+  position:fixed;top:0;left:0;
+  height:2px;
+  background:linear-gradient(90deg,var(--accent2),var(--accent));
+  z-index:200;width:0%;
+  box-shadow:0 0 6px var(--accent);
+}
 
-  /* ─── Scroll scaffold ─────────────────────────── */
-  #scroll-track {
-    position: relative;
-    z-index: 1;
-    height: 600vh;
-    pointer-events: none;
-  }
+/* ── Sections ── */
+/* Each section is viewport height, flex aligned */
+.sec{
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  padding:120px 0 80px;
+}
+.sec.align-left  { justify-content:flex-start; }
+.sec.align-right { justify-content:flex-end; }
+.sec.align-center{ justify-content:center; text-align:center; }
 
-  /* ─── HUD overlay ─────────────────────────────── */
-  #hud {
-    position: fixed;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-  }
+/* Content cards */
+.card{
+  max-width:480px;
+  padding:0 60px;
+  opacity:0;
+  transform:translateY(28px);
+  transition:opacity 0.65s ease, transform 0.65s ease;
+}
+.card.show{ opacity:1; transform:translateY(0); }
 
-  .progress-bar-wrap {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: rgba(255,255,255,0.06);
-    z-index: 10;
-  }
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent2), var(--accent));
-    width: 0%;
-    transition: width 0.05s linear;
-    box-shadow: 0 0 8px var(--accent);
-  }
+.eyebrow{
+  font-size:0.68rem;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.eyebrow::before{
+  content:'';
+  display:block;
+  width:20px;height:1px;
+  background:var(--accent);
+}
+h1.display{
+  font-size:clamp(2.8rem,5.5vw,4.8rem);
+  font-weight:700;
+  line-height:1.02;
+  letter-spacing:-0.035em;
+  margin-bottom:22px;
+}
+h2.heading{
+  font-size:clamp(2rem,4vw,3.4rem);
+  font-weight:700;
+  line-height:1.05;
+  letter-spacing:-0.025em;
+  margin-bottom:18px;
+}
+.body-text{
+  font-size:1rem;
+  line-height:1.75;
+  color:var(--muted);
+  margin-bottom:30px;
+}
+.btns{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:36px;}
+.btn{
+  font-family:var(--ff);
+  font-size:0.82rem;font-weight:600;
+  letter-spacing:0.04em;
+  padding:12px 26px;
+  border-radius:100px;
+  border:1.5px solid rgba(255,255,255,0.25);
+  color:var(--text);background:transparent;
+  cursor:pointer;text-decoration:none;
+  display:inline-flex;align-items:center;gap:8px;
+  transition:border-color 0.2s,background 0.2s;
+}
+.btn:hover{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.04);}
+.btn.primary{
+  background:var(--text);color:#07091a;border-color:var(--text);
+}
+.btn.primary:hover{opacity:0.88;}
 
-  /* ─── Section cards ───────────────────────────── */
-  .sections {
-    position: fixed;
-    inset: 0;
-    z-index: 3;
-    pointer-events: none;
-  }
+/* Stats row */
+.stats{display:flex;gap:36px;flex-wrap:wrap;}
+.stat-item{}
+.stat-n{
+  font-size:2rem;font-weight:700;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  line-height:1;margin-bottom:4px;
+}
+.stat-l{font-size:0.68rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);}
 
-  .section-card {
-    position: absolute;
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-    max-width: 480px;
-  }
-  .section-card.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Feature pills */
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;}
+.pill{
+  font-size:0.72rem;letter-spacing:0.06em;
+  padding:5px 14px;border-radius:100px;
+  border:1px solid rgba(79,195,247,0.3);
+  color:var(--accent);
+  background:rgba(79,195,247,0.06);
+}
 
-  .section-card .eyebrow {
-    font-family: var(--ff-display);
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 10px;
-    opacity: 0.8;
-  }
-  .section-card h2 {
-    font-family: var(--ff-display);
-    font-size: clamp(1.6rem, 3.5vw, 2.6rem);
-    font-weight: 700;
-    line-height: 1.12;
-    letter-spacing: -0.02em;
-    margin-bottom: 14px;
-  }
-  .section-card p {
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: var(--muted);
-  }
+/* Arrow link */
+.arr-link{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:0.88rem;font-weight:600;
+  color:var(--text);text-decoration:none;
+  letter-spacing:0.04em;
+  transition:gap 0.2s;
+}
+.arr-link:hover{gap:14px;}
+.arr-link svg{width:16px;height:16px;flex-shrink:0;}
 
-  /* card positions */
-  #card-0 { bottom: 14vh; left: 8vw; }
-  #card-1 { top: 22vh; right: 8vw; text-align: right; }
-  #card-2 { bottom: 18vh; left: 8vw; }
-  #card-3 { top: 28vh; right: 8vw; text-align: right; }
-  #card-4 { bottom: 50%; left: 50%; transform: translateX(-50%) translateY(50%); text-align: center; max-width: 600px; }
+/* ── Scroll hint ── */
+#hint{
+  position:fixed;bottom:36px;right:40px;
+  z-index:50;
+  background:linear-gradient(135deg,#3b2f8a,#1e40af);
+  border-radius:16px;
+  padding:16px 22px;
+  max-width:160px;
+  opacity:1;transition:opacity 0.5s;
+}
+#hint.gone{opacity:0;pointer-events:none;}
+.hint-title{font-size:0.88rem;font-weight:700;line-height:1.3;margin-bottom:6px;}
+.hint-sub{font-size:0.72rem;color:rgba(255,255,255,0.6);}
+.hint-arrow{
+  width:32px;height:32px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.15);
+  display:flex;align-items:center;justify-content:center;
+  margin-top:10px;
+  animation:bounceY 1.5s ease infinite;
+}
+@keyframes bounceY{0%,100%{transform:translateY(0);}50%{transform:translateY(5px);}}
 
-  /* ─── Loading screen ──────────────────────────── */
-  #loader {
-    position: fixed;
-    inset: 0;
-    background: var(--ink);
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    transition: opacity 0.8s ease;
-  }
-  #loader.fade-out { opacity: 0; pointer-events: none; }
-  .loader-ring {
-    width: 60px; height: 60px;
-    border: 2px solid rgba(255,255,255,0.08);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.9s linear infinite;
-  }
-  .loader-label {
-    font-family: var(--ff-display);
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* ── Loader ── */
+#loader{
+  position:fixed;inset:0;
+  background:var(--bg);
+  z-index:500;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  transition:opacity 0.85s;
+}
+#loader.out{opacity:0;pointer-events:none;}
+.ld-ring{
+  width:48px;height:48px;
+  border:2px solid rgba(79,195,247,0.12);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+.ld-txt{font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-  /* ─── Scroll hint ─────────────────────────────── */
-  #scroll-hint {
-    position: fixed;
-    bottom: 36px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 4;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    opacity: 1;
-    transition: opacity 0.5s;
-  }
-  #scroll-hint.hidden { opacity: 0; }
-  .hint-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .hint-arrow {
-    width: 18px; height: 28px;
-    border: 1.5px solid rgba(255,255,255,0.2);
-    border-radius: 10px;
-    position: relative;
-    overflow: hidden;
-  }
-  .hint-arrow::after {
-    content: '';
-    position: absolute;
-    top: 4px; left: 50%; transform: translateX(-50%);
-    width: 4px; height: 6px;
-    background: var(--accent);
-    border-radius: 2px;
-    animation: bounce 1.4s ease infinite;
-  }
-  @keyframes bounce {
-    0%,100% { top: 4px; opacity: 1; }
-    80% { top: 14px; opacity: 0; }
-  }
+/* ── Telemetry ── */
+#telem{
+  position:fixed;bottom:36px;left:36px;
+  z-index:50;
+  font-family:'Space Mono',monospace;
+  font-size:0.6rem;letter-spacing:0.06em;
+  color:rgba(79,195,247,0.45);
+  line-height:1.9;
+  opacity:0;transition:opacity 1s;
+  pointer-events:none;
+}
+#telem.show{opacity:1;}
 
-  /* ─── Corner drone data ───────────────────────── */
-  #drone-data {
-    position: fixed;
-    top: 24px; right: 24px;
-    z-index: 4;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.68rem;
-    color: rgba(79,195,247,0.6);
-    letter-spacing: 0.04em;
-    line-height: 1.7;
-    pointer-events: none;
-    text-align: right;
-    opacity: 0;
-    transition: opacity 1s;
-  }
-  #drone-data.visible { opacity: 1; }
+/* ── Section dividers ── */
+.vdiv{
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(79,195,247,0.15),transparent);
+  margin:0 60px;
+}
 
-  @media (max-width: 600px) {
-    .section-card { max-width: 88vw; }
-    #card-1, #card-3 { right: 4vw; }
-    #card-0, #card-2 { left: 4vw; }
-  }
+@media(max-width:768px){
+  nav{padding:18px 24px;}
+  .nav-links,.nav-login{display:none;}
+  .card{padding:0 28px;max-width:100%;}
+  .sec{padding:100px 0 60px;}
+  #hint{right:20px;bottom:24px;}
+  #telem{display:none;}
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Space+Mono&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- Loading -->
+<!-- Loader -->
 <div id="loader">
-  <div class="loader-ring"></div>
-  <div class="loader-label">Loading Drone</div>
+  <div class="ld-ring"></div>
+  <div class="ld-txt">Loading Drone</div>
 </div>
 
-<!-- Progress -->
-<div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+<!-- Progress bar -->
+<div id="prog"></div>
 
-<!-- 3D Canvas -->
-<div id="canvas-container"></div>
+<!-- Fixed 3D Canvas -->
+<canvas id="c"></canvas>
 
-<!-- Scroll scaffold -->
-<div id="scroll-track"></div>
+<!-- Navbar -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    K07 Drone
+  </a>
+  <div class="nav-links">
+    <a href="#">Specs ↓</a>
+    <a href="#">Features ↓</a>
+    <a href="#">Gallery ↓</a>
+    <a href="#">Pricing</a>
+  </div>
+  <div class="nav-right">
+    <a href="#" class="nav-login">Login</a>
+    <a href="#" class="nav-talk">Talk to Us</a>
+    <a href="#" class="nav-start">Pre-order</a>
+  </div>
+</nav>
 
-<!-- Sections overlay -->
-<div class="sections">
-  <div class="section-card" id="card-0">
-    <div class="eyebrow">Mission Start</div>
-    <h2>Departure<br>Protocol</h2>
-    <p>Rotors spin. Systems check green.<br>Liftoff commences.</p>
-  </div>
-  <div class="section-card" id="card-1">
-    <div class="eyebrow">Altitude: 120m</div>
-    <h2>Night<br>Sector</h2>
-    <p>Crossing the outer grid at speed.<br>Sensors wide open.</p>
-  </div>
-  <div class="section-card" id="card-2">
-    <div class="eyebrow">Velocity: 94 km/h</div>
-    <h2>Deep<br>Traverse</h2>
-    <p>Banking into the thermal corridor.<br>Wind vector nominal.</p>
-  </div>
-  <div class="section-card" id="card-3">
-    <div class="eyebrow">Signal: Strong</div>
-    <h2>Orbit<br>Sequence</h2>
-    <p>Wide arc over the target zone.<br>Mapping in progress.</p>
-  </div>
-  <div class="section-card" id="card-4">
-    <div class="eyebrow">Mission Complete</div>
-    <h2>Return to<br>Base</h2>
-    <p>Descending gracefully. All systems nominal.<br>Flight log archived.</p>
+<!-- Scroll hint (bottom-right, like peachweb) -->
+<div id="hint">
+  <div class="hint-title">Scroll down<br>&amp; fly with it</div>
+  <div class="hint-sub">Interactive 3D</div>
+  <div class="hint-arrow">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
   </div>
 </div>
 
-<!-- Drone telemetry HUD -->
-<div id="drone-data">
-  ALT <span id="hud-alt">---</span>m<br>
-  SPD <span id="hud-spd">---</span> km/h<br>
-  HDG <span id="hud-hdg">---</span>°<br>
-  BAT 100%
+<!-- Telemetry -->
+<div id="telem">
+  ALT <span id="t-alt">082</span>m<br>
+  SPD <span id="t-spd">074</span> km/h<br>
+  HDG <span id="t-hdg">270</span>°<br>
+  BAT <span id="t-bat">100</span>%
 </div>
 
-<!-- Scroll hint -->
-<div id="scroll-hint">
-  <div class="hint-arrow"></div>
-  <div class="hint-label">Scroll to fly</div>
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE — sections scroll past fixed canvas -->
+<!-- ═══════════════════════════════════════ -->
+<div id="page">
+
+  <!-- HERO -->
+  <section class="sec align-left" id="s0">
+    <div class="card" id="c0">
+      <div class="eyebrow">Autonomous Aerial Platform</div>
+      <h1 class="display">Next-gen<br>Drone.<br><span style="background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">K07.</span></h1>
+      <p class="body-text">No-Code Builder for<br>WebGL 3D Websites.</p>
+      <div class="btns">
+        <a href="#" class="btn">Talk to Us</a>
+        <a href="#" class="btn primary">Get Started</a>
+      </div>
+      <div class="stats">
+        <div class="stat-item"><div class="stat-n">42m</div><div class="stat-l">Flight Time</div></div>
+        <div class="stat-item"><div class="stat-n">12km</div><div class="stat-l">Range</div></div>
+        <div class="stat-item"><div class="stat-n">4K</div><div class="stat-l">Camera</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S1 -->
+  <section class="sec align-left" id="s1">
+    <div class="card" id="c1">
+      <div class="eyebrow">Intelligent Navigation</div>
+      <h2 class="heading">No-Code Builder<br>for WebGL 3D<br>Websites.</h2>
+      <div class="btns">
+        <a href="#" class="btn">Talk to Us</a>
+        <a href="#" class="btn primary">Get started — it's free</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- S2 -->
+  <section class="sec align-right" id="s2">
+    <div class="card" id="c2">
+      <div class="eyebrow">USE CASE</div>
+      <h2 class="heading">Ecommerce</h2>
+      <p class="body-text">Launch high-performance interactive 3D product landing pages that boost engagement and conversions — no code required.</p>
+      <a href="#" class="arr-link">Explore Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    </div>
+  </section>
+
+  <!-- S3 -->
+  <section class="sec align-left" id="s3">
+    <div class="card" id="c3">
+      <div class="eyebrow">USE CASE</div>
+      <h2 class="heading">Tech</h2>
+      <p class="body-text">Leverage WebGL visuals and high-performance, best-in-class 3D websites to elevate your online presence — no code required.</p>
+      <a href="#" class="arr-link">Explore Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    </div>
+  </section>
+
+  <!-- S4 -->
+  <section class="sec align-right" id="s4">
+    <div class="card" id="c4">
+      <div class="eyebrow">USE CASE</div>
+      <h2 class="heading">Creative</h2>
+      <p class="body-text">Craft creative, captivating 3D websites with drag-and-drop tools and keyframe animations to wow every visitor.</p>
+      <a href="#" class="arr-link">Explore Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    </div>
+  </section>
+
+  <!-- S5: CTA -->
+  <section class="sec align-left" id="s5">
+    <div class="card" id="c5">
+      <h2 class="heading">Launch your Visually<br>Stunning Interactive<br>3D Website.</h2>
+      <div class="btns">
+        <a href="#" class="btn">Talk to Us</a>
+        <a href="#" class="btn primary">Browse Gallery</a>
+      </div>
+    </div>
+  </section>
+
 </div>
 
-<!-- Three.js + GSAP -->
+<!-- ═══════════════════════════════════════ -->
+<!-- THREE.JS + GSAP                         -->
+<!-- ═══════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/DRACOLoader.js"></script>
@@ -293,425 +424,341 @@
 <script>
 gsap.registerPlugin(ScrollTrigger);
 
-/* ─── Scene setup ──────────────────────────────── */
-const container = document.getElementById('canvas-container');
-const W = window.innerWidth, H = window.innerHeight;
-
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(W, H);
+/* ═══════════════════════════════════
+   RENDERER
+═══════════════════════════════════ */
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
-renderer.outputEncoding = THREE.sRGBEncoding;
-container.appendChild(renderer.domElement);
+renderer.setClearColor(0x000000, 0);
 
+/* ═══════════════════════════════════
+   SCENE + CAMERA
+═══════════════════════════════════ */
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x08122a, 0.022);
 
-const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 500);
-camera.position.set(0, 2, 10);
+// Orthographic-style perspective: drone stays same apparent size throughout
+// FOV 38, camera at z=16 → visible half-width ≈ 16*tan(19°) ≈ 5.5 world units
+const camera = new THREE.PerspectiveCamera(38, innerWidth/innerHeight, 0.1, 200);
+camera.position.set(0, 0, 16);
+camera.lookAt(0, 0, 0);
 
-/* ─── Lights ───────────────────────────────────── */
-const ambient = new THREE.AmbientLight(0x1a2a4a, 2.0);
-scene.add(ambient);
+/* ═══════════════════════════════════
+   GRADIENT BACKGROUND (fills canvas)
+═══════════════════════════════════ */
+const bgScene  = new THREE.Scene();
+const bgCam    = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const bgPlane  = new THREE.Mesh(
+  new THREE.PlaneGeometry(2,2),
+  new THREE.ShaderMaterial({
+    depthWrite:false,
+    uniforms:{ t:{value:0} },
+    vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=vec4(position,1.);}`,
+    fragmentShader:`
+      varying vec2 v;
+      uniform float t;
+      void main(){
+        // navy → deep indigo background, matches peachweb dark sections
+        vec3 a = mix(vec3(0.027,0.035,0.10), vec3(0.045,0.04,0.14), t);
+        vec3 b = mix(vec3(0.05, 0.06, 0.18), vec3(0.07, 0.05,0.22), t);
+        vec3 col = mix(a, b, v.y);
+        // subtle radial vignette
+        float d = length(v*2.-1.);
+        col *= 1.0 - d*0.28;
+        gl_FragColor = vec4(col,1.);
+      }
+    `
+  })
+);
+bgScene.add(bgPlane);
 
-const sun = new THREE.DirectionalLight(0x88b8ff, 3.5);
-sun.position.set(30, 60, 20);
-sun.castShadow = true;
-sun.shadow.mapSize.set(1024, 1024);
-sun.shadow.camera.near = 1;
-sun.shadow.camera.far = 200;
-sun.shadow.camera.left = -40;
-sun.shadow.camera.right = 40;
-sun.shadow.camera.top = 40;
-sun.shadow.camera.bottom = -40;
-scene.add(sun);
+/* ═══════════════════════════════════
+   LIGHTS
+═══════════════════════════════════ */
+scene.add(new THREE.AmbientLight(0x2030a0, 3.5));
 
-const rimLight = new THREE.DirectionalLight(0x7c4dff, 2.2);
-rimLight.position.set(-20, 10, -30);
-scene.add(rimLight);
+const key = new THREE.DirectionalLight(0xaac8ff, 5.0);
+key.position.set(4, 6, 8);
+key.castShadow = true;
+key.shadow.mapSize.set(1024,1024);
+scene.add(key);
 
-const fillLight = new THREE.PointLight(0x4fc3f7, 3, 40);
-fillLight.position.set(0, 5, 0);
-scene.add(fillLight);
+const rim = new THREE.DirectionalLight(0xc084fc, 3.5);
+rim.position.set(-6, 2, -5);
+scene.add(rim);
 
-/* ─── Sky gradient background ──────────────────── */
-function makeSkyGradient() {
-  const cvs = document.createElement('canvas');
-  cvs.width = 2; cvs.height = 512;
-  const ctx = cvs.getContext('2d');
-  const g = ctx.createLinearGradient(0, 0, 0, 512);
-  g.addColorStop(0,   '#03060f');
-  g.addColorStop(0.3, '#0a1535');
-  g.addColorStop(0.6, '#1a0a3a');
-  g.addColorStop(1,   '#0d0d1a');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 2, 512);
-  const tex = new THREE.CanvasTexture(cvs);
-  return tex;
-}
-scene.background = makeSkyGradient();
+const btm = new THREE.DirectionalLight(0x38bdf8, 1.8);
+btm.position.set(0, -8, 4);
+scene.add(btm);
 
-/* ─── Stars ────────────────────────────────────── */
-(function buildStars() {
-  const count = 2200;
-  const geo = new THREE.BufferGeometry();
-  const pos = new Float32Array(count * 3);
-  const col = new Float32Array(count * 3);
-  for (let i = 0; i < count; i++) {
-    const r = 220;
-    pos[i*3]   = (Math.random()-0.5) * r * 2;
-    pos[i*3+1] = (Math.random()-0.5) * r * 1.5;
-    pos[i*3+2] = (Math.random()-0.5) * r * 2;
-    const bright = 0.4 + Math.random() * 0.6;
-    const blue = Math.random() > 0.7;
-    col[i*3]   = blue ? bright * 0.7 : bright;
-    col[i*3+1] = blue ? bright * 0.8 : bright;
-    col[i*3+2] = blue ? bright       : bright * 0.9;
+// Moving glow lights that follow the drone
+const gA = new THREE.PointLight(0x38bdf8, 6, 9);
+const gB = new THREE.PointLight(0xc084fc, 4, 7);
+scene.add(gA, gB);
+
+/* ═══════════════════════════════════
+   PARTICLES (depth, atmosphere)
+═══════════════════════════════════ */
+(function(){
+  const n=700, pos=new Float32Array(n*3);
+  for(let i=0;i<n;i++){
+    pos[i*3]=(Math.random()-.5)*30;
+    pos[i*3+1]=(Math.random()-.5)*22;
+    pos[i*3+2]=(Math.random()-.5)*14-3;
   }
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
-  const mat = new THREE.PointsMaterial({ size: 0.35, vertexColors: true, transparent: true, opacity: 0.85 });
-  scene.add(new THREE.Points(geo, mat));
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  scene.add(new THREE.Points(g,
+    new THREE.PointsMaterial({size:0.06,color:0x7dd3fc,transparent:true,opacity:0.45})
+  ));
 })();
 
-/* ─── Floating particles (dust / embers) ───────── */
-const particleCount = 600;
-const pGeo = new THREE.BufferGeometry();
-const pPos = new Float32Array(particleCount * 3);
-const pSpd = new Float32Array(particleCount);
-for (let i = 0; i < particleCount; i++) {
-  pPos[i*3]   = (Math.random()-0.5) * 80;
-  pPos[i*3+1] = (Math.random()-0.5) * 40;
-  pPos[i*3+2] = (Math.random()-0.5) * 80;
-  pSpd[i] = 0.004 + Math.random() * 0.008;
-}
-pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-const pMat = new THREE.PointsMaterial({ size: 0.12, color: 0x4fc3f7, transparent: true, opacity: 0.4 });
-const particles = new THREE.Points(pGeo, pMat);
-scene.add(particles);
+/* ═══════════════════════════════════
+   PATH DEFINITION
+   ─────────────────────────────────
+   World units at z=0, camera at z=16, FOV 38:
+   Visible width  ≈ ±5.5 units
+   Visible height ≈ ±3.5 units (16:9)
 
-/* ─── Distant city silhouette (boxes) ─────────── */
-(function buildCity() {
-  const mat = new THREE.MeshStandardMaterial({ color: 0x0a1020, roughness: 1, metalness: 0 });
-  const rows = 80;
-  for (let i = 0; i < rows; i++) {
-    const h = 2 + Math.random() * 12;
-    const w = 1.5 + Math.random() * 3;
-    const d = 1.5 + Math.random() * 3;
-    const geo = new THREE.BoxGeometry(w, h, d);
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(
-      (Math.random()-0.5) * 200,
-      -12 + h/2,
-      -80 - Math.random() * 80
-    );
-    mesh.castShadow = false;
-    scene.add(mesh);
-  }
-  // ground plane
-  const gGeo = new THREE.PlaneGeometry(600, 600);
-  const gMat = new THREE.MeshStandardMaterial({ color: 0x06090f, roughness: 0.95, metalness: 0.1 });
-  const ground = new THREE.Mesh(gGeo, gMat);
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -13;
-  ground.receiveShadow = true;
-  scene.add(ground);
-})();
+   The fish on peachweb:
+   • Hero (0%):   center-right,  mid height  → x≈+2.0, y≈+0.2
+   • 20%:         dive nose-down, still right → x≈+1.5, y≈-0.8  (pitching down)
+   • 35%:         swing to bottom-center      → x≈+0.0, y≈-1.5
+   • 50%:         come up, sweep left         → x≈-2.8, y≈+0.3
+   • 65%:         right side                  → x≈+2.5, y≈+0.6
+   • 80%:         center-left                 → x≈-1.0, y≈+0.0
+   • 100%:        left side, mid              → x≈-2.5, y≈+0.4
+═══════════════════════════════════ */
+const PATH = new THREE.CatmullRomCurve3([
+  new THREE.Vector3( 2.2,  0.3, 0),   // 0%   hero: center-right
+  new THREE.Vector3( 1.8, -0.5, 0),   // 12%  begin diving
+  new THREE.Vector3( 0.8, -1.8, 0),   // 22%  steep dive, center
+  new THREE.Vector3(-0.5, -1.2, 0),   // 32%  pull left at bottom
+  new THREE.Vector3(-2.8,  0.2, 0),   // 45%  far left, level
+  new THREE.Vector3(-1.5,  1.0, 0),   // 55%  climbing left
+  new THREE.Vector3( 0.5,  0.8, 0),   // 63%  center, high
+  new THREE.Vector3( 2.8,  0.5, 0),   // 72%  far right
+  new THREE.Vector3( 2.0, -0.3, 0),   // 80%  right, slight dip
+  new THREE.Vector3(-0.8,  0.0, 0),   // 88%  sweep back left
+  new THREE.Vector3(-2.6,  0.3, 0),   // 100% far left final
+], false, 'catmullrom', 0.5);
 
-/* ─── Grid lines (runway feel) ─────────────────── */
-(function buildGrid() {
-  const mat = new THREE.LineBasicMaterial({ color: 0x1a2a4a, transparent: true, opacity: 0.35 });
-  const size = 200, step = 8;
-  for (let i = -size; i <= size; i += step) {
-    const pts = [new THREE.Vector3(i, -13, -size), new THREE.Vector3(i, -13, size)];
-    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
-    const pts2 = [new THREE.Vector3(-size, -13, i), new THREE.Vector3(size, -13, i)];
-    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts2), mat));
-  }
-})();
+/* ═══════════════════════════════════
+   STATE
+═══════════════════════════════════ */
+let drone=null, mixer=null;
+const clock = new THREE.Clock();
+const scroll = {t:0};
 
-/* ─── Flight path ──────────────────────────────── */
-const pathPoints = [
-  new THREE.Vector3(  0,   0,   18),
-  new THREE.Vector3( -8,   3,   10),
-  new THREE.Vector3(-18,   6,   -2),
-  new THREE.Vector3(-12,  10,  -14),
-  new THREE.Vector3(  0,   8,  -22),
-  new THREE.Vector3( 14,   5,  -30),
-  new THREE.Vector3( 22,   1,  -42),
-  new THREE.Vector3( 16,  -2,  -54),
-  new THREE.Vector3(  2,   4,  -64),
-  new THREE.Vector3(-10,   9,  -74),
-  new THREE.Vector3(-18,   6,  -85),
-  new THREE.Vector3( -6,   2,  -96),
-  new THREE.Vector3( 10,   0, -105),
-  new THREE.Vector3( 20,   4, -118),
-  new THREE.Vector3(  8,   8, -128),
-  new THREE.Vector3( -4,   4, -138),
-  new THREE.Vector3(  0,   0, -148),
-];
-const flightCurve = new THREE.CatmullRomCurve3(pathPoints, false, 'catmullrom', 0.5);
+// Smoothed live drone position & orientation
+const livePos = new THREE.Vector3(2.2, 0.3, 0);
+let liveYaw=0, livePitch=0, liveRoll=0;
 
-/* Debug: optional path visualizer (invisible) */
-// const tubeGeo = new THREE.TubeGeometry(flightCurve, 200, 0.05, 8, false);
-// scene.add(new THREE.Mesh(tubeGeo, new THREE.MeshBasicMaterial({ color: 0xff0000 })));
-
-/* ─── Camera rig ───────────────────────────────── */
-const camTarget = new THREE.Vector3();
-const camPos    = new THREE.Vector3();
-let camLag      = { x: 0, y: 0, z: 0 };
-
-/* ─── State ────────────────────────────────────── */
-let drone = null;
-let mixer = null;
-let scrollProgress = 0; // 0→1
-const dummyFwd = new THREE.Object3D();
-scene.add(dummyFwd);
-
-/* ─── GSAP scroll ──────────────────────────────── */
-const scrollState = { t: 0 };
+/* ═══════════════════════════════════
+   SCROLL DRIVER
+═══════════════════════════════════ */
 ScrollTrigger.create({
-  trigger: '#scroll-track',
-  start: 'top top',
-  end: 'bottom bottom',
-  scrub: 1.4,
-  onUpdate: self => {
-    scrollState.t = self.progress;
-    document.getElementById('progress-bar').style.width = (self.progress * 100) + '%';
-    updateSectionCards(self.progress);
-    updateHUD(self.progress);
+  trigger:document.body,
+  start:'top top',
+  end:'bottom bottom',
+  scrub:1.8,   // slightly laggy, organic feel
+  onUpdate(self){
+    scroll.t = self.progress;
+    document.getElementById('prog').style.width=(self.progress*100)+'%';
+    bgPlane.material.uniforms.t.value = self.progress;
+    updateCards(self.progress);
+    updateTelemetry(self.progress);
   }
 });
 
-/* ─── Section card visibility ─────────────────── */
-const cardRanges = [
-  [0.00, 0.18],
-  [0.20, 0.40],
-  [0.42, 0.62],
-  [0.64, 0.82],
-  [0.85, 1.00],
+/* ═══════════════════════════════════
+   CARD SHOW / HIDE
+═══════════════════════════════════ */
+// [showStart, showEnd] in scroll progress 0-1
+const WINDOWS=[
+  [0.00,0.15],  // c0 hero
+  [0.15,0.30],  // c1
+  [0.30,0.48],  // c2
+  [0.48,0.65],  // c3
+  [0.65,0.82],  // c4
+  [0.82,1.00],  // c5
 ];
-
-function updateSectionCards(t) {
-  cardRanges.forEach(([start, end], i) => {
-    const el = document.getElementById(`card-${i}`);
-    if (!el) return;
-    if (t >= start && t <= end) {
-      el.classList.add('visible');
-    } else {
-      el.classList.remove('visible');
-    }
+function updateCards(t){
+  WINDOWS.forEach(([a,b],i)=>{
+    const el=document.getElementById('c'+i);
+    if(el) el.classList.toggle('show', t>=a && t<=b);
   });
 }
 
-function updateHUD(t) {
-  const pt = flightCurve.getPoint(t);
-  const alt = Math.round((pt.y + 14) * 8.5 + 80);
-  const spd = Math.round(60 + Math.sin(t * Math.PI * 4) * 20 + t * 40);
-  const hdg = Math.round((t * 720) % 360);
-  document.getElementById('hud-alt').textContent = alt;
-  document.getElementById('hud-spd').textContent = spd;
-  document.getElementById('hud-hdg').textContent = String(hdg).padStart(3, '0');
+/* ═══════════════════════════════════
+   TELEMETRY
+═══════════════════════════════════ */
+function updateTelemetry(t){
+  const a=document.getElementById('t-alt');
+  const s=document.getElementById('t-spd');
+  const h=document.getElementById('t-hdg');
+  const b=document.getElementById('t-bat');
+  if(a) a.textContent=String(Math.round(80+t*140)).padStart(3,'0');
+  if(s) s.textContent=String(Math.round(60+Math.sin(t*Math.PI*4)*18+t*25)).padStart(3,'0');
+  if(h) h.textContent=String(Math.round((t*480)%360)).padStart(3,'0');
+  if(b) b.textContent=String(Math.round(100-t*15));
 }
 
-/* ─── GLB Loader ───────────────────────────────── */
-const loader = new THREE.GLTFLoader();
-
-// DRACOLoader (optional, for compressed meshes)
-try {
-  const draco = new THREE.DRACOLoader();
+/* ═══════════════════════════════════
+   LOAD GLB
+═══════════════════════════════════ */
+const gltfLoader = new THREE.GLTFLoader();
+try{
+  const draco=new THREE.DRACOLoader();
   draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/libs/draco/');
-  loader.setDRACOLoader(draco);
-} catch(e) {}
+  gltfLoader.setDRACOLoader(draco);
+}catch(e){}
 
-loader.load(
-  '/mnt/user-data/uploads/k07_drone.glb',
-  (gltf) => {
-    drone = gltf.scene;
-    drone.scale.setScalar(1.4);
+gltfLoader.load('k07_drone.glb', gltf=>{
+  drone = gltf.scene;
 
-    // Enable shadows & nice materials
-    drone.traverse(child => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        if (child.material) {
-          child.material.envMapIntensity = 1.2;
-        }
-      }
-    });
+  // Scale: make drone feel large & prominent (like the fish)
+  // At camera z=16, FOV=38: object at z=0 of height 1 unit = ~11% viewport height
+  // Scale 2.2 → drone ~25% viewport height — matches fish prominence
+  drone.scale.setScalar(2.2);
 
-    scene.add(drone);
-
-    // AnimationMixer — play ALL clips, loop forever
-    if (gltf.animations && gltf.animations.length > 0) {
-      mixer = new THREE.AnimationMixer(drone);
-      gltf.animations.forEach(clip => {
-        const action = mixer.clipAction(clip);
-        action.setLoop(THREE.LoopRepeat, Infinity);
-        action.play();
-      });
+  drone.traverse(c=>{
+    if(c.isMesh){
+      c.castShadow=true; c.receiveShadow=true;
+      if(c.material) c.material.envMapIntensity=1.8;
     }
+  });
 
-    // Initial placement
-    const startPt = flightCurve.getPoint(0);
-    drone.position.copy(startPt);
+  scene.add(drone);
 
-    // Hide loader
-    document.getElementById('loader').classList.add('fade-out');
-    document.getElementById('drone-data').classList.add('visible');
-    setTimeout(() => {
-      document.getElementById('loader').style.display = 'none';
-    }, 900);
-  },
-  (xhr) => {
-    // progress
-  },
-  (err) => {
-    console.error('GLB load error:', err);
-    document.getElementById('loader').querySelector('.loader-label').textContent = 'Error loading model';
+  // Play ALL embedded animations, loop forever
+  if(gltf.animations?.length){
+    mixer=new THREE.AnimationMixer(drone);
+    gltf.animations.forEach(clip=>{
+      mixer.clipAction(clip).setLoop(THREE.LoopRepeat,Infinity).play();
+    });
   }
-);
 
-/* ─── Animate drone along path ──────────────────── */
-const _up = new THREE.Vector3(0, 1, 0);
-const _fwdVec = new THREE.Vector3();
-const _quatA = new THREE.Quaternion();
-const _quatB = new THREE.Quaternion();
-const _m4 = new THREE.Matrix4();
+  // Set initial position
+  const p0=PATH.getPoint(0);
+  drone.position.copy(p0);
+  livePos.copy(p0);
 
-let prevT = 0;
+  // Reveal
+  document.getElementById('loader').classList.add('out');
+  setTimeout(()=>document.getElementById('loader').style.display='none',950);
+  document.getElementById('telem').classList.add('show');
+  updateCards(0);
 
-function moveDrone(t) {
-  if (!drone) return;
-
-  const tClamped = Math.max(0.001, Math.min(0.999, t));
-
-  // Position on curve
-  const pt = flightCurve.getPoint(tClamped);
-  drone.position.lerp(pt, 0.12);
-
-  // Tangent = forward direction
-  const tangent = flightCurve.getTangent(tClamped).normalize();
-
-  // Build look-at quaternion from tangent
-  dummyFwd.position.copy(drone.position);
-  dummyFwd.lookAt(drone.position.clone().add(tangent));
-
-  // Smooth rotation
-  drone.quaternion.slerp(dummyFwd.quaternion, 0.08);
-
-  // Banking: tilt on turns
-  const dt = tClamped - prevT;
-  const lateralChange = dt * 80;
-  const bankAngle = -lateralChange * 2.5 * Math.PI;
-  const bankQ = new THREE.Quaternion();
-  bankQ.setFromAxisAngle(tangent, bankAngle);
-  drone.quaternion.multiply(bankQ);
-
-  // Pitch tilt when ascending/descending
-  const pitchAngle = Math.atan2(tangent.y, Math.sqrt(tangent.x*tangent.x + tangent.z*tangent.z));
-  // already encoded in lookAt
-
-  prevT = tClamped;
-}
-
-function moveCamera(t) {
-  if (!drone) return;
-  const tClamped = Math.max(0.001, Math.min(0.999, t));
-
-  // Desired camera: behind and slightly above drone
-  const tangent = flightCurve.getTangent(tClamped).normalize();
-  const behind = tangent.clone().negate().multiplyScalar(7);
-  const above  = new THREE.Vector3(0, 2.5, 0);
-
-  // Slight lateral offset that oscillates
-  const side = new THREE.Vector3().crossVectors(tangent, _up).normalize();
-  const lateralOscillate = Math.sin(t * Math.PI * 3) * 1.8;
-  side.multiplyScalar(lateralOscillate);
-
-  const desired = drone.position.clone().add(behind).add(above).add(side);
-
-  // Damped camera
-  camPos.lerp(desired, 0.05);
-  camera.position.copy(camPos);
-
-  // Look slightly ahead of drone
-  const lookAheadT = Math.min(0.999, tClamped + 0.02);
-  const lookAheadPt = flightCurve.getPoint(lookAheadT);
-  const lookTarget = drone.position.clone().lerp(lookAheadPt, 0.5).add(new THREE.Vector3(0, 0.5, 0));
-  camTarget.lerp(lookTarget, 0.06);
-  camera.lookAt(camTarget);
-}
-
-/* ─── Particle drift ────────────────────────────── */
-function driftParticles(time) {
-  const pos = pGeo.attributes.position.array;
-  for (let i = 0; i < particleCount; i++) {
-    pos[i*3+1] += pSpd[i] * 0.4;
-    if (pos[i*3+1] > 25) pos[i*3+1] = -20;
-  }
-  pGeo.attributes.position.needsUpdate = true;
-  particles.rotation.y = time * 0.01;
-}
-
-/* ─── Dynamic fill light follows drone ─────────── */
-function updateFillLight() {
-  if (!drone) return;
-  fillLight.position.set(
-    drone.position.x + 3,
-    drone.position.y + 4,
-    drone.position.z + 5
-  );
-}
-
-/* ─── Clock & render loop ───────────────────────── */
-const clock = new THREE.Clock();
-
-function animate() {
-  requestAnimationFrame(animate);
-  const delta = clock.getDelta();
-  const elapsed = clock.getElapsedTime();
-
-  if (mixer) mixer.update(delta);
-
-  moveDrone(scrollState.t);
-  moveCamera(scrollState.t);
-  driftParticles(elapsed);
-  updateFillLight();
-
-  // Subtle camera breathe
-  camera.position.y += Math.sin(elapsed * 0.7) * 0.003;
-  camera.position.x += Math.cos(elapsed * 0.5) * 0.003;
-
-  renderer.render(scene, camera);
-}
-animate();
-
-/* ─── Resize ────────────────────────────────────── */
-window.addEventListener('resize', () => {
-  const w = window.innerWidth, h = window.innerHeight;
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
+},undefined,err=>{
+  document.querySelector('#loader .ld-txt').textContent='Error loading model';
+  console.error(err);
 });
 
-/* ─── Scroll hint hide ──────────────────────────── */
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 80) {
-    document.getElementById('scroll-hint').classList.add('hidden');
-  }
-}, { passive: true });
+/* ═══════════════════════════════════
+   ANIMATE DRONE
+   ─────────────────────────────────
+   Key insight from peachweb screenshots:
+   • The fish/drone faces the DIRECTION OF TRAVEL
+   • When diving nose-down: pitch rotates to ~-70°
+   • When banking left: roll tilts
+   • Orientation changes are DRAMATIC (not subtle)
+   • The drone appears to actively fly, not slide
+═══════════════════════════════════ */
+let prevPathT = 0;
+const _fwdDir  = new THREE.Vector3();
 
-/* ─── Init camera position ──────────────────────── */
-const initPt = flightCurve.getPoint(0.001);
-camPos.set(initPt.x - 6, initPt.y + 2.5, initPt.z + 7);
-camera.position.copy(camPos);
-camTarget.copy(initPt);
-camera.lookAt(camTarget);
+function animateDrone(t){
+  if(!drone) return;
+
+  const tc = Math.max(0.0001, Math.min(0.9999, t));
+  const elapsed = clock.getElapsedTime();
+
+  // ── 1. Target position from path
+  const targetPos = PATH.getPoint(tc);
+
+  // ── 2. Smooth lerp (creates the "swimming" lag)
+  livePos.lerp(targetPos, 0.08);
+  drone.position.x = livePos.x;
+  drone.position.y = livePos.y + Math.sin(elapsed*1.6)*0.055; // hover bob
+  drone.position.z = livePos.z + Math.cos(elapsed*1.0)*0.02;
+
+  // ── 3. Orientation: face direction of travel
+  const tangent = PATH.getTangent(tc); // direction vector
+
+  // Yaw = turn left/right (XZ horizontal turn)
+  const targetYaw = Math.atan2(tangent.x, 1.0) * 1.4;
+
+  // Pitch = nose up/down (Y component of tangent)
+  // Amplify: makes the dive look dramatic like the fish
+  const targetPitch = -tangent.y * 1.6;
+
+  // Roll = bank into turns (rate of yaw change)
+  const dT = tc - prevPathT;
+  const yawRate = dT * 55;
+  const targetRoll = -yawRate * 2.2 * Math.PI;
+  const clampedRoll = Math.max(-0.7, Math.min(0.7, targetRoll));
+
+  // Smooth orientation (laggy = organic)
+  liveYaw   += (targetYaw         - liveYaw)   * 0.07;
+  livePitch += (targetPitch        - livePitch) * 0.07;
+  liveRoll  += (clampedRoll        - liveRoll)  * 0.06;
+
+  // Apply — order YXZ matches typical drone orientation
+  drone.rotation.order = 'YXZ';
+  drone.rotation.y = liveYaw;
+  drone.rotation.x = livePitch;
+  drone.rotation.z = liveRoll;
+
+  // ── 4. Glow lights
+  gA.position.set(livePos.x+1.2, livePos.y+0.6, livePos.z+3);
+  gB.position.set(livePos.x-1.0, livePos.y-0.4, livePos.z+2);
+
+  prevPathT = tc;
+}
+
+/* ═══════════════════════════════════
+   RENDER LOOP
+═══════════════════════════════════ */
+function render(){
+  requestAnimationFrame(render);
+  const delta = clock.getDelta();
+  if(mixer) mixer.update(delta);
+  animateDrone(scroll.t);
+
+  // Render bg first (gradient), then scene on top
+  renderer.autoClear = true;
+  renderer.render(bgScene, bgCam);
+  renderer.autoClear = false;
+  renderer.render(scene, camera);
+}
+render();
+
+/* ═══════════════════════════════════
+   RESIZE
+═══════════════════════════════════ */
+window.addEventListener('resize',()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+
+/* ═══════════════════════════════════
+   SCROLL HINT HIDE
+═══════════════════════════════════ */
+window.addEventListener('scroll',()=>{
+  if(scrollY>80) document.getElementById('hint').classList.add('gone');
+},{passive:true});
+
+// init
+updateCards(0);
+updateTelemetry(0);
 </script>
 </body>
 </html>
