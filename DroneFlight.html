@@ -15,19 +15,21 @@
   --ff:'Space Grotesk',system-ui,sans-serif;
 }
 html,body{
-  background:var(--bg);
   color:var(--text);
   font-family:var(--ff);
   overflow-x:hidden;
+  background:linear-gradient(160deg,#07091a 0%,#0d1140 40%,#120e35 70%,#07091a 100%);
+  background-attachment:fixed;
 }
+
+/* Fixed canvas — transparent, our CSS bg shows through */
 #c{
-  position:fixed;
-  top:0;left:0;
+  position:fixed;top:0;left:0;
   width:100vw;height:100vh;
-  z-index:0;
-  pointer-events:none;
-  display:block;
+  z-index:0;pointer-events:none;
 }
+
+/* Scrollable content */
 #page{position:relative;z-index:2;}
 
 /* ── NAV ── */
@@ -40,7 +42,7 @@ nav{
 .nav-logo{display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:700;letter-spacing:.06em;color:var(--text);text-decoration:none;}
 .nav-dot{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));flex-shrink:0;}
 .nav-links{display:flex;align-items:center;gap:4px;}
-.nav-links a{font-size:.82rem;color:rgba(200,210,255,.7);text-decoration:none;padding:7px 13px;border-radius:100px;transition:color .2s,background .2s;}
+.nav-links a{font-size:.82rem;color:rgba(200,210,255,.7);text-decoration:none;padding:7px 14px;border-radius:100px;transition:color .2s,background .2s;}
 .nav-links a:hover{color:var(--text);background:rgba(255,255,255,.06);}
 .nav-r{display:flex;align-items:center;gap:10px;}
 .nl{font-size:.82rem;color:var(--muted);text-decoration:none;padding:7px 12px;transition:color .2s;}
@@ -53,35 +55,53 @@ nav{
 /* ── PROGRESS ── */
 #prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--accent2),var(--accent));z-index:200;width:0%;box-shadow:0 0 6px var(--accent);}
 
-/* ── SECTIONS ── */
-.sec{position:relative;min-height:100vh;display:flex;align-items:center;}
+/* ── SECTIONS ──
+   Each section is 100vh. Content sits left or right.
+   The drone (fixed at screen center) weaves between them visually
+   because the camera tilts/descends — exactly like peachweb.
+*/
+.sec{
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+}
 .sec.L{justify-content:flex-start;}
 .sec.R{justify-content:flex-end;}
+
 .card{
-  max-width:440px;padding:120px 60px 80px;
-  opacity:0;transform:translateY(24px);
+  max-width:430px;
+  padding:0 64px;
+  opacity:0;
+  transform:translateY(22px);
   transition:opacity .65s ease,transform .65s ease;
   pointer-events:none;
 }
 .card.show{opacity:1;transform:translateY(0);}
+
 .ey{font-size:.67rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
 .ey::before{content:'';display:block;width:18px;height:1px;background:var(--accent);}
-h1.d{font-size:clamp(2.6rem,5vw,4.4rem);font-weight:700;line-height:1.03;letter-spacing:-.03em;margin-bottom:20px;}
-h2.d{font-size:clamp(1.9rem,3.8vw,3.2rem);font-weight:700;line-height:1.06;letter-spacing:-.025em;margin-bottom:18px;}
+h1.d{font-size:clamp(2.8rem,5vw,4.6rem);font-weight:700;line-height:1.02;letter-spacing:-.035em;margin-bottom:20px;}
+h2.d{font-size:clamp(2rem,3.8vw,3.4rem);font-weight:700;line-height:1.05;letter-spacing:-.025em;margin-bottom:18px;}
 .bd{font-size:.97rem;line-height:1.75;color:var(--muted);margin-bottom:28px;}
 .btns{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px;}
 .btn{font-family:var(--ff);font-size:.82rem;font-weight:600;letter-spacing:.04em;padding:11px 24px;border-radius:100px;border:1.5px solid rgba(255,255,255,.22);color:var(--text);background:transparent;cursor:pointer;text-decoration:none;transition:border-color .2s,background .2s;}
 .btn:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.04);}
 .btn.p{background:var(--text);color:#07091a;border-color:var(--text);}
 .btn.p:hover{opacity:.87;}
-.stats{display:flex;gap:32px;flex-wrap:wrap;}
-.sn{font-size:1.9rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:3px;}
+.stats{display:flex;gap:32px;flex-wrap:wrap;margin-top:4px;}
+.sn{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:4px;}
 .sl{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
-.al{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;color:var(--text);text-decoration:none;letter-spacing:.04em;transition:gap .2s;}
+.al{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;font-weight:600;color:var(--text);text-decoration:none;letter-spacing:.03em;transition:gap .2s;}
 .al:hover{gap:13px;}
 
-/* ── HINT ── */
-#hint{position:fixed;bottom:32px;right:36px;z-index:50;background:linear-gradient(135deg,#3b2f8a,#1e3fa8);border-radius:18px;padding:18px 24px;max-width:170px;opacity:1;transition:opacity .5s;}
+/* ── HINT (bottom-right, like peachweb) ── */
+#hint{
+  position:fixed;bottom:32px;right:36px;z-index:50;
+  background:linear-gradient(135deg,#3b2f8a,#1e3fa8);
+  border-radius:18px;padding:18px 24px;max-width:170px;
+  opacity:1;transition:opacity .5s;
+}
 #hint.gone{opacity:0;pointer-events:none;}
 .ht{font-size:.9rem;font-weight:700;line-height:1.3;margin-bottom:5px;}
 .hs{font-size:.7rem;color:rgba(255,255,255,.55);}
@@ -96,14 +116,13 @@ h2.d{font-size:clamp(1.9rem,3.8vw,3.2rem);font-weight:700;line-height:1.06;lette
 @keyframes sp{to{transform:rotate(360deg);}}
 
 /* ── TELEMETRY ── */
-#telem{position:fixed;bottom:34px;left:34px;z-index:50;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.06em;color:rgba(79,195,247,.4);line-height:1.9;opacity:0;transition:opacity 1s;pointer-events:none;}
+#telem{position:fixed;bottom:34px;left:34px;z-index:50;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.06em;color:rgba(79,195,247,.38);line-height:1.9;opacity:0;transition:opacity 1s;pointer-events:none;}
 #telem.show{opacity:1;}
 
 @media(max-width:768px){
   nav{padding:16px 22px;}
   .nav-links,.nl{display:none;}
-  .card{padding:100px 26px 60px;max-width:100%;}
-  .sec.R{justify-content:flex-start;}
+  .card{padding:0 26px;max-width:100%;}
   #hint{right:18px;bottom:20px;}
   #telem{display:none;}
 }
@@ -120,8 +139,10 @@ h2.d{font-size:clamp(1.9rem,3.8vw,3.2rem);font-weight:700;line-height:1.06;lette
 <nav>
   <a href="#" class="nav-logo"><div class="nav-dot"></div>K07 Drone</a>
   <div class="nav-links">
-    <a href="#">Product ↓</a><a href="#">Use Cases ↓</a>
-    <a href="#">Resources ↓</a><a href="#">Pricing</a>
+    <a href="#">Product ↓</a>
+    <a href="#">Use Cases ↓</a>
+    <a href="#">Resources ↓</a>
+    <a href="#">Pricing</a>
   </div>
   <div class="nav-r">
     <a href="#" class="nl">Login</a>
@@ -145,13 +166,19 @@ h2.d{font-size:clamp(1.9rem,3.8vw,3.2rem);font-weight:700;line-height:1.06;lette
   BAT <span id="tb">100</span>%
 </div>
 
+<!-- PAGE — 6 sections × 100vh = 600vh total scroll -->
 <div id="page">
-  <section class="sec L" id="s0">
+
+  <!-- S0: Hero — LEFT -->
+  <section class="sec L" style="min-height:100vh;">
     <div class="card" id="c0">
       <div class="ey">Autonomous Aerial Platform</div>
       <h1 class="d">3D Websites<br>in Minutes.<br><span style="background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">K07.</span></h1>
       <p class="bd">No-Code Builder for WebGL 3D Websites.</p>
-      <div class="btns"><a href="#" class="btn">Talk to Us</a><a href="#" class="btn p">Get Started</a></div>
+      <div class="btns">
+        <a href="#" class="btn">Talk to Us</a>
+        <a href="#" class="btn p">Get Started</a>
+      </div>
       <div class="stats">
         <div><div class="sn">42m</div><div class="sl">Flight Time</div></div>
         <div><div class="sn">12km</div><div class="sl">Range</div></div>
@@ -159,30 +186,41 @@ h2.d{font-size:clamp(1.9rem,3.8vw,3.2rem);font-weight:700;line-height:1.06;lette
       </div>
     </div>
   </section>
-  <section class="sec L" id="s1">
+
+  <!-- S1: RIGHT -->
+  <section class="sec R" style="min-height:100vh;">
     <div class="card" id="c1">
       <div class="ey">Intelligent Navigation</div>
       <h2 class="d">No-Code Builder<br>for WebGL 3D<br>Websites.</h2>
-      <div class="btns"><a href="#" class="btn">Talk to Us</a><a href="#" class="btn p">Get started — free</a></div>
+      <div class="btns">
+        <a href="#" class="btn">Talk to Us</a>
+        <a href="#" class="btn p">Get started — free</a>
+      </div>
     </div>
   </section>
-  <section class="sec R" id="s2">
+
+  <!-- S2: LEFT -->
+  <section class="sec L" style="min-height:100vh;">
     <div class="card" id="c2">
       <div class="ey">USE CASE</div>
       <h2 class="d">Ecommerce</h2>
-      <p class="bd">Launch high-performance interactive 3D product pages that boost engagement — no code required.</p>
+      <p class="bd">Launch high-performance interactive 3D product landing pages that boost engagement and conversions — no code required.</p>
       <a href="#" class="al">Explore Now →</a>
     </div>
   </section>
-  <section class="sec L" id="s3">
+
+  <!-- S3: RIGHT -->
+  <section class="sec R" style="min-height:100vh;">
     <div class="card" id="c3">
       <div class="ey">USE CASE</div>
       <h2 class="d">Tech</h2>
-      <p class="bd">Leverage WebGL visuals to elevate your online presence with best-in-class 3D websites — no code required.</p>
+      <p class="bd">Leverage WebGL visuals and high-performance 3D websites to elevate your online presence — no code required.</p>
       <a href="#" class="al">Explore Now →</a>
     </div>
   </section>
-  <section class="sec R" id="s4">
+
+  <!-- S4: LEFT -->
+  <section class="sec L" style="min-height:100vh;">
     <div class="card" id="c4">
       <div class="ey">USE CASE</div>
       <h2 class="d">Creative</h2>
@@ -190,300 +228,435 @@ h2.d{font-size:clamp(1.9rem,3.8vw,3.2rem);font-weight:700;line-height:1.06;lette
       <a href="#" class="al">Explore Now →</a>
     </div>
   </section>
-  <section class="sec L" id="s5">
+
+  <!-- S5: RIGHT — CTA -->
+  <section class="sec R" style="min-height:100vh;">
     <div class="card" id="c5">
       <h2 class="d">Launch your Visually<br>Stunning Interactive<br>3D Website.</h2>
-      <div class="btns"><a href="#" class="btn">Talk to Us</a><a href="#" class="btn p">Browse Gallery</a></div>
+      <div class="btns">
+        <a href="#" class="btn">Talk to Us</a>
+        <a href="#" class="btn p">Browse Gallery</a>
+      </div>
     </div>
   </section>
-</div>
+
+</div><!-- /page -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/DRACOLoader.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
 <script>
 gsap.registerPlugin(ScrollTrigger);
 
-/* ══════════════════════════════════════════════════
-   RENDERER — alpha:true so our CSS bg shows through
-   We paint our own gradient on the canvas via CSS,
-   letting Three.js canvas be transparent.
-══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   RENDERER — alpha:true so CSS gradient bg shows
+══════════════════════════════════════════════ */
 const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
+renderer.toneMappingExposure = 1.05;
 renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-// CRITICAL: transparent clear — our CSS bg shows through canvas
-renderer.setClearColor(0x000000, 0);
-renderer.setClearAlpha(0);
+renderer.setClearColor(0x000000, 0); // fully transparent
 
-/* ══════════════════════════════════════════════════
-   CSS GRADIENT ON CANVAS via body background
-   The canvas is transparent, so the body gradient
-   shows through as the background.
-══════════════════════════════════════════════════ */
-document.body.style.background =
-  'linear-gradient(160deg, #07091a 0%, #0d1140 40%, #120e35 70%, #07091a 100%)';
-
-/* ══════════════════════════════════════════════════
-   SCENE — NO background set, so it renders transparent
-══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   SCENE — no background (transparent)
+══════════════════════════════════════════════ */
 const scene = new THREE.Scene();
-// Do NOT set scene.background — let it be transparent
-// Do NOT set scene.fog — it would be grey
 
-/* ══════════════════════════════════════════════════
-   CAMERA
-   FOV 42, z=12
-   Visible half-w ≈ 4.6 units, half-h ≈ 2.6 units (16:9)
-══════════════════════════════════════════════════ */
-const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 200);
-camera.position.set(0, 0, 12);
+/* ══════════════════════════════════════════════
+   CAMERA — exactly matches peachweb approach
+   FOV: 40 (same as peachweb)
+   Start: y=12.54, z=1.066
+   Animated via scroll: y descends, z closes in
+══════════════════════════════════════════════ */
+const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 1000);
+
+// Camera state — driven by scroll (lerped for smoothness)
+const camTarget = {
+  x: 0.0,    // constant (peachweb uses 0.808 slight offset — we use 0 for symmetry)
+  y: 12.54,  // starts high, descends
+  z: 6.0     // starts back, moves in (scaled for our scene unit size)
+};
+const camCurrent = { x: 0.0, y: 12.54, z: 6.0 };
+
+camera.position.set(camCurrent.x, camCurrent.y, camCurrent.z);
 camera.lookAt(0, 0, 0);
 
-/* ══════════════════════════════════════════════════
-   LIGHTS
-══════════════════════════════════════════════════ */
-scene.add(new THREE.AmbientLight(0x4060d0, 5.0));
+/* ══════════════════════════════════════════════
+   LIGHTS — our own, replacing all GLB lights
+══════════════════════════════════════════════ */
+scene.add(new THREE.AmbientLight(0x2a3898, 3.5));
 
-const key = new THREE.DirectionalLight(0xb0d0ff, 6.0);
-key.position.set(4, 6, 8);
-key.castShadow = true;
+const key = new THREE.DirectionalLight(0xb0ccff, 5.0);
+key.position.set(3, 8, 5);
 scene.add(key);
 
-const rim = new THREE.DirectionalLight(0xd084fc, 4.0);
-rim.position.set(-6, 3, -5);
+const rim = new THREE.DirectionalLight(0xc080ff, 4.0);
+rim.position.set(-5, 2, -4);
 scene.add(rim);
 
-const fill = new THREE.DirectionalLight(0x38bdf8, 2.5);
-fill.position.set(0, -6, 6);
+const fill = new THREE.DirectionalLight(0x40c8ff, 2.2);
+fill.position.set(0, -5, 5);
 scene.add(fill);
 
-const gA = new THREE.PointLight(0x38bdf8, 6, 9);
-const gB = new THREE.PointLight(0xd084fc, 4, 7);
-scene.add(gA, gB);
+// Warm accent light from below (plasma engine glow)
+const engineGlow = new THREE.PointLight(0x4488ff, 8, 12);
+engineGlow.position.set(0, -2, 0);
+scene.add(engineGlow);
 
-/* ══════════════════════════════════════════════════
-   SUBTLE STAR PARTICLES (depth, atmosphere)
-══════════════════════════════════════════════════ */
+const engineGlow2 = new THREE.PointLight(0xb060ff, 5, 10);
+engineGlow2.position.set(0, 1, 0);
+scene.add(engineGlow2);
+
+/* ══════════════════════════════════════════════
+   SUBTLE PARTICLES
+══════════════════════════════════════════════ */
 (function(){
-  const n = 500, p = new Float32Array(n*3);
-  for(let i=0;i<n;i++){
-    p[i*3]=(Math.random()-.5)*30;
-    p[i*3+1]=(Math.random()-.5)*22;
-    p[i*3+2]=(Math.random()-.5)*8-4;
+  const n = 400, p = new Float32Array(n * 3);
+  for(let i = 0; i < n; i++){
+    p[i*3]   = (Math.random() - 0.5) * 20;
+    p[i*3+1] = (Math.random() - 0.5) * 30;
+    p[i*3+2] = (Math.random() - 0.5) * 15 - 2;
   }
-  const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.BufferAttribute(p,3));
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3));
   scene.add(new THREE.Points(g,
-    new THREE.PointsMaterial({size:.055,color:0x7dd3fc,transparent:true,opacity:.35})
+    new THREE.PointsMaterial({ size: 0.06, color: 0x7dd3fc, transparent: true, opacity: 0.25 })
   ));
 })();
 
-/* ══════════════════════════════════════════════════
-   FLIGHT PATH
-   X: -4.0 (far left) ↔ +4.0 (far right)
-   Y: -2.0 (bottom)   ↔ +1.5 (top)
-══════════════════════════════════════════════════ */
-const PATH = new THREE.CatmullRomCurve3([
-  new THREE.Vector3( 1.8,  0.3, 0),   // 0%   HERO: center-right, mid
-  new THREE.Vector3( 1.3, -0.4, 0),   // 10%  start diving
-  new THREE.Vector3( 0.2, -1.9, 0),   // 22%  steep nose-dive near center
-  new THREE.Vector3(-1.5, -1.0, 0),   // 33%  pulling left at bottom
-  new THREE.Vector3(-3.2,  0.2, 0),   // 45%  far left, level
-  new THREE.Vector3(-2.0,  1.1, 0),   // 55%  climbing left
-  new THREE.Vector3( 0.1,  0.9, 0),   // 63%  back to center
-  new THREE.Vector3( 3.0,  0.4, 0),   // 73%  far right
-  new THREE.Vector3( 2.1, -0.2, 0),   // 81%  right, slight dip
-  new THREE.Vector3( 0.0,  0.2, 0),   // 89%  center
-  new THREE.Vector3(-2.8,  0.4, 0),   // 100% far left final
-], false, 'catmullrom', 0.5);
+/* ══════════════════════════════════════════════
+   SCROLL STATE
+   scroll.t: 0→1 over full page scroll
+══════════════════════════════════════════════ */
+const scroll = { t: 0 };
 
-/* ══════════════════════════════════════════════════
-   STATE
-══════════════════════════════════════════════════ */
-let drone=null, mixer=null;
-const clock=new THREE.Clock();
-const scroll={t:0};
-const livePos=new THREE.Vector3(1.8,0.3,0);
-let liveYaw=0, livePitch=0, liveRoll=0, prevT=0;
+/* ══════════════════════════════════════════════
+   CAMERA KEYFRAMES
+   Exactly mirrors peachweb data, scaled for our scene.
+   
+   Peachweb camera Y:  12.54 → 11.24 → 10.19 → 8.82 → 4.32
+   Peachweb camera Z:  1.066 → 1.066 → 1.066 → 1.066 → 0.212
+   
+   Our scene units are larger (drone ~1.5u) so we scale Z
+   to keep the drone well-framed throughout.
+══════════════════════════════════════════════ */
+// Keyframe interpolator
+function lerp(a, b, t){ return a + (b - a) * t; }
 
-/* ══════════════════════════════════════════════════
-   SCROLL
-══════════════════════════════════════════════════ */
+function easeInOut(t){ return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
+
+function getKeyframeValue(keyframes, t) {
+  // keyframes: [{at, value}, ...] sorted by at
+  if(t <= keyframes[0].at) return keyframes[0].value;
+  if(t >= keyframes[keyframes.length-1].at) return keyframes[keyframes.length-1].value;
+  for(let i = 0; i < keyframes.length - 1; i++){
+    const a = keyframes[i], b = keyframes[i+1];
+    if(t >= a.at && t <= b.at){
+      const local = (t - a.at) / (b.at - a.at);
+      return lerp(a.value, b.value, easeInOut(local));
+    }
+  }
+  return keyframes[keyframes.length-1].value;
+}
+
+// Camera Y keyframes (scroll 0→1, mapped from peachweb 0%→45%)
+const CAM_Y_KF = [
+  { at: 0.000, value: 12.54 },
+  { at: 0.065, value: 11.24 },
+  { at: 0.168, value: 10.19 },
+  { at: 0.210, value:  8.82 },
+  { at: 0.356, value:  8.82 },
+  { at: 0.400, value:  4.32 },
+  { at: 1.000, value:  3.50 },
+];
+
+// Camera Z keyframes
+// Peachweb Z goes from 1.066 → 0.212 at the end
+// Our scale: multiply by ~5 to match our scene unit size
+const CAM_Z_KF = [
+  { at: 0.000, value: 6.0  },
+  { at: 0.356, value: 6.0  },
+  { at: 0.500, value: 3.0  },
+  { at: 1.000, value: 2.2  },
+];
+
+// Camera X — slight lateral drift (peachweb uses 0.808 constant)
+// We oscillate slightly for a gentle tilt effect
+const CAM_X_KF = [
+  { at: 0.000, value:  0.2  },
+  { at: 0.200, value: -0.3  },
+  { at: 0.400, value:  0.3  },
+  { at: 0.600, value: -0.2  },
+  { at: 0.800, value:  0.2  },
+  { at: 1.000, value:  0.0  },
+];
+
+/* ══════════════════════════════════════════════
+   DRONE SCALE KEYFRAMES
+   Exactly from peachweb analysis:
+   Creates illusion of drone swimming toward/away
+══════════════════════════════════════════════ */
+const SCALE_KF = [
+  { at: 0.000, value: 3.8 },
+  { at: 0.081, value: 4.0 },
+  { at: 0.090, value: 3.0 },
+  { at: 0.130, value: 3.0 },
+  { at: 0.132, value: 3.7 },
+  { at: 0.158, value: 3.7 },
+  { at: 0.166, value: 4.1 },
+  { at: 0.300, value: 4.1 },
+  { at: 0.340, value: 3.5 },
+  { at: 0.380, value: 3.5 },
+  { at: 0.420, value: 4.2 },
+  { at: 0.500, value: 4.2 },
+  { at: 0.540, value: 3.3 },
+  { at: 0.580, value: 3.3 },
+  { at: 0.620, value: 4.0 },
+  { at: 0.700, value: 4.0 },
+  { at: 0.740, value: 3.4 },
+  { at: 0.780, value: 3.4 },
+  { at: 0.820, value: 4.1 },
+  { at: 1.000, value: 4.1 },
+];
+
+/* ══════════════════════════════════════════════
+   DRONE ROTATION KEYFRAMES
+   Drone sits at {0,0,0} — FIXED POSITION like peachweb.
+   We add a gentle yaw rotation so it "faces" the camera
+   as the camera sweeps around it.
+══════════════════════════════════════════════ */
+const ROT_Y_KF = [
+  { at: 0.000, value: -1.47 },  // peachweb exact rotation
+  { at: 0.200, value: -1.20 },
+  { at: 0.400, value: -1.80 },
+  { at: 0.600, value: -1.10 },
+  { at: 0.800, value: -1.60 },
+  { at: 1.000, value: -1.47 },
+];
+
+/* ══════════════════════════════════════════════
+   DRONE MODEL STATE
+══════════════════════════════════════════════ */
+let drone = null;
+let mixer = null;
+const clock = new THREE.Clock();
+
+// Live animated values (lerped each frame)
+let liveScale    = 3.8;
+let liveRotY     = -1.47;
+let liveCamX     = 0.2;
+let liveCamY     = 12.54;
+let liveCamZ     = 6.0;
+
+/* ══════════════════════════════════════════════
+   GSAP SCROLL DRIVER
+   scrub: 1.2 — slightly laggy like peachweb's easing
+══════════════════════════════════════════════ */
 ScrollTrigger.create({
-  trigger:document.body,start:'top top',end:'bottom bottom',
-  scrub:1.6,
-  onUpdate(s){
-    scroll.t=s.progress;
-    document.getElementById('prog').style.width=(s.progress*100)+'%';
-    showCards(s.progress);
-    updateTelemetry(s.progress);
+  trigger: document.body,
+  start: 'top top',
+  end: 'bottom bottom',
+  scrub: 1.2,
+  onUpdate(self){
+    scroll.t = self.progress;
+    document.getElementById('prog').style.width = (self.progress * 100) + '%';
+    showCards(self.progress);
+    updateTelemetry(self.progress);
   }
 });
 
-const WINS=[[0,.15],[.15,.30],[.30,.47],[.47,.63],[.63,.80],[.80,1]];
+/* ══════════════════════════════════════════════
+   SECTION CARD WINDOWS
+══════════════════════════════════════════════ */
+const WINS = [
+  [0.00, 0.14],  // c0 hero
+  [0.16, 0.30],  // c1
+  [0.32, 0.47],  // c2
+  [0.49, 0.64],  // c3
+  [0.66, 0.81],  // c4
+  [0.83, 1.00],  // c5
+];
+
 function showCards(t){
-  WINS.forEach(([a,b],i)=>{
-    const el=document.getElementById('c'+i);
-    if(el) el.classList.toggle('show',t>=a&&t<=b);
+  WINS.forEach(([a,b], i) => {
+    const el = document.getElementById('c'+i);
+    if(el) el.classList.toggle('show', t >= a && t <= b);
   });
 }
+
+/* ══════════════════════════════════════════════
+   TELEMETRY
+══════════════════════════════════════════════ */
 function updateTelemetry(t){
-  const a=document.getElementById('ta'),s=document.getElementById('ts'),
-        h=document.getElementById('th'),b=document.getElementById('tb');
-  if(a)a.textContent=String(Math.round(80+t*140)).padStart(3,'0');
-  if(s)s.textContent=String(Math.round(60+Math.sin(t*Math.PI*5)*20+t*28)).padStart(3,'0');
-  if(h)h.textContent=String(Math.round((t*500)%360)).padStart(3,'0');
-  if(b)b.textContent=String(Math.round(100-t*14));
+  document.getElementById('ta').textContent = String(Math.round(80+t*160)).padStart(3,'0');
+  document.getElementById('ts').textContent = String(Math.round(55+Math.sin(t*Math.PI*5)*22+t*30)).padStart(3,'0');
+  document.getElementById('th').textContent = String(Math.round((t*520)%360)).padStart(3,'0');
+  document.getElementById('tb').textContent = String(Math.round(100-t*16));
 }
 
-/* ══════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    LOAD GLB
-   KEY FIX: We extract ONLY the meshes from the GLB,
-   discarding any cameras, lights, backgrounds, or
-   scene-level objects that carry the grey environment.
-══════════════════════════════════════════════════ */
-const gltfLoader=new THREE.GLTFLoader();
+   KEY INSIGHT from analysis: the GLB contains
+   TPhotometricLight001-006 nodes which are the
+   embedded studio lights causing white blowout.
+   We kill ALL THREE.Light objects from the GLB
+   and use our own lighting instead.
+══════════════════════════════════════════════ */
+const gltfLoader = new THREE.GLTFLoader();
 try{
-  const draco=new THREE.DRACOLoader();
+  const draco = new THREE.DRACOLoader();
   draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/libs/draco/');
   gltfLoader.setDRACOLoader(draco);
 }catch(e){}
 
-// Root group that holds ONLY the drone meshes
-const droneRoot = new THREE.Group();
-scene.add(droneRoot);
-
 gltfLoader.load('k07_drone.glb', gltf => {
 
-  // ── STRIP the scene: remove all non-mesh/non-bone objects
-  // that carry embedded environment data
   gltf.scene.traverse(obj => {
-    // Remove embedded cameras
-    if(obj.isCamera) { obj.parent && obj.parent.remove(obj); return; }
-    // Null out any background on sub-scenes
-    if(obj.isScene || obj.isObject3D) {
-      obj.background = null;
-      obj.environment = null;
+    // Kill ALL embedded lights
+    if(obj.isLight){
+      obj.intensity = 0;
+      obj.visible   = false;
+      return;
     }
-    // Strip meshes that are clearly "ground plane" type objects
-    // (large flat planes that are the grey floor in the GLB)
+
+    // Tune mesh materials for our dark scene
     if(obj.isMesh){
-      const bbox = new THREE.Box3().setFromObject(obj);
-      const size = new THREE.Vector3();
-      bbox.getSize(size);
-      // If the mesh is extremely flat and wide (ground plane), hide it
-      if(size.y < 0.05 && size.x > 2) {
-        obj.visible = false;
-        return;
-      }
-      obj.castShadow = true;
-      obj.receiveShadow = false;
-      // Ensure materials are not emitting a background
       const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
       mats.forEach(m => {
         if(!m) return;
-        m.envMapIntensity = 1.8;
+        m.envMapIntensity = 0.6;
+        // Plasma/fire meshes: add blue glow
+        if((obj.name||'').includes('PlasmaTurbine') || (obj.name||'').includes('Fire')){
+          if(m.emissive)           m.emissive.setHex(0x0066ff);
+          if(m.emissiveIntensity !== undefined) m.emissiveIntensity = 0.5;
+        }
         m.needsUpdate = true;
       });
     }
   });
 
   drone = gltf.scene;
-  // Scale: prominent like the fish — about 30% viewport height
-  drone.scale.setScalar(0.88);
 
-  droneRoot.add(drone);
+  // ── POSITION: fixed at {0, 0, 0} — EXACTLY like peachweb ──
+  drone.position.set(0, 0, 0);
 
-  // Animations
+  // ── ROTATION: peachweb uses {x: π, y: -1.47, z: π} ──
+  // x:π and z:π flips the model upright (common GLB import correction)
+  drone.rotation.set(Math.PI, -1.47, Math.PI);
+
+  // ── SCALE: starts at 3.8, animated by scroll ──
+  drone.scale.setScalar(3.8);
+
+  scene.add(drone);
+
+  // Play ALL embedded animations forever
   if(gltf.animations?.length){
-    mixer=new THREE.AnimationMixer(drone);
-    gltf.animations.forEach(clip=>{
-      mixer.clipAction(clip).setLoop(THREE.LoopRepeat,Infinity).play();
+    mixer = new THREE.AnimationMixer(drone);
+    gltf.animations.forEach(clip => {
+      mixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity).play();
     });
   }
 
-  const p0=PATH.getPoint(0);
-  droneRoot.position.copy(p0);
-  livePos.copy(p0);
-
+  // Reveal
   document.getElementById('loader').classList.add('out');
-  setTimeout(()=>document.getElementById('loader').style.display='none',950);
+  setTimeout(() => document.getElementById('loader').style.display = 'none', 950);
   document.getElementById('telem').classList.add('show');
   showCards(0);
 
-},undefined,err=>{
-  document.querySelector('#loader .lt').textContent='Error loading model';
+}, undefined, err => {
+  document.querySelector('#loader .lt').textContent = 'Error loading model';
   console.error(err);
 });
 
-/* ══════════════════════════════════════════════════
-   ANIMATE
-══════════════════════════════════════════════════ */
-function animateDrone(t){
-  if(!drone) return;
-  const tc=Math.max(.0001,Math.min(.9999,t));
-  const elapsed=clock.getElapsedTime();
+/* ══════════════════════════════════════════════
+   RENDER LOOP
+   
+   Drone: FIXED at {0,0,0}
+   Camera: moves via keyframes (Y descent + Z close-in)
+   Scale: pulses via keyframes
+   
+   This is the EXACT peachweb technique.
+══════════════════════════════════════════════ */
+const LAG = 0.06; // Smoothing factor — like peachweb's easingDuration 0.3
 
-  const target=PATH.getPoint(tc);
-  livePos.lerp(target,0.08);
+function tick(){
+  requestAnimationFrame(tick);
+  const delta = clock.getDelta();
+  const elapsed = clock.getElapsedTime();
 
-  droneRoot.position.x=livePos.x+Math.cos(elapsed*.9)*.018;
-  droneRoot.position.y=livePos.y+Math.sin(elapsed*1.7)*.05;
-  droneRoot.position.z=livePos.z;
-
-  const tan=PATH.getTangent(tc);
-  const tgtYaw=Math.atan2(tan.x,Math.abs(tan.z)+0.6)*1.5;
-  const tgtPitch=-tan.y*2.0;
-  const dT=tc-prevT;
-  const lateral=dT*60;
-  const tgtRoll=Math.max(-.65,Math.min(.65,-lateral*2.0*Math.PI));
-
-  const lag=0.07;
-  liveYaw  +=(tgtYaw   -liveYaw)  *lag;
-  livePitch+=(tgtPitch -livePitch)*lag;
-  liveRoll +=(tgtRoll  -liveRoll) *lag;
-
-  droneRoot.rotation.order='YXZ';
-  droneRoot.rotation.y=liveYaw;
-  droneRoot.rotation.x=livePitch;
-  droneRoot.rotation.z=liveRoll;
-
-  gA.position.set(livePos.x+1,livePos.y+.5,livePos.z+2.5);
-  gB.position.set(livePos.x-.8,livePos.y-.3,livePos.z+1.8);
-  prevT=tc;
-}
-
-/* ══════════════════════════════════════════════════
-   RENDER
-══════════════════════════════════════════════════ */
-function render(){
-  requestAnimationFrame(render);
-  const delta=clock.getDelta();
+  // Update animation mixer
   if(mixer) mixer.update(delta);
-  animateDrone(scroll.t);
-  // Single render pass, transparent background shows CSS gradient
-  renderer.render(scene,camera);
+
+  const t = scroll.t;
+
+  // ── 1. TARGET VALUES from keyframes ──
+  const tgtCamY  = getKeyframeValue(CAM_Y_KF,   t);
+  const tgtCamZ  = getKeyframeValue(CAM_Z_KF,   t);
+  const tgtCamX  = getKeyframeValue(CAM_X_KF,   t);
+  const tgtScale = getKeyframeValue(SCALE_KF,   t);
+  const tgtRotY  = getKeyframeValue(ROT_Y_KF,   t);
+
+  // ── 2. SMOOTH LERP (creates organic lag like peachweb easing) ──
+  liveCamY  += (tgtCamY  - liveCamY)  * LAG;
+  liveCamZ  += (tgtCamZ  - liveCamZ)  * LAG;
+  liveCamX  += (tgtCamX  - liveCamX)  * LAG;
+  liveScale += (tgtScale - liveScale) * LAG;
+  liveRotY  += (tgtRotY  - liveRotY)  * LAG;
+
+  // ── 3. CAMERA — descends Y, closes Z, slight X drift ──
+  // Add tiny TILT mouse-like oscillation (peachweb has TILT controls)
+  const tiltX = Math.sin(elapsed * 0.4) * 0.08;
+  const tiltY = Math.cos(elapsed * 0.3) * 0.04;
+
+  camera.position.set(
+    liveCamX + tiltX,
+    liveCamY + tiltY,
+    liveCamZ
+  );
+  camera.lookAt(0, 0, 0); // always look at drone center
+
+  // ── 4. DRONE — scale pulse + gentle yaw (position stays {0,0,0}) ──
+  if(drone){
+    drone.scale.setScalar(liveScale);
+    // Keep x:π and z:π from the load, only animate y
+    drone.rotation.set(Math.PI, liveRotY, Math.PI);
+
+    // Subtle idle bob (tiny, just to keep it alive when scroll stops)
+    drone.position.y = Math.sin(elapsed * 1.4) * 0.03;
+    drone.position.x = Math.cos(elapsed * 0.9) * 0.02;
+  }
+
+  // ── 5. ENGINE GLOW pulses ──
+  engineGlow.intensity  = 6 + Math.sin(elapsed * 3.0) * 2;
+  engineGlow2.intensity = 4 + Math.cos(elapsed * 2.2) * 1.5;
+
+  renderer.render(scene, camera);
 }
-render();
+tick();
 
-window.addEventListener('resize',()=>{
-  camera.aspect=innerWidth/innerHeight;
+/* ══════════════════════════════════════════════
+   RESIZE
+══════════════════════════════════════════════ */
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
+  renderer.setSize(innerWidth, innerHeight);
 });
-window.addEventListener('scroll',()=>{
-  if(scrollY>80) document.getElementById('hint').classList.add('gone');
-},{passive:true});
 
+/* ══════════════════════════════════════════════
+   HIDE HINT ON SCROLL
+══════════════════════════════════════════════ */
+window.addEventListener('scroll', () => {
+  if(scrollY > 80) document.getElementById('hint').classList.add('gone');
+}, { passive: true });
+
+// Init
 showCards(0);
 updateTelemetry(0);
 </script>
