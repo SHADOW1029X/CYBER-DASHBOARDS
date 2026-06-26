@@ -3,477 +3,411 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>K07 Drone — Flight Experience</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --bg:#07091a;
-  --accent:#4fc3f7;
-  --accent2:#a78bfa;
-  --text:#f0f4ff;
-  --muted:rgba(200,210,255,0.48);
-  --ff:'Space Grotesk',system-ui,sans-serif;
-}
-html,body{
-  color:var(--text);font-family:var(--ff);overflow-x:hidden;
-  background:linear-gradient(160deg,#07091a 0%,#0d1140 40%,#120e35 70%,#07091a 100%);
-  background-attachment:fixed;
-}
-#c{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none;}
-#page{position:relative;z-index:2;}
-
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 52px;background:linear-gradient(180deg,rgba(7,9,26,0.96) 0%,transparent 100%);}
-.nav-logo{display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:700;letter-spacing:.06em;color:var(--text);text-decoration:none;}
-.nav-dot{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));flex-shrink:0;}
-.nav-links{display:flex;align-items:center;gap:4px;}
-.nav-links a{font-size:.82rem;color:rgba(200,210,255,.7);text-decoration:none;padding:7px 14px;border-radius:100px;transition:color .2s,background .2s;}
-.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.06);}
-.nav-r{display:flex;align-items:center;gap:10px;}
-.nl{font-size:.82rem;color:var(--muted);text-decoration:none;padding:7px 12px;transition:color .2s;}
-.nl:hover{color:var(--text);}
-.nt{font-size:.82rem;font-weight:600;color:var(--text);text-decoration:none;padding:9px 20px;border-radius:100px;border:1.5px solid rgba(255,255,255,.22);transition:border-color .2s;}
-.nt:hover{border-color:rgba(255,255,255,.55);}
-.ns{font-size:.82rem;font-weight:700;color:#fff;text-decoration:none;padding:10px 22px;border-radius:100px;background:linear-gradient(135deg,#3b2f8a,#1e3fa8);transition:opacity .2s;}
-.ns:hover{opacity:.85;}
-
-/* PROGRESS */
-#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--accent2),var(--accent));z-index:200;width:0%;box-shadow:0 0 6px var(--accent);}
-
-/* SECTIONS */
-.sec{position:relative;min-height:100vh;display:flex;align-items:center;}
-.sec.L{justify-content:flex-start;}
-.sec.R{justify-content:flex-end;}
-.card{max-width:430px;padding:0 64px;opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s ease;pointer-events:none;}
-.card.show{opacity:1;transform:translateY(0);}
-.ey{font-size:.67rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-.ey::before{content:'';display:block;width:18px;height:1px;background:var(--accent);}
-h1.d{font-size:clamp(2.8rem,5vw,4.6rem);font-weight:700;line-height:1.02;letter-spacing:-.035em;margin-bottom:20px;}
-h2.d{font-size:clamp(2rem,3.8vw,3.4rem);font-weight:700;line-height:1.05;letter-spacing:-.025em;margin-bottom:18px;}
-.bd{font-size:.97rem;line-height:1.75;color:var(--muted);margin-bottom:28px;}
-.btns{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px;}
-.btn{font-family:var(--ff);font-size:.82rem;font-weight:600;letter-spacing:.04em;padding:11px 24px;border-radius:100px;border:1.5px solid rgba(255,255,255,.22);color:var(--text);background:transparent;cursor:pointer;text-decoration:none;transition:border-color .2s,background .2s;}
-.btn:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.04);}
-.btn.p{background:var(--text);color:#07091a;border-color:var(--text);}
-.btn.p:hover{opacity:.87;}
-.stats{display:flex;gap:32px;flex-wrap:wrap;margin-top:4px;}
-.sn{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:4px;}
-.sl{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
-.al{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;font-weight:600;color:var(--text);text-decoration:none;letter-spacing:.03em;transition:gap .2s;}
-.al:hover{gap:13px;}
-
-/* HINT */
-#hint{position:fixed;bottom:32px;right:36px;z-index:50;background:linear-gradient(135deg,#3b2f8a,#1e3fa8);border-radius:18px;padding:18px 24px;max-width:170px;opacity:1;transition:opacity .5s;}
-#hint.gone{opacity:0;pointer-events:none;}
-.ht{font-size:.9rem;font-weight:700;line-height:1.3;margin-bottom:5px;}
-.hs{font-size:.7rem;color:rgba(255,255,255,.55);}
-.ha{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;margin-top:10px;animation:bY 1.5s ease infinite;}
-@keyframes bY{0%,100%{transform:translateY(0);}50%{transform:translateY(4px);}}
-
-/* LOADER */
-#loader{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .85s;}
-#loader.out{opacity:0;pointer-events:none;}
-.lr{width:46px;height:46px;border:2px solid rgba(79,195,247,.1);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;}
-.lt{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
-.lerr{font-size:.7rem;color:#f87171;margin-top:8px;text-align:center;max-width:300px;display:none;}
-@keyframes sp{to{transform:rotate(360deg);}}
-
-/* TELEMETRY */
-#telem{position:fixed;bottom:34px;left:34px;z-index:50;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.06em;color:rgba(79,195,247,.38);line-height:1.9;opacity:0;transition:opacity 1s;pointer-events:none;}
-#telem.show{opacity:1;}
-
-@media(max-width:768px){
-  nav{padding:16px 22px;} .nav-links,.nl{display:none;}
-  .card{padding:0 26px;max-width:100%;} .sec.R{justify-content:flex-start;}
-  #hint{right:18px;bottom:20px;} #telem{display:none;}
-}
-</style>
+<title>K07 Drone</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--accent:#4fc3f7;--purple:#a78bfa;--text:#f0f4ff;--muted:rgba(200,210,255,.5);--ff:'Space Grotesk',system-ui,sans-serif;}
+html,body{font-family:var(--ff);color:var(--text);overflow-x:hidden;background:#000;}
+#canvas{position:fixed;inset:0;width:100vw;height:100vh;z-index:1;pointer-events:none;display:block;}
+#page{position:relative;z-index:2;}
+#prog{position:fixed;top:0;left:0;height:2px;width:0%;background:linear-gradient(90deg,var(--purple),var(--accent));box-shadow:0 0 8px var(--accent);z-index:200;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 52px;background:linear-gradient(180deg,rgba(0,0,0,.75)0%,transparent 100%);}
+.logo{display:flex;align-items:center;gap:10px;font-size:.95rem;font-weight:700;color:var(--text);text-decoration:none;}
+.orb{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--accent));flex-shrink:0;}
+.nav-links{display:flex;gap:2px;}
+.nav-links a{font-size:.82rem;color:rgba(255,255,255,.7);text-decoration:none;padding:7px 14px;border-radius:100px;transition:color .2s,background .2s;}
+.nav-links a:hover{color:#fff;background:rgba(255,255,255,.08);}
+.nav-r{display:flex;gap:10px;}
+.bg{font-size:.82rem;color:rgba(255,255,255,.65);text-decoration:none;padding:8px 14px;border-radius:100px;border:1.5px solid transparent;transition:border-color .2s;}
+.bg:hover{border-color:rgba(255,255,255,.3);}
+.bo{font-size:.82rem;font-weight:600;color:#fff;text-decoration:none;padding:9px 20px;border-radius:100px;border:1.5px solid rgba(255,255,255,.35);transition:border-color .2s;}
+.bo:hover{border-color:rgba(255,255,255,.7);}
+.bf{font-size:.82rem;font-weight:700;color:#fff;text-decoration:none;padding:10px 22px;border-radius:100px;background:linear-gradient(135deg,#3b2f8a,#1e3fa8);}
+.sec{position:relative;min-height:100vh;display:flex;align-items:center;}
+.sec.L{justify-content:flex-start;}.sec.R{justify-content:flex-end;}
+.card{max-width:440px;padding:0 64px;opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease;pointer-events:none;}
+.card.on{opacity:1;transform:translateY(0);pointer-events:auto;}
+.ey{display:flex;align-items:center;gap:10px;font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:16px;}
+.ey::before{content:'';display:block;width:20px;height:1px;background:rgba(255,255,255,.4);}
+h1.h{font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:700;line-height:1.02;letter-spacing:-.035em;margin-bottom:18px;color:#fff;}
+.gr{background:linear-gradient(90deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+h2.t{font-size:clamp(2rem,4vw,3.4rem);font-weight:700;line-height:1.05;letter-spacing:-.025em;margin-bottom:16px;color:#fff;}
+.b{font-size:.97rem;line-height:1.75;color:rgba(255,255,255,.55);margin-bottom:28px;}
+.br{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px;}
+.cg{font-family:var(--ff);font-size:.82rem;font-weight:600;padding:11px 24px;border-radius:100px;border:1.5px solid rgba(255,255,255,.3);color:#fff;background:transparent;text-decoration:none;transition:border-color .2s;}
+.cg:hover{border-color:rgba(255,255,255,.7);}
+.cs{font-family:var(--ff);font-size:.82rem;font-weight:700;padding:11px 24px;border-radius:100px;background:#fff;color:#07091a;text-decoration:none;}
+.cs:hover{opacity:.88;}
+.st{display:flex;gap:32px;flex-wrap:wrap;}
+.sn{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:4px;}
+.sl{font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45);}
+.al{font-size:.9rem;font-weight:600;color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:gap .2s;}
+.al:hover{gap:14px;}
+#hint{position:fixed;bottom:30px;right:34px;z-index:50;background:linear-gradient(135deg,#3b2f8a,#1e3fa8);border-radius:18px;padding:18px 22px;max-width:160px;opacity:1;transition:opacity .5s;}
+#hint.gone{opacity:0;pointer-events:none;}
+.ht{font-size:.88rem;font-weight:700;line-height:1.3;margin-bottom:5px;}
+.hs{font-size:.68rem;color:rgba(255,255,255,.55);}
+.ha{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;margin-top:10px;animation:bd 1.6s ease infinite;}
+@keyframes bd{0%,100%{transform:translateY(0);}50%{transform:translateY(4px);}}
+#loader{position:fixed;inset:0;background:#000;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .8s;}
+#loader.out{opacity:0;pointer-events:none;}
+.lr{width:44px;height:44px;border-radius:50%;border:2px solid rgba(79,195,247,.1);border-top-color:var(--accent);animation:sp .8s linear infinite;}
+.lm{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);}
+.le{font-size:.72rem;color:#f87171;text-align:center;max-width:340px;display:none;line-height:1.6;margin-top:4px;}
+@keyframes sp{to{transform:rotate(360deg);}}
+#telem{position:fixed;bottom:30px;left:30px;z-index:50;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.07em;color:rgba(79,195,247,.38);line-height:2;opacity:0;transition:opacity 1.2s;pointer-events:none;}
+#telem.on{opacity:1;}
+@media(max-width:768px){nav{padding:16px 20px;}.nav-links{display:none;}.card{padding:0 24px;max-width:100%;}.sec.R{justify-content:flex-start;}#hint{right:16px;bottom:16px;}#telem{display:none;}}
+</style>
 </head>
 <body>
-
-<div id="loader">
-  <div class="lr"></div>
-  <div class="lt" id="load-status">Loading Scripts</div>
-  <div class="lerr" id="load-err"></div>
-</div>
+<div id="loader"><div class="lr"></div><div class="lm" id="lm">Initialising</div><div class="le" id="le"></div></div>
+<canvas id="canvas"></canvas>
 <div id="prog"></div>
-<canvas id="c"></canvas>
-
 <nav>
-  <a href="#" class="nav-logo"><div class="nav-dot"></div>K07 Drone</a>
-  <div class="nav-links">
-    <a href="#">Product ↓</a><a href="#">Use Cases ↓</a>
-    <a href="#">Resources ↓</a><a href="#">Pricing</a>
-  </div>
-  <div class="nav-r">
-    <a href="#" class="nl">Login</a>
-    <a href="#" class="nt">Talk to Us</a>
-    <a href="#" class="ns">Get Started</a>
-  </div>
+  <a href="#" class="logo"><div class="orb"></div>K07 Drone</a>
+  <div class="nav-links"><a href="#">Product ↓</a><a href="#">Use Cases ↓</a><a href="#">Resources ↓</a><a href="#">Pricing</a></div>
+  <div class="nav-r"><a href="#" class="bg">Login</a><a href="#" class="bo">Talk to Us</a><a href="#" class="bf">Get Started</a></div>
 </nav>
-
 <div id="hint">
-  <div class="ht">Scroll down<br>&amp; dive in</div>
-  <div class="hs">Interactive 3D</div>
-  <div class="ha">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-  </div>
+  <div class="ht">Scroll down<br>&amp; dive in</div><div class="hs">Interactive 3D</div>
+  <div class="ha"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
 </div>
-
-<div id="telem">
-  ALT <span id="ta">082</span>m<br>
-  SPD <span id="ts">074</span> km/h<br>
-  HDG <span id="th">270</span>°<br>
-  BAT <span id="tb">100</span>%
-</div>
-
-<div id="page">
+<div id="telem">ALT&nbsp;<span id="ta">082</span>m<br>SPD&nbsp;<span id="ts">074</span>&nbsp;km/h<br>HDG&nbsp;<span id="th">270</span>°<br>BAT&nbsp;<span id="tb">100</span>%</div>
+<main id="page">
   <section class="sec L"><div class="card" id="c0">
     <div class="ey">Autonomous Aerial Platform</div>
-    <h1 class="d">3D Websites<br>in Minutes.<br><span style="background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">K07.</span></h1>
-    <p class="bd">No-Code Builder for WebGL 3D Websites.</p>
-    <div class="btns"><a href="#" class="btn">Talk to Us</a><a href="#" class="btn p">Get Started</a></div>
-    <div class="stats">
-      <div><div class="sn">42m</div><div class="sl">Flight Time</div></div>
-      <div><div class="sn">12km</div><div class="sl">Range</div></div>
-      <div><div class="sn">4K</div><div class="sl">Camera</div></div>
-    </div>
+    <h1 class="h">3D Websites<br>in Minutes.<br><span class="gr">K07.</span></h1>
+    <p class="b">No-Code Builder for WebGL 3D&nbsp;Websites.</p>
+    <div class="br"><a href="#" class="cg">Talk to Us</a><a href="#" class="cs">Get Started</a></div>
+    <div class="st"><div><div class="sn">42m</div><div class="sl">Flight Time</div></div><div><div class="sn">12km</div><div class="sl">Range</div></div><div><div class="sn">4K</div><div class="sl">Camera</div></div></div>
   </div></section>
-
   <section class="sec R"><div class="card" id="c1">
     <div class="ey">Intelligent Navigation</div>
-    <h2 class="d">No-Code Builder<br>for WebGL 3D<br>Websites.</h2>
-    <div class="btns"><a href="#" class="btn">Talk to Us</a><a href="#" class="btn p">Get started — free</a></div>
+    <h2 class="t">No-Code Builder<br>for WebGL 3D<br>Websites.</h2>
+    <div class="br"><a href="#" class="cg">Talk to Us</a><a href="#" class="cs">Get started — free</a></div>
   </div></section>
-
   <section class="sec L"><div class="card" id="c2">
-    <div class="ey">USE CASE</div><h2 class="d">Ecommerce</h2>
-    <p class="bd">Launch high-performance interactive 3D product pages that boost engagement — no code required.</p>
+    <div class="ey">Use Case</div><h2 class="t">Ecommerce</h2>
+    <p class="b">Launch high-performance interactive 3D product landing pages that boost engagement — no code required.</p>
     <a href="#" class="al">Explore Now →</a>
   </div></section>
-
   <section class="sec R"><div class="card" id="c3">
-    <div class="ey">USE CASE</div><h2 class="d">Tech</h2>
-    <p class="bd">Leverage WebGL visuals to elevate your online presence with best-in-class 3D websites.</p>
+    <div class="ey">Use Case</div><h2 class="t">Tech</h2>
+    <p class="b">Leverage WebGL visuals and high-performance 3D websites to elevate your online presence.</p>
     <a href="#" class="al">Explore Now →</a>
   </div></section>
-
   <section class="sec L"><div class="card" id="c4">
-    <div class="ey">USE CASE</div><h2 class="d">Creative</h2>
-    <p class="bd">Craft captivating 3D websites with drag-and-drop tools and keyframe animations to wow visitors.</p>
+    <div class="ey">Use Case</div><h2 class="t">Creative</h2>
+    <p class="b">Craft captivating 3D websites with drag-and-drop tools and keyframe animations to wow every visitor.</p>
     <a href="#" class="al">Explore Now →</a>
   </div></section>
-
   <section class="sec R"><div class="card" id="c5">
-    <h2 class="d">Launch your Visually<br>Stunning Interactive<br>3D Website.</h2>
-    <div class="btns"><a href="#" class="btn">Talk to Us</a><a href="#" class="btn p">Browse Gallery</a></div>
+    <h2 class="t">Launch your Visually<br>Stunning Interactive<br>3D Website.</h2>
+    <div class="br"><a href="#" class="cg">Talk to Us</a><a href="#" class="cs">Browse Gallery</a></div>
   </div></section>
-</div>
+</main>
 
-<!-- ═══════════════════════════════════════════════════
-     SCRIPTS — loaded dynamically with error handling
-     Uses a single CDN (jsdelivr) consistently for all.
-     Falls back to unpkg if any script fails.
-═══════════════════════════════════════════════════ -->
 <script>
-// ── Dynamic script loader with fallback ──────────────────
-function loadScript(urls, onSuccess, onFail) {
-  // urls can be array of fallbacks
-  if(!Array.isArray(urls)) urls = [urls];
-  let idx = 0;
-  function tryNext() {
-    if(idx >= urls.length) { onFail && onFail(urls); return; }
-    const s = document.createElement('script');
-    s.src = urls[idx++];
-    s.onload  = onSuccess;
-    s.onerror = tryNext;
-    document.head.appendChild(s);
-  }
-  tryNext();
-}
-
-function setStatus(msg) {
-  const el = document.getElementById('load-status');
-  if(el) el.textContent = msg;
-}
-function setError(msg) {
-  const el = document.getElementById('load-err');
-  if(el){ el.textContent = msg; el.style.display = 'block'; }
-  setStatus('Load Error');
-  console.error('[K07]', msg);
-}
-
-// ── Load chain: Three → GLTFLoader → GSAP → ScrollTrigger → init ──
-setStatus('Loading Three.js');
-loadScript([
-  'https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js',
-  'https://unpkg.com/three@0.134.0/build/three.min.js'
-], function() {
-  setStatus('Loading GLTFLoader');
-  loadScript([
-    'https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js',
-    'https://unpkg.com/three@0.134.0/examples/js/loaders/GLTFLoader.js'
-  ], function() {
-    setStatus('Loading GSAP');
-    loadScript([
-      'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js',
-      'https://unpkg.com/gsap@3.12.5/dist/gsap.min.js'
-    ], function() {
-      setStatus('Loading ScrollTrigger');
-      loadScript([
-        'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js',
-        'https://unpkg.com/gsap@3.12.5/dist/ScrollTrigger.min.js'
-      ], function() {
-        setStatus('Loading Drone');
-        initScene();
-      }, function(urls){ setError('ScrollTrigger failed: ' + urls[0]); });
-    }, function(urls){ setError('GSAP failed: ' + urls[0]); });
-  }, function(urls){ setError('GLTFLoader failed: ' + urls[0]); });
-}, function(urls){ setError('Three.js failed: ' + urls[0]); });
+(function(){
+  var CDN=['https://cdn.jsdelivr.net/npm/','https://unpkg.com/'];
+  var Q=['three@0.134.0/build/three.min.js','three@0.134.0/examples/js/loaders/GLTFLoader.js','gsap@3.12.5/dist/gsap.min.js','gsap@3.12.5/dist/ScrollTrigger.min.js'];
+  var N=['Three.js','GLTFLoader','GSAP','ScrollTrigger'];
+  function m(t){var e=document.getElementById('lm');if(e)e.textContent=t;}
+  function er(t){var e=document.getElementById('le');if(e){e.textContent=t;e.style.display='block';}m('Load failed');console.error(t);}
+  function ld(pkg,ci,ok,fail){var s=document.createElement('script');s.src=CDN[ci]+pkg;s.onload=ok;s.onerror=function(){ci+1<CDN.length?ld(pkg,ci+1,ok,fail):fail(pkg);};document.head.appendChild(s);}
+  function nx(i){if(i>=Q.length){m('Loading Drone');setTimeout(initScene,0);return;}m('Loading '+N[i]);ld(Q[i],0,function(){nx(i+1);},function(p){er('Failed: '+p);});}
+  nx(0);
+})();
 </script>
 
 <script>
-function initScene() {
-
-/* ══ RENDERER ══ */
-const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
-renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.setClearColor(0x000000, 0);
-
-/* ══ SCENE ══ */
-const scene = new THREE.Scene();
-
-/* ══ CAMERA  (peachweb: FOV 40, starts high, descends) ══ */
-const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 1000);
-camera.position.set(0, 12.54, 6.0);
-camera.lookAt(0, 0, 0);
-
-/* ══ LIGHTS ══ */
-scene.add(new THREE.AmbientLight(0x2a3898, 3.5));
-const key = new THREE.DirectionalLight(0xb0ccff, 5.0);
-key.position.set(3, 8, 5); scene.add(key);
-const rim = new THREE.DirectionalLight(0xc080ff, 4.0);
-rim.position.set(-5, 2, -4); scene.add(rim);
-const fill = new THREE.DirectionalLight(0x40c8ff, 2.2);
-fill.position.set(0, -5, 5); scene.add(fill);
-const gA = new THREE.PointLight(0x4488ff, 8, 12);
-gA.position.set(0, -2, 0); scene.add(gA);
-const gB = new THREE.PointLight(0xb060ff, 5, 10);
-gB.position.set(0, 1, 0); scene.add(gB);
-
-/* ══ PARTICLES ══ */
-(function(){
-  const n=400, p=new Float32Array(n*3);
-  for(let i=0;i<n;i++){
-    p[i*3]=(Math.random()-.5)*20; p[i*3+1]=(Math.random()-.5)*30; p[i*3+2]=(Math.random()-.5)*15-2;
+function initScene(){
+  'use strict';
+  if(typeof THREE==='undefined'||typeof THREE.GLTFLoader==='undefined'||typeof gsap==='undefined'||typeof ScrollTrigger==='undefined'){
+    var e=document.getElementById('le');e.textContent='Scripts failed — try Ctrl+Shift+R';e.style.display='block';
+    document.getElementById('lm').textContent='Error';return;
   }
-  const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.BufferAttribute(p,3));
-  scene.add(new THREE.Points(g,new THREE.PointsMaterial({size:.06,color:0x7dd3fc,transparent:true,opacity:.25})));
-})();
+  gsap.registerPlugin(ScrollTrigger);
 
-/* ══ KEYFRAME HELPERS ══ */
-function kfLerp(a,b,t){ return a+(b-a)*t; }
-function eio(t){ return t<.5?2*t*t:-1+(4-2*t)*t; }
-function getKF(kfs, t){
-  if(t<=kfs[0].at) return kfs[0].value;
-  if(t>=kfs[kfs.length-1].at) return kfs[kfs.length-1].value;
-  for(let i=0;i<kfs.length-1;i++){
-    const a=kfs[i],b=kfs[i+1];
-    if(t>=a.at&&t<=b.at){ const l=(t-a.at)/(b.at-a.at); return kfLerp(a.value,b.value,eio(l)); }
-  }
-  return kfs[kfs.length-1].value;
-}
+  /* ── RENDERER ────────────────────────────────── */
+  var canvas=document.getElementById('canvas');
+  var R=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:false});
+  R.setPixelRatio(Math.min(devicePixelRatio,2));
+  R.setSize(innerWidth,innerHeight);
+  R.outputEncoding=THREE.sRGBEncoding;
+  R.toneMapping=THREE.LinearToneMapping;
+  R.toneMappingExposure=0.9;
 
-/* ══ CAMERA KEYFRAMES (from peachweb analysis) ══ */
-const CAM_Y=[
-  {at:0.000,value:12.54},{at:0.065,value:11.24},{at:0.168,value:10.19},
-  {at:0.210,value:8.82},{at:0.356,value:8.82},{at:0.400,value:4.32},{at:1.000,value:3.50}
-];
-const CAM_Z=[
-  {at:0.000,value:6.0},{at:0.356,value:6.0},{at:0.500,value:3.0},{at:1.000,value:2.2}
-];
-const CAM_X=[
-  {at:0.000,value:0.2},{at:0.200,value:-0.3},{at:0.400,value:0.3},
-  {at:0.600,value:-0.2},{at:0.800,value:0.2},{at:1.000,value:0.0}
-];
-
-/* ══ SCALE KEYFRAMES (peachweb exact values) ══ */
-const SCALE=[
-  {at:0.000,value:3.8},{at:0.081,value:4.0},{at:0.090,value:3.0},
-  {at:0.130,value:3.0},{at:0.132,value:3.7},{at:0.158,value:3.7},
-  {at:0.166,value:4.1},{at:0.300,value:4.1},{at:0.340,value:3.5},
-  {at:0.380,value:3.5},{at:0.420,value:4.2},{at:0.500,value:4.2},
-  {at:0.540,value:3.3},{at:0.580,value:3.3},{at:0.620,value:4.0},
-  {at:0.700,value:4.0},{at:0.740,value:3.4},{at:0.780,value:3.4},
-  {at:0.820,value:4.1},{at:1.000,value:4.1}
-];
-
-/* ══ ROTATION KEYFRAMES ══ */
-const ROT_Y=[
-  {at:0.000,value:-1.47},{at:0.200,value:-1.20},{at:0.400,value:-1.80},
-  {at:0.600,value:-1.10},{at:0.800,value:-1.60},{at:1.000,value:-1.47}
-];
-
-/* ══ STATE ══ */
-let drone=null, mixer=null;
-const clock = new THREE.Clock();
-const scroll = {t:0};
-let liveScale=3.8, liveRotY=-1.47;
-let liveCamX=0.2, liveCamY=12.54, liveCamZ=6.0;
-
-/* ══ GSAP SCROLL ══ */
-gsap.registerPlugin(ScrollTrigger);
-ScrollTrigger.create({
-  trigger:document.body, start:'top top', end:'bottom bottom',
-  scrub:1.2,
-  onUpdate(s){
-    scroll.t=s.progress;
-    document.getElementById('prog').style.width=(s.progress*100)+'%';
-    showCards(s.progress);
-    updateTelemetry(s.progress);
-  }
-});
-
-/* ══ CARDS ══ */
-const WINS=[[0,.14],[.16,.30],[.32,.47],[.49,.64],[.66,.81],[.83,1]];
-function showCards(t){
-  WINS.forEach(([a,b],i)=>{
-    const el=document.getElementById('c'+i);
-    if(el) el.classList.toggle('show',t>=a&&t<=b);
+  /* ── BACKGROUND gradient (renders before main scene) ─ */
+  var bgS=new THREE.Scene(), bgC=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+  var bgM=new THREE.ShaderMaterial({
+    depthWrite:false,
+    uniforms:{t:{value:0}},
+    vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=vec4(position,1.);}',
+    fragmentShader:[
+      'varying vec2 v;uniform float t;void main(){',
+      /* warm peach/mauve hero → dark navy/indigo */
+      'vec3 hT=vec3(.86,.76,.74),hB=vec3(.50,.36,.60);',
+      'vec3 dT=vec3(.03,.04,.11),dB=vec3(.05,.03,.17);',
+      'float s=clamp(t*2.,0.,1.);',
+      'vec3 c=mix(mix(hB,hT,v.y),mix(dB,dT,v.y),s);',
+      'vec2 uv2=v*2.-1.;c*=1.-dot(uv2,uv2)*.18;',
+      'gl_FragColor=vec4(c,1.);}'].join('')
   });
-}
-function updateTelemetry(t){
-  document.getElementById('ta').textContent=String(Math.round(80+t*160)).padStart(3,'0');
-  document.getElementById('ts').textContent=String(Math.round(55+Math.sin(t*Math.PI*5)*22+t*30)).padStart(3,'0');
-  document.getElementById('th').textContent=String(Math.round((t*520)%360)).padStart(3,'0');
-  document.getElementById('tb').textContent=String(Math.round(100-t*16));
-}
+  bgS.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),bgM));
 
-/* ══ LOAD GLB ══ */
-const loader = new THREE.GLTFLoader();
-// No DRACOLoader needed — GLB has no draco compression (verified)
+  /* ── SCENE ───────────────────────────────────── */
+  var scene=new THREE.Scene();
 
-loader.load(
-  'k07_drone.glb',
-  function(gltf) {
-    // Kill all embedded lights (TPhotometricLight nodes)
-    gltf.scene.traverse(function(obj){
-      if(obj.isLight){ obj.intensity=0; obj.visible=false; return; }
-      if(obj.isMesh){
-        const mats=Array.isArray(obj.material)?obj.material:[obj.material];
-        mats.forEach(function(m){
-          if(!m) return;
-          m.envMapIntensity=0.6;
-          if((obj.name||'').includes('Fire')||(obj.name||'').includes('Plasma')){
-            if(m.emissive) m.emissive.setHex(0x0066ff);
-            if(m.emissiveIntensity!==undefined) m.emissiveIntensity=0.5;
-          }
-          m.needsUpdate=true;
-        });
-      }
-    });
+  /* ── CAMERA ─────────────────────────────────────
+     PeachWeb EXACT: FOV=40, x=0, y=12.54, z=1.066
+     Camera is 85° from horizontal — looking almost
+     straight DOWN at the drone from above.
+     This gives the top-front view in screenshot 1.
 
-    drone = gltf.scene;
-    // FIXED at origin — exactly like peachweb clown fish
-    drone.position.set(0, 0, 0);
-    // Peachweb exact rotation values
-    drone.rotation.set(Math.PI, -1.47, Math.PI);
-    drone.scale.setScalar(3.8);
-    scene.add(drone);
+     DRONE SCALE = 0.046 (calculated from actual GLB
+     bounding box: 75 units wide → 0.046 * 75 = 3.45
+     world units, which = ~38% viewport at this dist).
+  ────────────────────────────────────────────────*/
+  var CAM_Y0=12.54, CAM_Z0=1.066;
+  var DRONE_SCALE=0.046;
 
-    // Play animation
-    if(gltf.animations && gltf.animations.length){
-      mixer = new THREE.AnimationMixer(drone);
-      gltf.animations.forEach(function(clip){
-        mixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity).play();
+  var camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,0.01,500);
+  camera.position.set(0,CAM_Y0,CAM_Z0);
+  camera.lookAt(0,0,0);
+
+  /* ── LIGHTS ──────────────────────────────────── */
+  var aL=new THREE.AmbientLight(0xd0a0c0,3.5); scene.add(aL);
+  var kL=new THREE.DirectionalLight(0xffe8d0,5.5); kL.position.set(2,8,4); scene.add(kL);
+  var rL=new THREE.DirectionalLight(0x8040c0,3.5); rL.position.set(-4,2,-4); scene.add(rL);
+  var fL=new THREE.DirectionalLight(0xffb0c0,2.5); fL.position.set(5,1,4); scene.add(fL);
+  var uL=new THREE.DirectionalLight(0x4060c0,1.5); uL.position.set(0,-4,3); scene.add(uL);
+  var eA=new THREE.PointLight(0x4488ff,4,5); scene.add(eA);
+  var eB=new THREE.PointLight(0xaa44ff,3,4); scene.add(eB);
+
+  /* ── GROUND REFLECTION PLANE ─────────────────── */
+  var gnd=new THREE.Mesh(
+    new THREE.PlaneGeometry(30,30),
+    new THREE.MeshStandardMaterial({color:0x2a1a4a,metalness:.8,roughness:.3,transparent:true,opacity:.6})
+  );
+  gnd.rotation.x=-Math.PI/2; gnd.position.y=-1.8; scene.add(gnd);
+
+  /* ── KEYFRAME SAMPLER ────────────────────────── */
+  function eio(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+  function kf(ks,t){
+    if(t<=ks[0].at)return ks[0].v;
+    if(t>=ks[ks.length-1].at)return ks[ks.length-1].v;
+    for(var i=0;i<ks.length-1;i++){var a=ks[i],b=ks[i+1];if(t>=a.at&&t<=b.at){var l=(t-a.at)/(b.at-a.at);return a.v+(b.v-a.v)*eio(l);}}
+    return ks[ks.length-1].v;
+  }
+
+  /* ── CAMERA KEYFRAMES — PeachWeb exact data ─────
+     Source: scene-state JSON provided in analysis doc
+     Y: 12.54 → 11.24 → 10.19 → 8.82 → 4.32
+     Z: 1.066 constant → 0.212 at scroll 45%
+     X: 0.808 constant (we mirror to 0 for symmetry)
+     Mapped from their 0-45% scroll → our 0-100%
+  ────────────────────────────────────────────────*/
+  var CY=[
+    {at:0.00,v:12.54},
+    {at:0.13,v:11.24},  /* their 6.5%  → our 13% */
+    {at:0.25,v:10.19},  /* their 16.8% → our 25% */
+    {at:0.36,v: 8.82},  /* their 21%   → our 36% */
+    {at:0.65,v: 8.82},  /* their 35.6% → our 65% (hold) */
+    {at:0.80,v: 4.32},  /* their 40%   → our 80% (rapid drop) */
+    {at:1.00,v: 3.50}
+  ];
+  var CZ=[
+    {at:0.00,v:1.066},  /* PeachWeb exact */
+    {at:0.65,v:1.066},  /* constant */
+    {at:0.80,v:0.600},
+    {at:1.00,v:0.212}   /* PeachWeb exact end value */
+  ];
+  /* Slight lateral drift (PeachWeb x=0.808 constant + TILT) */
+  var CX=[
+    {at:0.00,v: 0.0},
+    {at:0.25,v: 0.3},
+    {at:0.50,v:-0.3},
+    {at:0.75,v: 0.2},
+    {at:1.00,v: 0.0}
+  ];
+
+  /* ── SCALE KEYFRAMES — PeachWeb exact ratios ────
+     PeachWeb: base=3.8, pulses to 4.1
+     Our base=0.046, same pulse ratios applied:
+     3.0/3.8=0.789, 3.7/3.8=0.974, 4.0/3.8=1.053, 4.1/3.8=1.079
+  ────────────────────────────────────────────────*/
+  var S=DRONE_SCALE;
+  var SK=[
+    {at:0.000,v:S},
+    {at:0.081,v:S*1.053},{at:0.090,v:S*0.789},  /* PeachWeb exact */
+    {at:0.130,v:S*0.789},{at:0.132,v:S*0.974},
+    {at:0.158,v:S*0.974},{at:0.166,v:S*1.079},  /* PeachWeb exact */
+    {at:0.300,v:S*1.079},{at:0.340,v:S*0.842},
+    {at:0.380,v:S*0.842},{at:0.420,v:S*1.105},
+    {at:0.500,v:S*1.105},{at:0.540,v:S*0.868},
+    {at:0.580,v:S*0.868},{at:0.620,v:S*1.053},
+    {at:0.700,v:S*1.053},{at:0.740,v:S*0.895},
+    {at:0.780,v:S*0.895},{at:0.820,v:S*1.079},
+    {at:1.000,v:S*1.079}
+  ];
+
+  /* ── ROTATION Y — gentle yaw as camera sweeps ── */
+  var RY=[
+    {at:0.00,v:-1.47},{at:0.20,v:-1.20},{at:0.40,v:-1.80},
+    {at:0.60,v:-1.10},{at:0.80,v:-1.60},{at:1.00,v:-1.47}
+  ];
+
+  /* ── LIVE SMOOTHED STATE ─────────────────────── */
+  var L={cx:0,cy:CAM_Y0,cz:CAM_Z0,sc:S,ry:-1.47};
+  var SMOOTH=0.055; /* matches PeachWeb easingDuration:0.3 */
+  var scrollT=0;
+  var heroC=new THREE.Color(0xd0a0c0), darkC=new THREE.Color(0x253080);
+
+  /* ── SCROLL ──────────────────────────────────── */
+  ScrollTrigger.create({
+    trigger:document.body,start:'top top',end:'bottom bottom',scrub:1.0,
+    onUpdate:function(s){
+      scrollT=s.progress;
+      document.getElementById('prog').style.width=(s.progress*100)+'%';
+      bgM.uniforms.t.value=s.progress;
+      cards(s.progress); telem(s.progress);
+    }
+  });
+
+  var WINS=[[0,.14],[.16,.30],[.32,.46],[.48,.63],[.65,.80],[.82,1]];
+  function cards(t){for(var i=0;i<6;i++){var el=document.getElementById('c'+i);if(el)el.classList.toggle('on',t>=WINS[i][0]&&t<=WINS[i][1]);}}
+  function telem(t){
+    document.getElementById('ta').textContent=String(Math.round(80+t*160)).padStart(3,'0');
+    document.getElementById('ts').textContent=String(Math.round(58+Math.sin(t*Math.PI*5)*18+t*28)).padStart(3,'0');
+    document.getElementById('th').textContent=String(Math.round((t*520)%360)).padStart(3,'0');
+    document.getElementById('tb').textContent=String(Math.round(100-t*15));
+  }
+
+  /* ── LOAD GLB ────────────────────────────────────
+     The GLB node 'K07 Drone' has a baked-in:
+       translation: [0.022, 6.633, -5.337]
+       rotation: 90° around X (quaternion)
+     At scale=0.046 these become:
+       offset: [0.001, 0.305, -0.245] world units
+     We compensate by repositioning after loading.
+  ────────────────────────────────────────────────*/
+  var drone=null, mixer=null, clock=new THREE.Clock();
+  new THREE.GLTFLoader().load('k07_drone.glb',
+    function(gltf){
+      gltf.scene.traverse(function(obj){
+        /* Kill ALL embedded photometric lights */
+        if(obj.isLight){obj.intensity=0;obj.visible=false;return;}
+        if(obj.isMesh){
+          var mats=Array.isArray(obj.material)?obj.material:[obj.material];
+          mats.forEach(function(m){
+            if(!m)return;
+            /* FIX: Mat_PlasmaTurbine emissive=[1,1,1] → white blowout */
+            if(m.name==='Mat_PlasmaTurbine'){
+              m.emissive=new THREE.Color(0,0.05,0.4);
+              m.emissiveIntensity=0.35;
+            }
+            m.envMapIntensity=0.3; m.needsUpdate=true;
+          });
+        }
       });
+
+      drone=gltf.scene;
+
+      /* ── Scale: 0.046 makes drone ~3.45 world units wide ── */
+      drone.scale.setScalar(S);
+
+      /* ── Compensate for baked-in node translation ──────────
+         Node has translation [0.022, 6.633, -5.337] in local space.
+         After scaling: [0.001, 0.305, -0.245] world units.
+         Negate to re-centre drone at world origin {0,0,0}.
+      */
+      drone.position.set(-0.001, -0.305, 0.245);
+
+      /* ── Keep baked-in rotation (90° X flip) ──────────────
+         PeachWeb sets rotation {x:π, y:-1.47, z:π}
+         But our GLB already has a 90° X rotation baked in.
+         Just add the Y rotation for facing direction.
+         We DON'T override the rotation — we only set Y.
+      */
+      drone.rotation.y = -1.47;
+
+      scene.add(drone);
+
+      /* Play animation */
+      if(gltf.animations&&gltf.animations.length){
+        mixer=new THREE.AnimationMixer(drone);
+        gltf.animations.forEach(function(c){mixer.clipAction(c).setLoop(THREE.LoopRepeat,Infinity).play();});
+      }
+
+      document.getElementById('loader').classList.add('out');
+      setTimeout(function(){document.getElementById('loader').style.display='none';},900);
+      document.getElementById('telem').classList.add('on');
+      cards(0); telem(0);
+      console.log('[K07] scale='+S+' cam y='+CAM_Y0+' z='+CAM_Z0);
+    },
+    function(x){if(x.total>0)document.getElementById('lm').textContent='Loading '+Math.round(x.loaded/x.total*100)+'%';},
+    function(e){
+      console.error(e);
+      var el=document.getElementById('le');
+      el.textContent='Cannot load k07_drone.glb — same folder + localhost:8080';
+      el.style.display='block'; document.getElementById('lm').textContent='Error';
+    }
+  );
+
+  /* ── RENDER LOOP ─────────────────────────────────
+     DRONE: fixed near {0,0,0}, scale + yaw only
+     CAMERA: moves (Y descends, Z closes in) — PeachWeb technique
+  ────────────────────────────────────────────────*/
+  function tick(){
+    requestAnimationFrame(tick);
+    var dt=clock.getDelta(), el=clock.getElapsedTime();
+    if(mixer)mixer.update(dt);
+    var t=scrollT;
+
+    /* Sample + lerp */
+    L.cx+=(kf(CX,t)-L.cx)*SMOOTH;
+    L.cy+=(kf(CY,t)-L.cy)*SMOOTH;
+    L.cz+=(kf(CZ,t)-L.cz)*SMOOTH;
+    L.sc+=(kf(SK,t)-L.sc)*SMOOTH;
+    L.ry+=(kf(RY,t)-L.ry)*SMOOTH;
+
+    /* Camera: TILT = subtle sine (PeachWeb maxRotation:0.052) */
+    camera.position.set(
+      L.cx+Math.sin(el*.38)*.04,
+      L.cy+Math.cos(el*.27)*.025,
+      L.cz
+    );
+    camera.lookAt(0,0,0);
+
+    /* Drone: scale + yaw, stays at origin */
+    if(drone){
+      drone.scale.setScalar(L.sc);
+      drone.rotation.y=L.ry;
+      /* micro idle bob */
+      drone.position.y=-0.305+Math.sin(el*1.5)*0.015;
+      drone.position.x=-0.001+Math.cos(el*.8)*0.008;
     }
 
-    // Hide loader
-    const ld=document.getElementById('loader');
-    ld.classList.add('out');
-    setTimeout(function(){ ld.style.display='none'; }, 950);
-    document.getElementById('telem').classList.add('show');
-    showCards(0);
+    /* Lights morph warm→cool with scroll */
+    var sc=Math.min(t*2,1);
+    aL.color.copy(heroC).lerp(darkC,sc);
+    kL.color.setRGB(1-sc*.4, 0.91-sc*.41, 0.82-sc*.22);
+    eA.intensity=3.5+Math.sin(el*3.1)*1.2; eB.intensity=2.5+Math.cos(el*2.3);
+    gnd.material.opacity=.6-sc*.35;
 
-    console.log('[K07] Drone loaded OK. Animations:', gltf.animations.length);
-  },
-  function(xhr){
-    const pct = xhr.total ? Math.round(xhr.loaded/xhr.total*100) : '...';
-    setStatus('Loading model ' + pct + '%');
-  },
-  function(err){
-    console.error('[K07] GLB load error:', err);
-    setError('Could not load k07_drone.glb — make sure it is in the same folder as this HTML file and you are using a local server (python -m http.server 8080).');
+    /* Two-pass: bg then scene */
+    R.autoClear=true;  R.render(bgS,bgC);
+    R.autoClear=false; R.render(scene,camera);
   }
-);
+  tick();
 
-/* ══ RENDER LOOP ══ */
-const LAG=0.06;
-function tick(){
-  requestAnimationFrame(tick);
-  const delta=clock.getDelta();
-  const elapsed=clock.getElapsedTime();
-  if(mixer) mixer.update(delta);
-
-  const t=scroll.t;
-  const tgtCamY=getKF(CAM_Y,t), tgtCamZ=getKF(CAM_Z,t), tgtCamX=getKF(CAM_X,t);
-  const tgtScale=getKF(SCALE,t), tgtRotY=getKF(ROT_Y,t);
-
-  liveCamY +=(tgtCamY -liveCamY) *LAG;
-  liveCamZ +=(tgtCamZ -liveCamZ) *LAG;
-  liveCamX +=(tgtCamX -liveCamX) *LAG;
-  liveScale+=(tgtScale-liveScale)*LAG;
-  liveRotY +=(tgtRotY -liveRotY) *LAG;
-
-  // Camera moves, drone stays fixed (peachweb technique)
-  camera.position.set(
-    liveCamX + Math.sin(elapsed*0.4)*0.06,
-    liveCamY + Math.cos(elapsed*0.3)*0.03,
-    liveCamZ
-  );
-  camera.lookAt(0, 0, 0);
-
-  if(drone){
-    drone.scale.setScalar(liveScale);
-    drone.rotation.set(Math.PI, liveRotY, Math.PI);
-    // Tiny idle bob — keeps drone alive when scrolling stops
-    drone.position.y = Math.sin(elapsed*1.4)*0.04;
-    drone.position.x = Math.cos(elapsed*0.8)*0.02;
-  }
-
-  // Pulsing engine glow
-  gA.intensity = 7+Math.sin(elapsed*3)*2;
-  gB.intensity = 4+Math.cos(elapsed*2.2)*1.5;
-
-  renderer.render(scene, camera);
+  window.addEventListener('resize',function(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
+  window.addEventListener('scroll',function(){if(scrollY>60)document.getElementById('hint').classList.add('gone');},{passive:true});
 }
-tick();
-
-/* ══ RESIZE ══ */
-window.addEventListener('resize',function(){
-  camera.aspect=innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
-});
-
-/* ══ SCROLL HINT ══ */
-window.addEventListener('scroll',function(){
-  if(scrollY>80) document.getElementById('hint').classList.add('gone');
-},{passive:true});
-
-showCards(0);
-updateTelemetry(0);
-
-} // end initScene
 </script>
 </body>
 </html>
