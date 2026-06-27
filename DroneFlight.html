@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clown Fish</title>
+<title>K07 Drone</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
 <style>
@@ -83,7 +83,7 @@ h2.t{font-size:clamp(2rem,4vw,3.4rem);font-weight:700;line-height:1.05;letter-sp
 <div id="prog"></div>
 
 <nav>
-  <a href="#" class="logo"><div class="orb"></div>Clown Fish</a>
+  <a href="#" class="logo"><div class="orb"></div>K07 Drone</a>
   <div class="nl"><a href="#">Product ↓</a><a href="#">Use Cases ↓</a><a href="#">Resources ↓</a><a href="#">Pricing</a></div>
   <div class="nr"><a href="#" class="ng">Login</a><a href="#" class="no">Talk to Us</a><a href="#" class="nf">Get Started</a></div>
 </nav>
@@ -98,7 +98,7 @@ h2.t{font-size:clamp(2rem,4vw,3.4rem);font-weight:700;line-height:1.05;letter-sp
 <main id="page">
   <section class="sec L"><div class="card" id="c0">
     <div class="ey">Autonomous Aerial Platform</div>
-    <h1 class="h">3D Websites<br>in Minutes.<br><span class="gr">Clown.</span></h1>
+    <h1 class="h">3D Websites<br>in Minutes.<br><span class="gr">K07.</span></h1>
     <p class="b">No-Code Builder for WebGL 3D&nbsp;Websites.</p>
     <div class="br"><a href="#" class="cg">Talk to Us</a><a href="#" class="cs">Get Started</a></div>
     <div class="st"><div><div class="sn">42m</div><div class="sl">Flight Time</div></div><div><div class="sn">12km</div><div class="sl">Range</div></div><div><div class="sn">4K</div><div class="sl">Camera</div></div></div>
@@ -383,7 +383,7 @@ function boot(){
   ══════════════════════════════════════════════ */
   var drone=null,mixer=null,clock=new THREE.Clock();
 
-  new THREE.GLTFLoader().load('ClownFish.glb',
+  new THREE.GLTFLoader().load('k07_drone.glb',
     function(gltf){
       gltf.scene.traverse(function(obj){
         if(obj.isLight){obj.intensity=0;obj.visible=false;return;}
@@ -431,13 +431,13 @@ function boot(){
       setTimeout(function(){document.getElementById('ld').style.display='none';},900);
       document.getElementById('tl').classList.add('on');
       cards(0);telem(0);
-      console.log('[Clown] Loaded. scale='+B+' halfW='+halfW.toFixed(2)+' halfH='+halfH.toFixed(2));
+      console.log('[K07] Loaded. scale='+B+' halfW='+halfW.toFixed(2)+' halfH='+halfH.toFixed(2));
     },
     function(x){if(x.total>0)document.getElementById('lm').textContent='Loading '+Math.round(x.loaded/x.total*100)+'%';},
     function(e){
       console.error(e);
       var el=document.getElementById('le');
-      el.textContent='Cannot load ClownFish.glb — same folder + localhost:8080';
+      el.textContent='Cannot load k07_drone.glb — same folder + localhost:8080';
       el.style.display='block';document.getElementById('lm').textContent='Error';
     }
   );
