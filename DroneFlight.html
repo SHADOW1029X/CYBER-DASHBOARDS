@@ -8,33 +8,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --acc:#4fc3f7;--pur:#a78bfa;
-  --tx:#f0f4ff;--ff:'Space Grotesk',system-ui,sans-serif;
-}
+:root{--acc:#4fc3f7;--pur:#a78bfa;--tx:#f0f4ff;--ff:'Space Grotesk',system-ui,sans-serif;}
 html,body{font-family:var(--ff);color:var(--tx);overflow-x:hidden;background:#000;}
-
-/* Canvas fixed full-viewport */
-#cv{position:fixed;inset:0;width:100vw;height:100vh;z-index:1;pointer-events:none;display:block;}
-
-/* All UI above canvas */
+#cv{position:fixed;inset:0;width:100vw;height:100vh;z-index:1;pointer-events:none;}
 #page{position:relative;z-index:2;}
-#prog{position:fixed;top:0;left:0;height:2px;width:0%;background:linear-gradient(90deg,var(--pur),var(--acc));z-index:200;}
-
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 52px;background:linear-gradient(180deg,rgba(0,0,0,.65)0%,transparent 100%);}
+#prog{position:fixed;top:0;left:0;height:2px;width:0%;background:linear-gradient(90deg,var(--pur),var(--acc));z-index:200;box-shadow:0 0 8px var(--acc);}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 52px;background:linear-gradient(180deg,rgba(0,0,0,.75)0%,transparent 100%);}
 .logo{display:flex;align-items:center;gap:10px;font-size:.95rem;font-weight:700;color:var(--tx);text-decoration:none;}
 .orb{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--pur),var(--acc));flex-shrink:0;}
-.nl{display:flex;align-items:center;gap:2px;}
-.nl a{font-size:.82rem;color:rgba(255,255,255,.7);text-decoration:none;padding:7px 14px;border-radius:100px;transition:color .2s,background .2s;}
+.nl{display:flex;gap:2px;}.nl a{font-size:.82rem;color:rgba(255,255,255,.7);text-decoration:none;padding:7px 14px;border-radius:100px;}
 .nl a:hover{color:#fff;background:rgba(255,255,255,.08);}
 .nr{display:flex;gap:10px;}
-.ng{font-size:.82rem;color:rgba(255,255,255,.65);text-decoration:none;padding:8px 14px;border-radius:100px;border:1.5px solid transparent;}
-.ng:hover{border-color:rgba(255,255,255,.3);}
+.ng{font-size:.82rem;color:rgba(255,255,255,.65);text-decoration:none;padding:8px 14px;border-radius:100px;}
 .no{font-size:.82rem;font-weight:600;color:#fff;text-decoration:none;padding:9px 20px;border-radius:100px;border:1.5px solid rgba(255,255,255,.35);}
 .nf{font-size:.82rem;font-weight:700;color:#fff;text-decoration:none;padding:10px 22px;border-radius:100px;background:linear-gradient(135deg,#3b2f8a,#1e3fa8);}
-
-/* Sections */
 .sec{position:relative;min-height:100vh;display:flex;align-items:center;}
 .sec.L{justify-content:flex-start;}.sec.R{justify-content:flex-end;}
 .card{max-width:440px;padding:0 64px;opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease;pointer-events:none;}
@@ -52,60 +39,58 @@ h2.t{font-size:clamp(2rem,4vw,3.4rem);font-weight:700;line-height:1.05;letter-sp
 .sn{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--acc),var(--pur));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:4px;}
 .sl{font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45);}
 .al{font-size:.9rem;font-weight:600;color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:8px;}
-
-/* Hint */
 #hint{position:fixed;bottom:30px;right:34px;z-index:50;background:linear-gradient(135deg,#3b2f8a,#1e3fa8);border-radius:18px;padding:18px 22px;max-width:160px;opacity:1;transition:opacity .5s;}
 #hint.gone{opacity:0;pointer-events:none;}
 .ht{font-size:.88rem;font-weight:700;line-height:1.3;margin-bottom:5px;}
 .hs{font-size:.68rem;color:rgba(255,255,255,.55);}
 .ha{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;margin-top:10px;animation:bd 1.6s ease infinite;}
 @keyframes bd{0%,100%{transform:translateY(0);}50%{transform:translateY(4px);}}
-
-/* Loader */
 #ld{position:fixed;inset:0;background:#000;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .8s;}
 #ld.out{opacity:0;pointer-events:none;}
 .lr{width:44px;height:44px;border-radius:50%;border:2px solid rgba(79,195,247,.1);border-top-color:var(--acc);animation:sp .8s linear infinite;}
 .lm{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);}
 .le{font-size:.72rem;color:#f87171;text-align:center;max-width:340px;display:none;line-height:1.6;margin-top:4px;}
 @keyframes sp{to{transform:rotate(360deg);}}
-
-/* Telemetry */
-#tl{position:fixed;bottom:30px;left:30px;z-index:50;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.07em;color:rgba(79,195,247,.38);line-height:2;opacity:0;transition:opacity 1.2s;pointer-events:none;}
+#tl{position:fixed;bottom:30px;left:30px;z-index:50;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.07em;color:rgba(79,195,247,.45);line-height:2;opacity:0;transition:opacity 1.2s;pointer-events:none;}
 #tl.on{opacity:1;}
-
 @media(max-width:768px){nav{padding:16px 20px;}.nl{display:none;}.card{padding:0 24px;max-width:100%;}.sec.R{justify-content:flex-start;}#hint{right:16px;bottom:16px;}#tl{display:none;}}
 </style>
 </head>
 <body>
-
 <div id="ld"><div class="lr"></div><div class="lm" id="lm">Initialising</div><div class="le" id="le"></div></div>
 <canvas id="cv"></canvas>
 <div id="prog"></div>
-
 <nav>
   <a href="#" class="logo"><div class="orb"></div>K07 Drone</a>
   <div class="nl"><a href="#">Product ↓</a><a href="#">Use Cases ↓</a><a href="#">Resources ↓</a><a href="#">Pricing</a></div>
   <div class="nr"><a href="#" class="ng">Login</a><a href="#" class="no">Talk to Us</a><a href="#" class="nf">Get Started</a></div>
 </nav>
-
 <div id="hint">
   <div class="ht">Scroll down<br>&amp; dive in</div><div class="hs">Interactive 3D</div>
   <div class="ha"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
 </div>
-
-<div id="tl">ALT&nbsp;<span id="ta">082</span>m<br>SPD&nbsp;<span id="ts">074</span>&nbsp;km/h<br>HDG&nbsp;<span id="th">270</span>°<br>BAT&nbsp;<span id="tb">100</span>%</div>
+<div id="tl">
+  ALT&nbsp;<span id="ta">082</span>m<br>
+  SPD&nbsp;<span id="ts">074</span>&nbsp;km/h<br>
+  HDG&nbsp;<span id="th">270</span>°<br>
+  BAT&nbsp;<span id="tb">100</span>%
+</div>
 
 <main id="page">
   <section class="sec L"><div class="card" id="c0">
     <div class="ey">Autonomous Aerial Platform</div>
     <h1 class="h">3D Websites<br>in Minutes.<br><span class="gr">K07.</span></h1>
-    <p class="b">No-Code Builder for WebGL 3D&nbsp;Websites.</p>
+    <p class="b">No-Code Builder for WebGL 3D Websites.</p>
     <div class="br"><a href="#" class="cg">Talk to Us</a><a href="#" class="cs">Get Started</a></div>
-    <div class="st"><div><div class="sn">42m</div><div class="sl">Flight Time</div></div><div><div class="sn">12km</div><div class="sl">Range</div></div><div><div class="sn">4K</div><div class="sl">Camera</div></div></div>
+    <div class="st">
+      <div><div class="sn">42m</div><div class="sl">Flight Time</div></div>
+      <div><div class="sn">12km</div><div class="sl">Range</div></div>
+      <div><div class="sn">4K</div><div class="sl">Camera</div></div>
+    </div>
   </div></section>
   <section class="sec R"><div class="card" id="c1">
     <div class="ey">Intelligent Navigation</div>
-    <h2 class="t">No-Code Builder<br>for WebGL 3D<br>Websites.</h2>
+    <h2 class="t">No-Code Builder<br>for WebGL 3D Websites.</h2>
     <div class="br"><a href="#" class="cg">Talk to Us</a><a href="#" class="cs">Get started — free</a></div>
   </div></section>
   <section class="sec L"><div class="card" id="c2">
@@ -120,7 +105,7 @@ h2.t{font-size:clamp(2rem,4vw,3.4rem);font-weight:700;line-height:1.05;letter-sp
   </div></section>
   <section class="sec L"><div class="card" id="c4">
     <div class="ey">Use Case</div><h2 class="t">Creative</h2>
-    <p class="b">Craft captivating 3D websites with drag-and-drop tools and keyframe animations to wow every visitor.</p>
+    <p class="b">Craft captivating 3D websites with keyframe animations and drag-and-drop tools.</p>
     <a href="#" class="al">Explore Now →</a>
   </div></section>
   <section class="sec R"><div class="card" id="c5">
@@ -129,15 +114,15 @@ h2.t{font-size:clamp(2rem,4vw,3.4rem);font-weight:700;line-height:1.05;letter-sp
   </div></section>
 </main>
 
-<!-- Script loader -->
+<!-- Sequential loader -->
 <script>
 (function(){
   var CDN=['https://cdn.jsdelivr.net/npm/','https://unpkg.com/'];
   var Q=['three@0.134.0/build/three.min.js','three@0.134.0/examples/js/loaders/GLTFLoader.js','gsap@3.12.5/dist/gsap.min.js','gsap@3.12.5/dist/ScrollTrigger.min.js'];
   var N=['Three.js','GLTFLoader','GSAP','ScrollTrigger'];
   function m(t){var e=document.getElementById('lm');if(e)e.textContent=t;}
-  function er(t){var e=document.getElementById('le');if(e){e.textContent=t;e.style.display='block';}m('Load failed');console.error(t);}
-  function ld(pkg,ci,ok,fail){var s=document.createElement('script');s.src=CDN[ci]+pkg;s.onload=ok;s.onerror=function(){ci+1<CDN.length?ld(pkg,ci+1,ok,fail):fail(pkg);};document.head.appendChild(s);}
+  function er(t){var e=document.getElementById('le');if(e){e.textContent=t;e.style.display='block';}m('Load failed');}
+  function ld(p,ci,ok,fail){var s=document.createElement('script');s.src=CDN[ci]+p;s.onload=ok;s.onerror=function(){ci+1<CDN.length?ld(p,ci+1,ok,fail):fail(p);};document.head.appendChild(s);}
   function nx(i){if(i>=Q.length){m('Loading Drone');setTimeout(boot,0);return;}m('Loading '+N[i]);ld(Q[i],0,function(){nx(i+1);},function(p){er('Failed: '+p);});}
   nx(0);
 })();
@@ -147,373 +132,485 @@ h2.t{font-size:clamp(2rem,4vw,3.4rem);font-weight:700;line-height:1.05;letter-sp
 function boot(){
   'use strict';
   if(typeof THREE==='undefined'||!THREE.GLTFLoader||typeof gsap==='undefined'||typeof ScrollTrigger==='undefined'){
-    var e=document.getElementById('le');e.textContent='Scripts failed — Ctrl+Shift+R to retry';e.style.display='block';
+    var e=document.getElementById('le');e.textContent='Scripts failed — Ctrl+Shift+R';e.style.display='block';
     document.getElementById('lm').textContent='Error';return;
   }
   gsap.registerPlugin(ScrollTrigger);
 
-  /* ══════════════════════════════════════════════
-     RENDERER
-  ══════════════════════════════════════════════ */
+  /* ══ RENDERER ══════════════════════════════ */
   var cv=document.getElementById('cv');
   var R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:false});
   R.setPixelRatio(Math.min(devicePixelRatio,2));
   R.setSize(innerWidth,innerHeight);
   R.outputEncoding=THREE.sRGBEncoding;
   R.toneMapping=THREE.LinearToneMapping;
-  R.toneMappingExposure=0.9;
+  R.toneMappingExposure=0.95;
 
-  /* ══════════════════════════════════════════════
-     BACKGROUND — fullscreen gradient quad
-     Warm peach/mauve (hero) → dark navy (deep sections)
-     Matches the PeachWeb background colour transition
-  ══════════════════════════════════════════════ */
-  var bgS=new THREE.Scene(),bgC=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+  /* ══ BACKGROUND GRADIENT ════════════════════
+     Two-layer: warm peach/purple (hero) transitions
+     to deep navy/indigo as user scrolls into dark sections
+  ═══════════════════════════════════════════ */
+  var bgS=new THREE.Scene(), bgC=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
   var bgM=new THREE.ShaderMaterial({
     depthWrite:false,
     uniforms:{t:{value:0}},
     vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=vec4(position,1.);}',
     fragmentShader:[
-      'varying vec2 v;uniform float t;',
-      'void main(){',
-      // hero: warm peach sky top, purple/mauve bottom
-      'vec3 hT=vec3(.86,.76,.72),hB=vec3(.48,.32,.58);',
-      // dark: deep navy top, indigo bottom
-      'vec3 dT=vec3(.025,.03,.09),dB=vec3(.04,.02,.15);',
-      // blend over first 50% of scroll
-      'float s=clamp(t*2.,0.,1.);',
+      'varying vec2 v;uniform float t;void main(){',
+      // Hero: warm peach top, deep purple bottom
+      'vec3 hT=vec3(.87,.77,.73),hB=vec3(.46,.30,.56);',
+      // Dark: near-black navy top, dark indigo bottom
+      'vec3 dT=vec3(.022,.028,.09),dB=vec3(.038,.020,.14);',
+      'float s=smoothstep(0.,1.,t*2.);',
       'vec3 col=mix(mix(hB,hT,v.y),mix(dB,dT,v.y),s);',
-      // vignette
-      'vec2 uv2=v*2.-1.;col*=1.-dot(uv2,uv2)*.15;',
+      // Radial vignette
+      'vec2 u=v*2.-1.;float vign=1.-dot(u,u)*.18;col*=vign;',
       'gl_FragColor=vec4(col,1.);}'].join('')
   });
   bgS.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),bgM));
 
-  /* ══════════════════════════════════════════════
-     MAIN SCENE
-  ══════════════════════════════════════════════ */
+  /* ══ MAIN SCENE ═════════════════════════════ */
   var scene=new THREE.Scene();
 
-  /* ══════════════════════════════════════════════
-     CAMERA
-     PeachWeb exact: FOV=40
-     We use a standard perspective camera.
-     The DRONE MOVES in screen space via its
-     world position — camera stays fixed at origin
-     looking down -Z axis. Drone XY maps directly
-     to screen position. This is the simplest and
-     most reliable approach.
-  ══════════════════════════════════════════════ */
-  var camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,0.01,200);
-  // Camera looks straight ahead at Z=0 plane where drone lives
-  camera.position.set(0,0,8);
-  camera.lookAt(0,0,0);
+  /* ══ CAMERA ══════════════════════════════════
+     Fixed at z=8, FOV=40.
+     halfH = 8*tan(20°) = 2.91 world units (half viewport height)
+     halfW = halfH * aspect
+     Drone world position maps 1:1 to screen position.
+  ═══════════════════════════════════════════ */
+  var CAM_Z = 8;
+  var camera = new THREE.PerspectiveCamera(40, innerWidth/innerHeight, 0.01, 200);
+  camera.position.set(0, 0, CAM_Z);
+  camera.lookAt(0, 0, 0);
 
-  /* ══════════════════════════════════════════════
-     LIGHTS
-  ══════════════════════════════════════════════ */
-  var aL=new THREE.AmbientLight(0xd0a0c0,3.5); scene.add(aL);
-  var kL=new THREE.DirectionalLight(0xffe8d0,5.5); kL.position.set(3,5,5); scene.add(kL);
-  var rL=new THREE.DirectionalLight(0x8040c0,3.5); rL.position.set(-4,2,-3); scene.add(rL);
-  var fL=new THREE.DirectionalLight(0xffb0d0,2.5); fL.position.set(5,1,3); scene.add(fL);
-  var uL=new THREE.DirectionalLight(0x4060c0,1.5); uL.position.set(0,-4,3); scene.add(uL);
-  var eA=new THREE.PointLight(0x4488ff,4,6),eB=new THREE.PointLight(0xaa44ff,3,5);
-  scene.add(eA,eB);
+  var PI = Math.PI;
+  function hH(){ return CAM_Z * Math.tan(THREE.MathUtils.degToRad(20)); }
+  function hW(){ return hH() * (innerWidth/innerHeight); }
 
-  /* ══════════════════════════════════════════════
-     GROUND / WATER PLANE
-     Reflective surface like PeachWeb water
-  ══════════════════════════════════════════════ */
-  var gnd=new THREE.Mesh(
-    new THREE.PlaneGeometry(40,40),
-    new THREE.MeshStandardMaterial({color:0x2a1a4a,metalness:.85,roughness:.2,transparent:true,opacity:.55})
-  );
-  gnd.rotation.x=-Math.PI/2; gnd.position.y=-2.2; scene.add(gnd);
+  /* ══ LIGHTS ══════════════════════════════════
+     Warm for hero scene, transitions to cool for dark
+  ═══════════════════════════════════════════ */
+  var aL = new THREE.AmbientLight(0xd8b8c8, 3.8); scene.add(aL);
 
-  /* ══════════════════════════════════════════════
-     SCREEN-SPACE COORDINATE HELPER
-     Convert normalised screen coords (-1..1) to
-     world XY at Z=0, given camera at z=8, FOV=40
-     
-     At z=8: visible half-height = 8*tan(20°) = 2.91
-             visible half-width  = 2.91 * aspect
-     
-     Drone scale=0.046, bbox 75 units → 3.45 world units wide
-     = 3.45 / (2*2.91) = 59% of viewport height — too big
-     
-     Let's use scale=0.028: 75*0.028=2.1 units = 36% height ✓
-     (matches fish prominence in screenshots)
-  ══════════════════════════════════════════════ */
-  var SCALE=0.028;
-  
-  // Compute visible bounds at z=0, camera at z=8, FOV=40
-  var halfH=8*Math.tan(THREE.MathUtils.degToRad(20));  // 2.91
-  var halfW=halfH*(innerWidth/innerHeight);
+  // Top-front warm key light (sun)
+  var kL = new THREE.DirectionalLight(0xfff0e0, 6.0);
+  kL.position.set(2, 8, 6); scene.add(kL);
 
-  /* ══════════════════════════════════════════════
-     DRONE POSITION KEYFRAMES — screen space
-     
-     Observing screenshots carefully:
-     
-     Screenshot 1 (t=0): fish center-right, mid-height
-       screen: x≈+0.15 (right of center), y≈+0.05 (slightly above mid)
-       world: x=halfW*0.15, y=halfH*0.05
-     
-     Screenshot 2 (t=0.2): fish center, lower, tilted nose-down
-       screen: x≈0.0, y≈-0.3 (well below center)
-       world: x=0, y=halfH*(-0.3)
-     
-     Screenshot 3 (t=0.5): fish right side, much smaller
-       screen: x≈+0.55 (far right), y≈-0.1
-       (size reduction = PW scale keyframes going 4.1→3.0)
-     
-     We drive BOTH world position AND scale with keyframes.
-  ══════════════════════════════════════════════ */
-  function sw(nx){ return halfW*nx; }  // screen-normalised → world X
-  function sh(ny){ return halfH*ny; }  // screen-normalised → world Y
+  // Back-left purple rim
+  var rL = new THREE.DirectionalLight(0x9050d0, 4.0);
+  rL.position.set(-5, 3, -4); scene.add(rL);
 
-  // X position keyframes (screen-normalised -1..1)
-  var KX=[
-    {at:0.00, v: 0.20},   // center-right (hero)
-    {at:0.10, v: 0.10},   // starting to move
-    {at:0.20, v:-0.02},   // center (nose-dive moment)
-    {at:0.35, v:-0.20},   // moved left slightly
-    {at:0.50, v: 0.50},   // far right (dark section)
-    {at:0.65, v: 0.45},   // still right
-    {at:0.75, v:-0.25},   // sweep left
-    {at:0.85, v:-0.35},   // left
-    {at:1.00, v:-0.20}    // settle left
-  ];
+  // Front-right pink fill
+  var fL = new THREE.DirectionalLight(0xffc0d0, 3.0);
+  fL.position.set(5, -1, 4); scene.add(fL);
 
-  // Y position keyframes (screen-normalised, +1=top, -1=bottom)
-  var KY=[
-    {at:0.00, v: 0.08},   // slightly above center (hero)
-    {at:0.15, v:-0.10},   // diving
-    {at:0.22, v:-0.32},   // nose-down deep
-    {at:0.35, v:-0.15},   // pulling back up
-    {at:0.50, v:-0.05},   // center in dark section
-    {at:0.65, v: 0.10},   // slightly up
-    {at:0.75, v:-0.08},   // dip
-    {at:0.85, v: 0.05},   // come up
-    {at:1.00, v:-0.10}    // settle
-  ];
+  // Under-bounce (catches underside of drone)
+  var uL = new THREE.DirectionalLight(0x506080, 2.0);
+  uL.position.set(0, -6, 3); scene.add(uL);
 
-  // Scale keyframes — PeachWeb exact ratios, base=SCALE
-  var B=SCALE;
-  var KS=[
-    {at:0.000,v:B},
-    {at:0.081,v:B*1.053},{at:0.090,v:B*0.789},
-    {at:0.130,v:B*0.789},{at:0.132,v:B*0.974},
-    {at:0.158,v:B*0.974},{at:0.166,v:B*1.079},
-    {at:0.300,v:B*1.079},{at:0.340,v:B*0.842},
-    {at:0.380,v:B*0.842},{at:0.420,v:B*1.105},
-    {at:0.500,v:B*0.842},{at:0.550,v:B*0.600},  // gets smaller in dark section
-    {at:0.600,v:B*0.600},
-    {at:0.650,v:B*0.750},
-    {at:0.700,v:B*0.750},{at:0.750,v:B*0.900},
-    {at:0.820,v:B*0.900},{at:0.850,v:B*0.750},
-    {at:1.000,v:B*0.750}
-  ];
+  // Engine glow — dynamic point lights
+  var gA = new THREE.PointLight(0x4fc3f7, 6, 4); scene.add(gA); // cyan
+  var gB = new THREE.PointLight(0xa78bfa, 5, 3); scene.add(gB); // purple
+  var gC = new THREE.PointLight(0xffffff, 3, 2); scene.add(gC); // white flash
 
-  // Rotation Y — face direction of travel
-  var KR=[
-    {at:0.00,v:-1.47},
-    {at:0.15,v:-1.57},   // nose-down: face slightly more forward
-    {at:0.22,v:-1.80},   // diving hard left
-    {at:0.35,v:-1.20},
-    {at:0.50,v:-0.80},   // heading right
-    {at:0.65,v:-0.90},
-    {at:0.75,v:-2.00},   // sweeping left
-    {at:1.00,v:-1.80}
-  ];
+  /* ══ WATER PLANE ════════════════════════════ */
+  var waterMat = new THREE.MeshStandardMaterial({
+    color:0x301840, metalness:0.9, roughness:0.15,
+    transparent:true, opacity:0.6
+  });
+  var water = new THREE.Mesh(new THREE.PlaneGeometry(80,80), waterMat);
+  water.rotation.x = -PI/2;
+  water.position.y = -2.2;
+  scene.add(water);
 
-  // Rotation Z (roll/bank into turns)
-  var KRZ=[
-    {at:0.00,v: 0.00},
-    {at:0.15,v: 0.30},   // banking into nose-dive
-    {at:0.22,v: 0.60},   // steep bank
-    {at:0.35,v: 0.15},
-    {at:0.50,v:-0.20},   // banking right
-    {at:0.65,v:-0.15},
-    {at:0.75,v: 0.35},   // banking left
-    {at:1.00,v: 0.10}
-  ];
+  /* ══ KEYFRAME ENGINE ════════════════════════ */
+  function eio(t){ return t<.5 ? 2*t*t : -1+(4-2*t)*t; }
+  function easeOut(t){ return 1-(1-t)*(1-t)*(1-t); }
+  function easeIn(t){ return t*t*t; }
 
-  /* Keyframe sampler with easeInOut */
-  function eio(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
-  function kf(ks,t){
-    if(t<=ks[0].at)return ks[0].v;
-    if(t>=ks[ks.length-1].at)return ks[ks.length-1].v;
-    for(var i=0;i<ks.length-1;i++){
-      var a=ks[i],b=ks[i+1];
-      if(t>=a.at&&t<=b.at){var l=(t-a.at)/(b.at-a.at);return a.v+(b.v-a.v)*eio(l);}
+  function kf(ks, t){
+    if(t <= ks[0].at) return ks[0].v;
+    if(t >= ks[ks.length-1].at) return ks[ks.length-1].v;
+    for(var i=0; i<ks.length-1; i++){
+      var a=ks[i], b=ks[i+1];
+      if(t>=a.at && t<=b.at){
+        var l=(t-a.at)/(b.at-a.at);
+        var fn = a.e==='out'?easeOut : a.e==='in'?easeIn : eio;
+        return a.v + (b.v-a.v)*fn(l);
+      }
     }
     return ks[ks.length-1].v;
   }
 
-  /* Live smoothed state */
-  var L={x:sw(0.20),y:sh(0.08),sc:B,ry:-1.47,rz:0};
-  var SMOOTH=0.06; // lag ≈ PeachWeb easing
-  var scrollT=0;
-  var heroC=new THREE.Color(0xd0a0c0),darkC=new THREE.Color(0x253080);
+  /* ══ FLIGHT PATH ════════════════════════════
+     Screen-normalised coords: ±1 = screen edge
+     Converted to world coords via hH()/hW()
 
-  /* Card windows */
+     The path is designed to be dramatic and precise:
+     - Opens with drone hovering center-right
+     - Dives aggressively at scroll 15-25% (nose tilts ~50°)
+     - Sweeps hard left (banking 40°)
+     - Climbs back on right side in dark section
+     - Executes a tight right-bank arc
+     - Sweeps back left for the CTA
+     - Returns center for final section
+  ═══════════════════════════════════════════ */
+
+  // X: screen-normalised position (-1=left edge, +1=right edge)
+  var FX=[
+    {at:0.00, v: 0.18},          // hero: center-right
+    {at:0.08, v: 0.12},          // hold right
+    {at:0.16, v: 0.02, e:'in'},  // crossing center, accelerating
+    {at:0.24, v:-0.28, e:'out'}, // hard left after nose-dive
+    {at:0.36, v:-0.42},          // far left, banking out
+    {at:0.44, v:-0.22, e:'in'},  // begin right sweep
+    {at:0.52, v: 0.44, e:'out'}, // far right (dramatic snap)
+    {at:0.62, v: 0.50},          // hold right, dark section
+    {at:0.70, v: 0.36, e:'in'},  // begin left arc
+    {at:0.80, v:-0.38, e:'out'}, // hard left sweep
+    {at:0.88, v:-0.28},          // settle left
+    {at:1.00, v:-0.08}           // drift center for CTA
+  ];
+
+  // Y: screen-normalised (+1=top, -1=bottom)
+  var FY=[
+    {at:0.00, v: 0.12},          // hero: slightly above center
+    {at:0.10, v: 0.06},          // levelling
+    {at:0.18, v:-0.10, e:'in'},  // beginning dive
+    {at:0.24, v:-0.40, e:'out'}, // nose-down, near water surface
+    {at:0.30, v:-0.42},          // skimming low
+    {at:0.38, v:-0.08, e:'out'}, // hard pull-up
+    {at:0.46, v: 0.14},          // climbing
+    {at:0.54, v: 0.04},          // levelling in dark section
+    {at:0.62, v: 0.18},          // climbing right
+    {at:0.70, v: 0.08, e:'in'},  // begin descent for left arc
+    {at:0.80, v:-0.18, e:'out'}, // arc low-left
+    {at:0.88, v: 0.02},          // pull up
+    {at:1.00, v: 0.10}           // settle center
+  ];
+
+  /* BASE scale = 0.028
+     75 model units * 0.028 = 2.1 world units
+     halfH ≈ 2.91 → drone ≈ 36% viewport height ✓ */
+  var BASE = 0.028;
+
+  // Scale keyframes — pulses create depth illusion
+  var FS=[
+    {at:0.00, v:1.00},
+    {at:0.08, v:1.06},            // swell as it approaches
+    {at:0.16, v:0.82, e:'in'},    // shrink on dive
+    {at:0.24, v:0.78},            // small (far/low)
+    {at:0.32, v:0.96, e:'out'},   // grow on pull-up
+    {at:0.40, v:1.08},            // big (close)
+    {at:0.48, v:0.88, e:'in'},    // shrink going right
+    {at:0.56, v:0.72},            // small in dark section (far)
+    {at:0.64, v:0.80},
+    {at:0.72, v:0.96, e:'out'},   // growing on left arc
+    {at:0.80, v:1.10},            // biggest (closest)
+    {at:0.90, v:0.88},
+    {at:1.00, v:0.82}
+  ];
+
+  /* ── YAW (heading) ──────────────────────────
+     Real drone: yaw points nose toward travel direction.
+     When moving left: yaw positive (nose left)
+     When moving right: yaw negative (nose right)
+  ─────────────────────────────────────────── */
+  var FYAW=[
+    {at:0.00, v: 0.10},           // slight right-facing at hover
+    {at:0.10, v: 0.04},
+    {at:0.18, v:-0.15, e:'in'},   // turning slightly right as dive begins
+    {at:0.24, v:-0.35},           // facing right-forward while diving left (crosswind)
+    {at:0.32, v:-0.50, e:'out'},  // nose-right while body moves left
+    {at:0.44, v:-0.20, e:'in'},   // straightening
+    {at:0.52, v: 0.45, e:'out'},  // hard right snap — nose right
+    {at:0.62, v: 0.30},           // holding right
+    {at:0.70, v: 0.15, e:'in'},   // begin turning left
+    {at:0.80, v:-0.40, e:'out'},  // hard left — nose left
+    {at:0.90, v:-0.25},
+    {at:1.00, v:-0.10}
+  ];
+
+  /* ── PITCH (nose up/down) ───────────────────
+     Real drone physics:
+     - Forward flight: nose tilts down 10-20°
+     - Climbing: nose tilts up 15-30°
+     - Descending fast: nose tilts down 30-50°
+     - The dramatic nose-dive at t=0.22 is key
+  ─────────────────────────────────────────── */
+  var FPITCH=[
+    {at:0.00, v: 0.08},           // hover: level, slight nose-up
+    {at:0.10, v: 0.04},           // forward, slight down
+    {at:0.18, v:-0.45, e:'in'},   // aggressive nose-DOWN (dive!)
+    {at:0.24, v:-0.55},           // MAX nose-down — skimming water
+    {at:0.30, v:-0.30},           // still pitched down
+    {at:0.38, v: 0.35, e:'out'},  // hard PULL-UP — nose pitches up
+    {at:0.46, v: 0.28},           // climbing, nose still up
+    {at:0.54, v: 0.05},           // level in dark section
+    {at:0.62, v: 0.12},           // climbing right
+    {at:0.70, v:-0.15, e:'in'},   // nose down for left arc
+    {at:0.80, v:-0.28},           // arc descent
+    {at:0.88, v: 0.10, e:'out'},  // pull up to level
+    {at:1.00, v: 0.06}            // hover level
+  ];
+
+  /* ── ROLL/BANK ──────────────────────────────
+     Real drone: rolls INTO turns.
+     Left turn → roll right (body tilts right, rotors push left)
+     Right turn → roll left
+     Max bank angle ≈ 35-45° for aggressive maneuver
+  ─────────────────────────────────────────── */
+  var FROLL=[
+    {at:0.00, v: 0.00},           // level hover
+    {at:0.10, v: 0.28},           // banking right (moving left)
+    {at:0.18, v: 0.52},           // MAX bank right — hard left turn
+    {at:0.28, v: 0.38},           // coming out of bank
+    {at:0.36, v: 0.12},           // levelling
+    {at:0.44, v:-0.20, e:'in'},   // starting right bank
+    {at:0.52, v:-0.55, e:'out'},  // MAX bank LEFT — hard right snap
+    {at:0.60, v:-0.38},           // holding right bank
+    {at:0.68, v:-0.15, e:'in'},   // easing
+    {at:0.78, v: 0.48, e:'out'},  // MAX right bank — hard left arc
+    {at:0.86, v: 0.28},           // coming out
+    {at:1.00, v: 0.04}            // level settle
+  ];
+
+  /* ══ LIVE STATE ══════════════════════════════
+     All values lerped each frame for organic motion.
+     Position uses slower lerp (heavy drone, momentum).
+     Rotation uses faster lerp (electronic gimbal response).
+  ═══════════════════════════════════════════ */
+  var L={
+    wx:0, wy:0,         // world XY position
+    sc:BASE,            // scale
+    yaw:0,              // Y rotation (heading)
+    pitch:0,            // X rotation (nose up/down)
+    roll:0              // Z rotation (bank)
+  };
+
+  var SP = 0.060;  // position smoothing
+  var SR = 0.090;  // rotation smoothing (snappier)
+  var SS = 0.065;  // scale smoothing
+
+  var scrollT = 0;
+  var prevScrollT = 0;
+  var scrollVel = 0; // instantaneous scroll velocity for dynamic effects
+
+  /* Colour transition references */
+  var heroAmb = new THREE.Color(0xd8b8c8);
+  var darkAmb = new THREE.Color(0x283070);
+
+  /* ══ CARDS ══════════════════════════════════ */
   var WINS=[[0,.14],[.16,.30],[.32,.46],[.48,.63],[.65,.80],[.82,1]];
-  function cards(t){for(var i=0;i<6;i++){var el=document.getElementById('c'+i);if(el)el.classList.toggle('on',t>=WINS[i][0]&&t<=WINS[i][1]);}}
+  function cards(t){
+    for(var i=0;i<6;i++){
+      var el=document.getElementById('c'+i);
+      if(el) el.classList.toggle('on',t>=WINS[i][0]&&t<=WINS[i][1]);
+    }
+  }
   function telem(t){
-    document.getElementById('ta').textContent=String(Math.round(80+t*160)).padStart(3,'0');
-    document.getElementById('ts').textContent=String(Math.round(58+Math.sin(t*Math.PI*5)*18+t*28)).padStart(3,'0');
-    document.getElementById('th').textContent=String(Math.round((t*520)%360)).padStart(3,'0');
-    document.getElementById('tb').textContent=String(Math.round(100-t*15));
+    var spd=Math.round(50+Math.abs(scrollVel)*800+kf(FS,t)*40);
+    document.getElementById('ta').textContent=String(Math.round(80+t*220)).padStart(3,'0');
+    document.getElementById('ts').textContent=String(Math.min(spd,199)).padStart(3,'0');
+    document.getElementById('th').textContent=String(Math.round(((kf(FYAW,t)/PI)*180+360)%360)).padStart(3,'0');
+    document.getElementById('tb').textContent=String(Math.round(100-t*18));
   }
 
-  /* Scroll */
+  /* ══ SCROLL ══════════════════════════════════ */
   ScrollTrigger.create({
-    trigger:document.body,start:'top top',end:'bottom bottom',scrub:1.2,
+    trigger:document.body,
+    start:'top top',end:'bottom bottom',
+    scrub:1.2,
     onUpdate:function(s){
-      scrollT=s.progress;
+      scrollVel = s.progress - prevScrollT;
+      prevScrollT = s.progress;
+      scrollT = s.progress;
       document.getElementById('prog').style.width=(s.progress*100)+'%';
-      bgM.uniforms.t.value=s.progress;
-      cards(s.progress);telem(s.progress);
+      bgM.uniforms.t.value = s.progress;
+      cards(s.progress);
+      telem(s.progress);
     }
   });
 
-  /* ══════════════════════════════════════════════
-     LOAD GLB
-  ══════════════════════════════════════════════ */
-  var drone=null,mixer=null,clock=new THREE.Clock();
+  /* ══ LOAD GLB ════════════════════════════════ */
+  var drone=null, mixer=null, clock=new THREE.Clock();
+
+  /* droneGroup: outer group handles world position + yaw + roll
+     drone (GLB): inner — handles pitch + scale + GLB correction */
+  var droneGroup = new THREE.Group();
+  scene.add(droneGroup);
 
   new THREE.GLTFLoader().load('k07_drone.glb',
     function(gltf){
+      /* Fix emissive blowout */
       gltf.scene.traverse(function(obj){
-        if(obj.isLight){obj.intensity=0;obj.visible=false;return;}
+        if(obj.isLight){ obj.intensity=0; obj.visible=false; return; }
         if(obj.isMesh){
           var mats=Array.isArray(obj.material)?obj.material:[obj.material];
           mats.forEach(function(m){
-            if(!m)return;
-            // FIX: kill full-white emissive on plasma meshes
+            if(!m) return;
             if(m.name==='Mat_PlasmaTurbine'){
-              m.emissive=new THREE.Color(0,0.05,0.4);
-              m.emissiveIntensity=0.35;
+              m.emissive=new THREE.Color(0, 0.05, 0.45);
+              m.emissiveIntensity=0.4;
             }
-            m.envMapIntensity=0.3;m.needsUpdate=true;
+            m.envMapIntensity=0.35;
+            m.needsUpdate=true;
           });
         }
       });
 
-      drone=gltf.scene;
-      
-      /* Scale to correct world size */
-      drone.scale.setScalar(B);
+      drone = gltf.scene;
 
-      /* Compensate baked-in node translation [0.022, 6.633, -5.337]
-         At scale=0.028: offset=[0.001, 0.186, -0.149]
-         Negate to centre at world origin */
-      drone.position.set(sw(0.20), sh(0.08), 0);
-
-      /* Apply baked rotation correction + initial yaw */
-      drone.rotation.order='XYZ';
-      // The GLB node has quaternion [-0.707,0,0,0.707] = 90° around X
-      // We set x rotation to account for this
-      drone.rotation.x = -Math.PI/2;  // correct for 90° GLB bake
-      drone.rotation.y = -1.47;
+      /* GLB has baked 90° X-axis rotation in root node.
+         Correct it here so our pitch/roll/yaw are clean. */
+      drone.rotation.order = 'XYZ';
+      drone.rotation.x = -PI/2;  // neutralise the 90° bake
+      drone.rotation.y = 0;
       drone.rotation.z = 0;
 
-      scene.add(drone);
+      /* Baked node translation at scale 0.028:
+         [0.022*0.028, 6.633*0.028, -5.337*0.028] = [0.001, 0.186, -0.149]
+         Negate to centre drone pivot at group origin. */
+      drone.position.set(0.001, -0.186, 0.149);
+      drone.scale.setScalar(BASE);
+
+      droneGroup.add(drone);
+
+      /* Set initial position (hero) */
+      droneGroup.position.set(hW()*0.18, hH()*0.12, 0);
 
       /* Animations */
-      if(gltf.animations&&gltf.animations.length){
-        mixer=new THREE.AnimationMixer(drone);
-        gltf.animations.forEach(function(c){mixer.clipAction(c).setLoop(THREE.LoopRepeat,Infinity).play();});
+      if(gltf.animations && gltf.animations.length){
+        mixer = new THREE.AnimationMixer(drone);
+        gltf.animations.forEach(function(c){
+          mixer.clipAction(c).setLoop(THREE.LoopRepeat, Infinity).play();
+        });
       }
 
+      /* Show scene */
       document.getElementById('ld').classList.add('out');
       setTimeout(function(){document.getElementById('ld').style.display='none';},900);
       document.getElementById('tl').classList.add('on');
-      cards(0);telem(0);
-      console.log('[K07] Loaded. scale='+B+' halfW='+halfW.toFixed(2)+' halfH='+halfH.toFixed(2));
+      cards(0); telem(0);
+      console.log('[K07] Loaded. BASE='+BASE+' halfH='+hH().toFixed(2));
     },
     function(x){if(x.total>0)document.getElementById('lm').textContent='Loading '+Math.round(x.loaded/x.total*100)+'%';},
     function(e){
       console.error(e);
       var el=document.getElementById('le');
-      el.textContent='Cannot load k07_drone.glb — same folder + localhost:8080';
-      el.style.display='block';document.getElementById('lm').textContent='Error';
+      el.textContent='Cannot load k07_drone.glb — ensure same folder + http://localhost:8080';
+      el.style.display='block';
+      document.getElementById('lm').textContent='Error';
     }
   );
 
-  /* ══════════════════════════════════════════════
-     RENDER LOOP
-     
-     KEY INSIGHT from screenshots:
-     The fish MOVES in screen space as you scroll.
-     We drive drone.position.x and drone.position.y
-     directly using screen-space keyframes converted
-     to world coordinates. Scale keyframes create the
-     depth illusion. Camera stays fixed.
-  ══════════════════════════════════════════════ */
+  /* ══ RENDER LOOP ═════════════════════════════
+
+     ARCHITECTURE:
+     droneGroup.position = world XY (screen position)
+     droneGroup.rotation.y = yaw  (heading / left-right facing)
+     droneGroup.rotation.z = roll (banking into turns)
+     droneGroup.rotation.x = 0    (pitch handled by child)
+
+     drone.rotation.x = -π/2 + pitch  (GLB correction + nose up/down)
+     drone.rotation.y = 0
+     drone.rotation.z = 0
+     drone.scale = scalar
+
+     IDLE HOVER:
+     3-axis micro-oscillation so drone is never frozen.
+     Frequency and amplitude match real drone hover vibration.
+
+     ENGINE GLOW:
+     Two point lights pulse independently + white flash on
+     high-velocity scroll for speed effect.
+  ═══════════════════════════════════════════ */
   function tick(){
     requestAnimationFrame(tick);
-    var dt=clock.getDelta(),el=clock.getElapsedTime();
-    if(mixer)mixer.update(dt);
+    var dt = clock.getDelta();
+    var el = clock.getElapsedTime();
+    if(mixer) mixer.update(dt);
 
-    var t=scrollT;
+    var t = scrollT;
+    var halfh = hH(), halfw = hW();
 
-    // Target values from keyframes
-    var tx=sw(kf(KX,t));
-    var ty=sh(kf(KY,t));
-    var tsc=kf(KS,t);
-    var try_=kf(KR,t);
-    var trz=kf(KRZ,t);
+    /* ── Target values ── */
+    var tX   = halfw * kf(FX,    t);
+    var tY   = halfh * kf(FY,    t);
+    var tSc  = BASE  * kf(FS,    t);
+    var tYaw = PI    * kf(FYAW,  t);
+    var tPit =         kf(FPITCH,t);
+    var tRol =         kf(FROLL, t);
 
-    // Smooth lerp
-    L.x +=(tx  -L.x) *SMOOTH;
-    L.y +=(ty  -L.y) *SMOOTH;
-    L.sc+=(tsc -L.sc)*SMOOTH;
-    L.ry+=(try_-L.ry)*SMOOTH;
-    L.rz+=(trz -L.rz)*SMOOTH;
+    /* ── Smooth lerp ── */
+    L.wx    += (tX   - L.wx)    * SP;
+    L.wy    += (tY   - L.wy)    * SP;
+    L.sc    += (tSc  - L.sc)    * SS;
+    L.yaw   += (tYaw - L.yaw)   * SR;
+    L.pitch += (tPit - L.pitch) * SR;
+    L.roll  += (tRol - L.roll)  * SR;
 
+    /* ── Idle hover ── */
+    /* Real drone hover: propwash causes ~1-3Hz oscillation */
+    var hx = Math.cos(el*1.8)*0.009 + Math.sin(el*3.1)*0.003;
+    var hy = Math.sin(el*1.5)*0.012 + Math.cos(el*2.6)*0.005;
+    /* Subtle hover roll — drone constantly auto-corrects */
+    var hr = Math.sin(el*2.1)*0.018 + Math.cos(el*1.3)*0.008;
+
+    /* ── Apply to group (position + yaw + roll) ── */
+    droneGroup.position.x = L.wx + hx;
+    droneGroup.position.y = L.wy + hy;
+    droneGroup.position.z = 0;
+
+    droneGroup.rotation.order = 'YZX';
+    droneGroup.rotation.y = L.yaw;
+    droneGroup.rotation.z = L.roll + hr;
+    droneGroup.rotation.x = 0;
+
+    /* ── Apply to drone child (pitch + scale) ── */
     if(drone){
-      // Update position — drone moves across screen as user scrolls
-      drone.position.x=L.x+Math.cos(el*.8)*.008;
-      drone.position.y=L.y+Math.sin(el*1.5)*.015;  // idle bob
-      drone.position.z=0;
-
-      // Update scale
+      drone.rotation.x = -PI/2 + L.pitch;
       drone.scale.setScalar(L.sc);
-
-      // Update rotation
-      drone.rotation.x=-Math.PI/2;  // GLB bake correction (keeps drone upright)
-      drone.rotation.y=L.ry;
-      drone.rotation.z=L.rz;
-
-      // Engine glow follows drone
-      eA.position.set(drone.position.x,drone.position.y-.05,drone.position.z+.3);
-      eB.position.set(drone.position.x,drone.position.y+.03,drone.position.z+.2);
     }
 
-    // Lights morph warm→cool
-    var sc=Math.min(t*2,1);
-    aL.color.copy(heroC).lerp(darkC,sc);
-    eA.intensity=3.5+Math.sin(el*3.1)*1.2;
-    eB.intensity=2.5+Math.cos(el*2.3);
-    gnd.material.opacity=.55-sc*.35;
-    gnd.position.y=-2.2-sc*3;  // ground moves away as scene darkens
+    /* ── Engine glow lights follow drone ── */
+    var gx=droneGroup.position.x, gy=droneGroup.position.y;
+    var speed = Math.abs(scrollVel);
 
-    // Two-pass render
-    R.autoClear=true; R.render(bgS,bgC);
-    R.autoClear=false; R.render(scene,camera);
+    /* Cyan and purple pulse — different frequencies = shimmer */
+    gA.position.set(gx, gy-0.06, 0.25);
+    gB.position.set(gx+0.04, gy+0.02, 0.18);
+    gC.position.set(gx, gy, 0.10);
+
+    gA.intensity = 5.0 + Math.sin(el*4.2)*2.0 + speed*60;
+    gB.intensity = 4.0 + Math.cos(el*3.5)*1.8 + speed*40;
+    gC.intensity = speed*120; // white speed flash — only visible when scrolling fast
+
+    /* ── Ambient transitions warm→cool ── */
+    var sc = Math.min(t*2.2, 1);
+    aL.color.copy(heroAmb).lerp(darkAmb, sc);
+    kL.intensity = 6.0 - sc*3.5;
+    rL.intensity = 4.0 + sc*1.5;  // rim gets stronger in dark section
+    fL.intensity = 3.0 - sc*1.5;
+
+    /* ── Water plane ── */
+    waterMat.opacity = 0.60 - sc*0.48;
+    water.position.y = -2.2 - sc*5;  // sinks away in dark section
+
+    /* ── Two-pass render ── */
+    R.autoClear = true;  R.render(bgS, bgC);
+    R.autoClear = false; R.render(scene, camera);
   }
   tick();
 
   window.addEventListener('resize',function(){
-    camera.aspect=innerWidth/innerHeight;
+    camera.aspect = innerWidth/innerHeight;
     camera.updateProjectionMatrix();
-    R.setSize(innerWidth,innerHeight);
-    halfH=8*Math.tan(THREE.MathUtils.degToRad(20));
-    halfW=halfH*(innerWidth/innerHeight);
+    R.setSize(innerWidth, innerHeight);
   });
-  window.addEventListener('scroll',function(){if(scrollY>60)document.getElementById('hint').classList.add('gone');},{passive:true});
+  window.addEventListener('scroll',function(){
+    if(scrollY>60) document.getElementById('hint').classList.add('gone');
+  },{passive:true});
 }
 </script>
 </body>
