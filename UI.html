@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <script>document.documentElement.classList.remove('no-js');</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="NYTHERION Frontend Forge — a modern, edge-native UI framework with real-time WebGL rendering, scroll-driven cinematics, and zero-framework component architecture.">
+  <meta name="theme-color" content="#050507">
+  <title>NYTHERION — Frontend Forge · About</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23050507'/%3E%3Cpath d='M14 22V14h8' stroke='%233f8cff' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Cpath d='M50 22V14h-8' stroke='%233f8cff' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Cpath d='M14 42v8h8' stroke='%233f8cff' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Cpath d='M50 42v8h-8' stroke='%233f8cff' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Crect x='27' y='27' width='10' height='10' fill='%233f8cff'/%3E%3C/svg%3E">
+
+  <!-- Open Graph / social link previews (Slack, Discord, iMessage, etc.) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="NYTHERION — Frontend Forge">
+  <meta property="og:description" content="An edge-native UI framework with real-time WebGL rendering, scroll-driven cinematics, and zero-framework component architecture.">
+  <meta property="og:image" content="./visible.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="NYTHERION — Frontend Forge">
+  <meta name="twitter:description" content="An edge-native UI framework with real-time WebGL rendering, scroll-driven cinematics, and zero-framework component architecture.">
+  <meta name="twitter:image" content="./visible.png">
+  <meta name="robots" content="index, follow">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "NYTHERION Frontend Forge",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Web",
+    "description": "An edge-native UI framework with real-time WebGL rendering, scroll-driven cinematics, and zero-framework component architecture."
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="./visible.png" fetchpriority="high">
+  <link rel="stylesheet" href="design.css">
+</head>
+<body>
+
+<div id="grain"></div>
+<div id="prog"></div>
+
+<!-- ── PRELOADER ── -->
+<div id="pre">
+  <div class="pre-hud" aria-hidden="true">
+    <span class="tl"></span><span class="tr"></span><span class="bl"></span><span class="br"></span>
+  </div>
+  <div id="preCount" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Page loading">0</div>
+  <div id="preWord" data-lines="Frontend Forge|Loading systems"></div>
+  <div id="preBar"><i></i></div>
+</div>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-brand">NYTHERION<span class="d">.</span></div>
+  <div class="navr">
+    <a href="#how-it-works" class="h">Architecture</a>
+    <a href="#pages" class="h">Components</a>
+    <a href="#stack">Tech Stack</a>
+  </div>
+  <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu" role="dialog" aria-modal="true" aria-label="Site navigation">
+  <a href="#hero">Overview</a>
+  <a href="#how-it-works">Architecture</a>
+  <a href="#pages">Components</a>
+  <a href="#stack">Tech Stack</a>
+</div>
+
+<main>
+
+<!-- ── HERO SPOTLIGHT ── -->
+<section id="hero">
+  <!-- Layer 10: base image, always visible -->
+  <div class="hero-bg-base"></div>
+  <!-- Layer 30: hidden.png, revealed through spotlight mask -->
+  <div id="revealLayerContainer"></div>
+  <!-- Layer 40: vignette -->
+  <div class="hero-vignette"></div>
+  <!-- Layer 45: corner brackets -->
+  <div id="heroHud">
+    <span class="bracket tl"></span><span class="bracket tr"></span>
+    <span class="bracket bl"></span><span class="bracket br"></span>
+  </div>
+  <!-- Layer 50: text content -->
+  <div class="hero-content">
+    <div class="wrap">
+      <div class="eyebrow">NYTHERION FRONTEND FORGE · Modern UI Framework</div>
+      <h1>FORGE<span class="d">.</span></h1>
+      <div class="sub">
+        <div class="lede">Advanced Interface Engineering &amp; Design System. A web-based framework delivering <em>high-fidelity</em> experiences and robust frontend architectures.</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:14px;">
+          <span class="chip"><span class="live"></span> <span>All Systems Operational</span></span>
+          <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--faint);text-align:right;line-height:2;">One Framework · Zero Compromise<br>v2.0 — 2026</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Touch hint (coarse devices) -->
+  <div id="touchHint" class="touch-hint">Touch &amp; drag to reveal</div>
+  <!-- Scroll cue -->
+  <div class="hero-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ── TRUE FOCUS BAND ── -->
+<section id="focus">
+  <div class="wrap">
+    <div class="focus-container" id="trueFocus" data-words="Real-time. Reactive. Alive.">
+      <div class="focus-frame">
+        <span class="corner tlc"></span>
+        <span class="corner trc"></span>
+        <span class="corner blc"></span>
+        <span class="corner brc"></span>
+      </div>
+    </div>
+    <div class="focus-sublabel reveal">Three principles. One framework.</div>
+  </div>
+</section>
+
+<!-- ── IDEA: STAGGERED WORD REVEAL ── -->
+<section id="ideaSection">
+  <div class="section-inner">
+    <p class="sec-label idea-eyebrow sr">Design Philosophy</p>
+    <p class="stagger-paragraph">
+      Form follows flow. Every element responds dynamically to environmental pressures, transforming raw data structures into <span class="word-shell accent"><i>living,</i></span> <span class="word-shell accent"><i>organic</i></span> user interfaces.
+    </p>
+    <p class="stagger-paragraph">
+      We don't build screens. We build <span class="word-shell serif"><i>behaviours</i></span> — systems that think in motion, feel in weight, and breathe in response.
+    </p>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section id="how-it-works">
+  <div class="section-inner">
+    <p class="sec-label sr">System Architecture</p>
+    <h2 class="sec-heading sr sr-d1">How the <span>Frontend Engine</span> Works</h2>
+
+    <!-- Data Flow -->
+    <div class="dataflow sr sr-d2">
+      <div class="dataflow-label">UI Data Flow</div>
+      <div class="dataflow-inner">
+        <div class="flow-row">
+          <div class="flow-node">User Browser</div>
+          <div class="flow-arrow">──►</div>
+          <div class="flow-node">Component Library</div>
+          <div class="flow-arrow">──►</div>
+          <div class="flow-node">State Manager</div>
+          <div class="flow-arrow">──►</div>
+          <div class="flow-node">Cloudflare Workers</div>
+          <div class="flow-arrow">──►</div>
+          <div class="flow-node">D1 Database</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Capabilities -->
+    <div class="capability-grid">
+      <div class="cap-card sr sr-d1">
+        <div class="cap-card-num">CAPABILITY 01</div>
+        <div class="cap-card-title">Real-Time UI Rendering</div>
+        <div class="cap-card-body">Dynamic DOM generation with vanilla JS. Zero framework overhead — every component renders from pure state, enabling sub-millisecond DOM diffing without virtual trees.</div>
+        <span class="cap-card-tag">Vanilla JS</span>
+      </div>
+      <div class="cap-card sr sr-d2">
+        <div class="cap-card-num">CAPABILITY 02</div>
+        <div class="cap-card-title">WebGL Visual Engine</div>
+        <div class="cap-card-body">Three.js-powered GPU background with custom fragment shaders, UnrealBloomPass, and additive color blending. Every frame computed in real time, never pre-rendered.</div>
+        <span class="cap-card-tag">Three.js · WebGL</span>
+      </div>
+      <div class="cap-card sr sr-d3">
+        <div class="cap-card-num">CAPABILITY 03</div>
+        <div class="cap-card-title">Edge-Native Backend</div>
+        <div class="cap-card-body">Cloudflare Workers with D1 SQL — globally distributed, zero cold starts. Every API request resolved within 15ms at the nearest edge node.</div>
+        <span class="cap-card-tag">CF Workers · D1</span>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="usecase-list">
+      <div class="usecase-item sr">
+        <div class="usecase-num">01</div>
+        <div>
+          <div class="usecase-title">High-Fidelity Data Dashboards</div>
+          <div class="usecase-body">Real-time WebGL charts, canvas-rendered heat maps, and live-updating metrics panels — all driven from edge-computed SQL queries with TTL caching.</div>
+        </div>
+      </div>
+      <div class="usecase-item sr sr-d1">
+        <div class="usecase-num">02</div>
+        <div>
+          <div class="usecase-title">Immersive Landing Experiences</div>
+          <div class="usecase-body">Spotlight interactions, parallax depth layers, and scroll-triggered 3D transitions — engineered for 60fps on any device via GPU offloading.</div>
+        </div>
+      </div>
+      <div class="usecase-item sr sr-d2">
+        <div class="usecase-num">03</div>
+        <div>
+          <div class="usecase-title">Enterprise Admin Interfaces</div>
+          <div class="usecase-body">Multi-panel form systems, accessible data tables, CSV/PDF export pipelines, and live SQL query consoles — production-ready and ARIA compliant.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row sr">
+      <div class="stat-box">
+        <div class="stat-val">60</div>
+        <div class="stat-lbl">FPS Target</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val">&lt;15ms</div>
+        <div class="stat-lbl">Edge Latency</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val">0</div>
+        <div class="stat-lbl">JS Frameworks</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val">6</div>
+        <div class="stat-lbl">Core Pages</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cyber-divider"></div>
+
+<!-- ── WARRIOR CINEMATIC 3D (scroll-orbited GLB render + mouse parallax) ── -->
+<section class="pin pin-320" id="warriorSection">
+  <div class="pinStick">
+    <div class="warrior-stage" id="warriorStage">
+      <canvas id="warriorCanvas" class="warrior-canvas" aria-hidden="true"></canvas>
+      <img
+        id="warriorPoster"
+        class="warrior-poster"
+        src="./warrior-poster.jpg"
+        alt=""
+        aria-hidden="true"
+      >
+    </div>
+
+    <div class="warrior-vignette"></div>
+
+    <div class="warrior-boot" id="warriorBoot" aria-hidden="true">
+      <div class="warrior-boot-frame">
+        <span class="tlc"></span><span class="trc"></span><span class="blc"></span><span class="brc"></span>
+      </div>
+      <p class="warrior-boot-label" id="warriorBootLabel">Initializing render target</p>
+      <div class="warrior-boot-bar"><i id="warriorBootFill"></i></div>
+    </div>
+
+    <div class="warrior-content">
+      <p class="sec-label warrior-eyebrow">Cinematic</p>
+      <h2 class="sec-heading warrior-heading">The <span>Warrior</span></h2>
+      <p class="warrior-sub" id="warriorSub">Scroll to direct the sequence.</p>
+    </div>
+  </div>
+</section>
+
+<div class="cyber-divider"></div>
+
+<!-- ── PIPELINE SCRUB ── -->
+<section class="pin pin-420" id="physicsSection">
+  <div class="pinStick">
+    <div id="pipeHead">
+      <div class="wrap">
+        <span class="eyebrow">Pipeline Architecture · 6 layers every build</span>
+        <div class="pipe-heading">It&rsquo;s <span class="g">engineering.</span></div>
+      </div>
+    </div>
+    <div id="pipeTrack">
+
+      <div class="pstage">
+        <div class="pn">LAYER 01</div>
+        <div class="pdiag"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="40" height="40" rx="4"/><path d="M8 20h40M20 20v28"/></svg></div>
+        <div class="pt">Core <span class="g">Web</span></div>
+        <div class="pd">HTML5, CSS3 Custom Variables, and ES6+ Modules form the foundation — semantic, accessible, zero-dependency.</div>
+        <div class="pbar"></div>
+      </div>
+
+      <div class="pstage">
+        <div class="pn">LAYER 02</div>
+        <div class="pdiag"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="28" cy="28" r="18"/><path d="M28 10v36M10 28h36"/><path d="M14 14l28 28M42 14L14 42"/></svg></div>
+        <div class="pt">WebGL <span class="g">Engine</span></div>
+        <div class="pd">Three.js GPU pipeline with custom fragment shaders, UnrealBloomPass, and additive blending. Every frame real-time.</div>
+        <div class="pbar"></div>
+      </div>
+
+      <div class="pstage">
+        <div class="pn">LAYER 03</div>
+        <div class="pdiag"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M28 8l18 10v20L28 48 10 38V18z"/><path d="M28 8v40M10 18l18 10 18-10"/></svg></div>
+        <div class="pt">Edge <span class="g">Workers</span></div>
+        <div class="pd">Cloudflare Workers with D1 SQL — globally distributed, zero cold starts. API resolved in under 15ms at the nearest node.</div>
+        <div class="pbar"></div>
+      </div>
+
+      <div class="pstage">
+        <div class="pn">LAYER 04</div>
+        <div class="pdiag"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="28" cy="28" r="4"/><path d="M28 8v8M28 40v8M8 28h8M40 28h8"/><path d="M14 14l6 6M36 36l6 6M42 14l-6 6M20 36l-6 6"/></svg></div>
+        <div class="pt">Browser <span class="g">APIs</span></div>
+        <div class="pd">Canvas, AudioContext, getUserMedia, Geolocation — deep device integration without a single npm package.</div>
+        <div class="pbar"></div>
+      </div>
+
+      <div class="pstage">
+        <div class="pn">LAYER 05</div>
+        <div class="pdiag"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M28 8l14 6v14c0 10-14 20-14 20S14 38 14 28V14z"/><path d="M22 28l4 4 8-8"/></svg></div>
+        <div class="pt">Security <span class="g">Headers</span></div>
+        <div class="pd">CSP, HSTS, X-Frame-Options, Referrer-Policy — every header hardened at the Worker layer before a byte leaves the edge.</div>
+        <div class="pbar"></div>
+      </div>
+
+      <div class="pstage">
+        <div class="pn">LAYER 06</div>
+        <div class="pdiag"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 38V18l18-10 18 10v20l-18 10z"/><path d="M28 48V28M10 18l18 10 18-10"/><path d="M19 23l9 5 9-5"/></svg></div>
+        <div class="pt">Data <span class="g">Export</span></div>
+        <div class="pd">Blob API, Fetch, dynamic DOM — CSV, TXT, and PDF export all client-side with zero round trips to the server.</div>
+        <div class="pbar"></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="cyber-divider"></div>
+
+<!-- marquee -->
+<div class="marq">
+  <div class="track">
+    <span>WebGL Engine <span class="o">·</span> Edge Workers <span class="o">·</span> Zero Frameworks <span class="o">·</span> Real-time Rendering <span class="o">·</span> D1 Database <span class="o">·</span> Bloom Pass <span class="o">·</span> ARIA Accessible <span class="o">·</span> </span>
+  </div>
+</div>
+
+<!-- ── ENGINE SCRUB ── -->
+<section class="pin pin-320" id="engineSection">
+  <div class="pinStick">
+    <div class="wrap" style="width:100%;">
+      <span class="eyebrow" style="margin-bottom:30px;">Core parameters · scroll to cycle</span>
+      <div>
+        <div class="dMask">
+          <h2 id="directWord">VISCOSITY</h2>
+        </div>
+      </div>
+      <div id="directDesc">Calculated fluid drag parameters defining internal motion density and resistance.</div>
+      <div id="directPanel">
+        <div class="dpr"><div class="dpr-top"><span>CURL</span><span class="dpr-val" id="d_curl">18</span></div><div class="dpr-bar"><i id="db_curl"></i></div></div>
+        <div class="dpr"><div class="dpr-top"><span>SPLAT FORCE</span><span class="dpr-val" id="d_force">3800</span></div><div class="dpr-bar"><i id="db_force"></i></div></div>
+        <div class="dpr"><div class="dpr-top"><span>BLOOM</span><span class="dpr-val" id="d_bloom">0.85</span></div><div class="dpr-bar"><i id="db_bloom"></i></div></div>
+        <div class="dpr" style="margin-bottom:0;"><div class="dpr-top"><span>DENSITY FADE</span><span class="dpr-val" id="d_fade">0.74</span></div><div class="dpr-bar"><i id="db_fade"></i></div></div>
+      </div>
+    </div>
+    <div id="directBar"><i id="directBarI"></i></div>
+  </div>
+</section>
+
+<!-- ── TOUCH: INTERACTIVE GRID PROXIMITY ── -->
+<section id="touchSection">
+  <p class="sec-label touch-eyebrow sr">Proximity Engine</p>
+  <h2 class="touch-heading reveal">Now <span>touch</span> it.</h2>
+  <div class="interactive-grid">
+    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Real-time</span></div></div>
+    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Reactive</span></div></div>
+    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Alive</span></div></div>
+    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Edge</span></div></div>
+    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Fluid</span></div></div>
+    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Precise</span></div></div>
+  </div>
+  <p class="grid-hint reveal">Move your cursor · touch to activate</p>
+</section>
+
+<!-- ── PAGES / COMPONENTS ── -->
+<section id="pages">
+  <div class="section-inner">
+    <p class="sec-label sr">Component Library</p>
+    <h2 class="sec-heading sr sr-d1">The <span>Six Pages</span></h2>
+
+    <!-- Page Tabs -->
+    <div class="pages-nav sr sr-d2" role="tablist" aria-label="Component pages">
+      <button class="page-tab active" data-tab="login" type="button" role="tab" id="tabbtn-login" aria-selected="true" aria-controls="tab-login"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Login</span></button>
+      <button class="page-tab" data-tab="register" type="button" role="tab" id="tabbtn-register" aria-selected="false" aria-controls="tab-register" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Register</span></button>
+      <button class="page-tab" data-tab="dashboard" type="button" role="tab" id="tabbtn-dashboard" aria-selected="false" aria-controls="tab-dashboard" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Dashboard</span></button>
+      <button class="page-tab" data-tab="profile" type="button" role="tab" id="tabbtn-profile" aria-selected="false" aria-controls="tab-profile" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Profile</span></button>
+      <button class="page-tab" data-tab="leaderboard" type="button" role="tab" id="tabbtn-leaderboard" aria-selected="false" aria-controls="tab-leaderboard" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Leaderboard</span></button>
+      <button class="page-tab" data-tab="ui" type="button" role="tab" id="tabbtn-ui" aria-selected="false" aria-controls="tab-ui" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">UI Lab</span></button>
+    </div>
+
+    <!-- Login -->
+    <div class="page-panel active" id="tab-login" role="tabpanel" aria-labelledby="tabbtn-login" tabindex="0">
+      <div class="page-hero-bar">
+        <div class="page-name">Login System</div>
+        <span class="page-badge">Auth Gateway</span>
+      </div>
+      <p class="page-overview">The authentication entry point. WebGL background, credential validation, Cloudflare D1 session management, and AbortController-guarded fetch with configurable timeout fallback.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <div class="feat-title">Secure Auth Flow</div>
+          <div class="feat-body">PBKDF2 password hashing, constant-time comparison, and HttpOnly cookie session tokens with 7-day TTL rotation.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="feat-title">Edge Validation</div>
+          <div class="feat-body">All validation runs at the Cloudflare Worker layer. SQL injection prevention, rate-limiting, and D1 parameterized queries by default.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+          <div class="feat-title">Timeout Guards</div>
+          <div class="feat-body">AbortController signals cancel stalled requests after 8s. Visual countdown feedback and graceful error state recovery built in.</div>
+        </div>
+      </div>
+      <div class="workflow">
+        <div class="workflow-title">Auth Sequence</div>
+        <div class="workflow-steps">
+          <div class="wf-step"><div class="wf-num">1</div><div class="wf-text">User submits credentials — client-side format validation fires before any network request.</div></div>
+          <div class="wf-step"><div class="wf-num">2</div><div class="wf-text">AbortController-wrapped fetch hits the Cloudflare Worker within 8s timeout.</div></div>
+          <div class="wf-step"><div class="wf-num">3</div><div class="wf-text">Worker queries D1 with parameterized SQL, verifies hash, issues session cookie.</div></div>
+          <div class="wf-step"><div class="wf-num">4</div><div class="wf-text">Client stores session reference in memory, redirects to Dashboard on 200 OK.</div></div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Cloudflare Workers</span><span class="tech-tag">D1 SQL</span><span class="tech-tag">AbortController</span><span class="tech-tag">PBKDF2</span><span class="tech-tag">HttpOnly Cookies</span></div>
+    </div>
+
+    <!-- Register -->
+    <div class="page-panel" id="tab-register" role="tabpanel" aria-labelledby="tabbtn-register" tabindex="0" hidden>
+      <div class="page-hero-bar">
+        <div class="page-name">Registration System</div>
+        <span class="page-badge">User Onboarding</span>
+      </div>
+      <p class="page-overview">Multi-step account creation with real-time field validation, username uniqueness checks against D1, and role assignment. Progressive disclosure reduces cognitive load across three form stages.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="feat-title">Progressive Steps</div>
+          <div class="feat-body">Three-stage form with animated transitions. Each step validates independently before unlocking the next, reducing form abandonment.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="feat-title">Live Validation</div>
+          <div class="feat-body">Username uniqueness verified on blur via debounced D1 lookup. Password strength meter updates in real time with entropy scoring.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <div class="feat-title">Security Headers Suite</div>
+          <div class="feat-body">CSP with default-src 'none', X-Content-Type-Options: nosniff, X-Frame-Options: DENY, Referrer-Policy: no-referrer enforced on all registration endpoints.</div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Multi-step Forms</span><span class="tech-tag">D1 Uniqueness Check</span><span class="tech-tag">Entropy Scoring</span><span class="tech-tag">CSP Headers</span></div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="page-panel" id="tab-dashboard" role="tabpanel" aria-labelledby="tabbtn-dashboard" tabindex="0" hidden>
+      <div class="page-hero-bar">
+        <div class="page-name">Analytics Dashboard</div>
+        <span class="page-badge">Data Command Center</span>
+      </div>
+      <p class="page-overview">Live metrics, Canvas-rendered charts, and real-time D1 queries. Built for decision-makers who need sub-second data refresh without a full page reload.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+          <div class="feat-title">Canvas Charts</div>
+          <div class="feat-body">Line, bar, and scatter plots rendered directly on Canvas 2D. No chart library — pure geometry from raw D1 query results, animated on data update.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+          <div class="feat-title">Live Metrics Stream</div>
+          <div class="feat-body">Polling loop with configurable interval. Differential updates applied to DOM — only changed nodes re-render, keeping the interface responsive.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          <div class="feat-title">Export Pipeline</div>
+          <div class="feat-body">One-click CSV, TXT, and PDF export via Blob API. No server round-trip — data serializes client-side and triggers browser download directly.</div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Canvas API</span><span class="tech-tag">Blob API</span><span class="tech-tag">Fetch API</span><span class="tech-tag">D1 SQL</span><span class="tech-tag">CSV Export</span></div>
+    </div>
+
+    <!-- Profile -->
+    <div class="page-panel" id="tab-profile" role="tabpanel" aria-labelledby="tabbtn-profile" tabindex="0" hidden>
+      <div class="page-hero-bar">
+        <div class="page-name">User Profile</div>
+        <span class="page-badge">Identity Management</span>
+      </div>
+      <p class="page-overview">Editable user profile with avatar upload, bio editing, and settings persistence. Changes optimistically update the UI before the D1 write confirms.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="feat-title">Optimistic Updates</div>
+          <div class="feat-body">UI state changes instantly on user action. Background D1 write confirms asynchronously. Rollback triggers on error with user notification.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+          <div class="feat-title">Avatar Processing</div>
+          <div class="feat-body">Client-side canvas resize and compression before upload. MIME type validation, 2MB cap, and WebP conversion for bandwidth efficiency.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2"/></svg></div>
+          <div class="feat-title">Preference Sync</div>
+          <div class="feat-body">Theme, notification, and accessibility settings stored in D1 user record. Applied on session load so preferences follow the user across devices.</div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Canvas Resize</span><span class="tech-tag">WebP Conversion</span><span class="tech-tag">Optimistic UI</span><span class="tech-tag">D1 Preferences</span></div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="page-panel" id="tab-leaderboard" role="tabpanel" aria-labelledby="tabbtn-leaderboard" tabindex="0" hidden>
+      <div class="page-hero-bar">
+        <div class="page-name">Leaderboard</div>
+        <span class="page-badge">Live Rankings</span>
+      </div>
+      <p class="page-overview">Ranked user table with live D1 queries, animated rank transitions, and search/filter. Virtualized rendering handles thousands of rows without scroll jank.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
+          <div class="feat-title">Virtual Scroll</div>
+          <div class="feat-body">DOM recycling renders only visible rows. 10,000-entry boards scroll at 60fps with no layout thrash or memory growth.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+          <div class="feat-title">Rank Animations</div>
+          <div class="feat-body">FLIP-technique animations fire when ranks shift. Entries slide to new positions with spring physics — no layout recalculation mid-animation.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+          <div class="feat-title">Search Index</div>
+          <div class="feat-body">Client-side trie search across usernames. Results appear on every keystroke with zero network requests using pre-fetched session data.</div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Virtual DOM</span><span class="tech-tag">FLIP Animation</span><span class="tech-tag">Trie Search</span><span class="tech-tag">D1 Rankings</span></div>
+    </div>
+
+    <!-- UI Lab -->
+    <div class="page-panel" id="tab-ui" role="tabpanel" aria-labelledby="tabbtn-ui" tabindex="0" hidden>
+      <div class="page-hero-bar">
+        <div class="page-name">UI Component Lab</div>
+        <span class="page-badge">Design System</span>
+      </div>
+      <p class="page-overview">Live component sandbox — every UI element from the system displayed in all states. Developers preview tokens, spacing, and motion specs before integration.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+          <div class="feat-title">Motion Catalog</div>
+          <div class="feat-body">Every animation easing, duration, and trigger documented with live preview. Exported as CSS custom property tokens for system-wide consistency.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <div class="feat-title">Security Headers Suite</div>
+          <div class="feat-body">CSP with default-src 'none', scripts restricted to unpkg.com and Google Fonts only. X-Content-Type-Options, X-Frame-Options, and Permissions-Policy enforced.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+          <div class="feat-title">WebGL Background Engine</div>
+          <div class="feat-body">Three.js tube geometries from PerformanceCurve calculations. Additive color shading with custom fragment shaders. UnrealBloomPass for cohesive neon glow.</div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Three.js</span><span class="tech-tag">UnrealBloomPass</span><span class="tech-tag">AdditiveBlending</span><span class="tech-tag">ShaderPass</span><span class="tech-tag">Space Grotesk</span><span class="tech-tag">Instrument Serif</span></div>
+    </div>
+
+  </div>
+</section>
+
+<div class="cyber-divider"></div>
+
+<!-- ── TECH STACK ── -->
+<section id="stack">
+  <div class="section-inner">
+    <p class="sec-label sr">Technology</p>
+    <h2 class="sec-heading sr sr-d1">Core <span>Tech Stack</span></h2>
+    <div class="capability-grid">
+      <div class="cap-card sr sr-d1">
+        <div class="cap-card-num">LAYER 01</div>
+        <div class="cap-card-title">Frontend</div>
+        <div class="cap-card-body">HTML5 · CSS3 Custom Variables · JavaScript ES6+ Modules · Semantic Form Architecture · ARIA Accessibility Standards</div>
+        <span class="cap-card-tag">Core Web</span>
+      </div>
+      <div class="cap-card sr sr-d2">
+        <div class="cap-card-num">LAYER 02</div>
+        <div class="cap-card-title">Graphics &amp; 3D</div>
+        <div class="cap-card-body">Three.js Core API · WebGL Custom Shaders · EffectComposer · UnrealBloomPass · OutputPass · OrbitControls · Additive Blending</div>
+        <span class="cap-card-tag">WebGL · Three.js</span>
+      </div>
+      <div class="cap-card sr sr-d3">
+        <div class="cap-card-num">LAYER 03</div>
+        <div class="cap-card-title">Cloud Infrastructure</div>
+        <div class="cap-card-body">Cloudflare Workers Serverless · D1 SQL Database · Global Edge Distribution · TTL Configuration Caching · AbortController Timeout Guards</div>
+        <span class="cap-card-tag">CF Workers · D1</span>
+      </div>
+      <div class="cap-card sr sr-d1">
+        <div class="cap-card-num">LAYER 04</div>
+        <div class="cap-card-title">Browser APIs</div>
+        <div class="cap-card-body">Canvas API · AudioContext · getUserMedia · Geolocation · Battery Status · DeviceMemory · NavigatorConcurrency · Visibility API</div>
+        <span class="cap-card-tag">Web APIs</span>
+      </div>
+      <div class="cap-card sr sr-d2">
+        <div class="cap-card-num">LAYER 05</div>
+        <div class="cap-card-title">Security Architecture</div>
+        <div class="cap-card-body">Content Security Policy · X-Frame-Options · HSTS · X-Content-Type-Options · Referrer-Policy · Permissions-Policy · Session Cookie Validation</div>
+        <span class="cap-card-tag">Security Headers</span>
+      </div>
+      <div class="cap-card sr sr-d3">
+        <div class="cap-card-num">LAYER 06</div>
+        <div class="cap-card-title">Data &amp; Export</div>
+        <div class="cap-card-body">Blob API · Fetch API · Local Storage · Dynamic DOM Rendering · CSV/TXT/PDF Export · SQL Query Console · Search Index Optimization</div>
+        <span class="cap-card-tag">Data Layer</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MANIFESTO: STAGGERED TEXT + TICKER ── -->
+<section id="manifestoSection">
+  <div class="section-inner">
+    <div class="manifesto-line">
+      <span class="word"><i>Interfaces</i></span>
+      <span class="word"><i>shouldn&rsquo;t</i></span>
+      <span class="word"><i>just</i></span>
+      <span class="word"><i>sit</i></span>
+      <span class="word"><i>there.</i></span>
+    </div>
+    <div class="manifesto-line alt">
+      <span class="word"><i>They&rsquo;re</i></span>
+      <span class="word"><i><span class="mg">meant</span></i></span>
+      <span class="word"><i><span class="mg">to</span></i></span>
+      <span class="word"><i><span class="mg">breathe</span></i></span>
+    </div>
+    <div class="manifesto-line">
+      <span class="word"><i>&mdash; to react, to flow,</i></span>
+    </div>
+    <div class="manifesto-line alt">
+      <span class="word"><i>to feel</i></span>
+      <span class="word"><i>genuinely</i></span>
+      <span class="word"><i><span class="ms">alive.</span></i></span>
+    </div>
+  </div>
+  <!-- Infinite ticker -->
+  <div class="manifesto-ticker">
+    <div class="ticker-track">
+      <div class="ticker-content">
+        <span>Frontend Forge <span class="to">·</span> Real-time Rendering <span class="to">·</span> Edge-Native Architecture <span class="to">·</span> Zero Frameworks <span class="to">·</span> WebGL Engine <span class="to">·</span> Alive by Design <span class="to">·</span> &nbsp;</span>
+      </div>
+      <div class="ticker-content" aria-hidden="true">
+        <span>Frontend Forge <span class="to">·</span> Real-time Rendering <span class="to">·</span> Edge-Native Architecture <span class="to">·</span> Zero Frameworks <span class="to">·</span> WebGL Engine <span class="to">·</span> Alive by Design <span class="to">·</span> &nbsp;</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-mark">NYTHERION<span class="d">.</span></div>
+      <div class="footer-cols">
+        <div class="col">
+          <h3>Navigate</h3>
+          <a href="#hero">Overview</a>
+          <a href="#how-it-works">Architecture</a>
+          <a href="#pages">Components</a>
+          <a href="#stack">Tech Stack</a>
+        </div>
+        <div class="col">
+          <h3>System</h3>
+          <a href="#">Documentation</a>
+          <a href="#">API Reference</a>
+          <a href="#">Changelog</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-base">
+      <span>FRONTEND FORGE · MODERN UI FRAMEWORK</span>
+      <span class="built"><span class="g-dot"></span> All Systems Operational</span>
+    </div>
+  </div>
+</footer>
+
+
+<script src="warrior-fallback-data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

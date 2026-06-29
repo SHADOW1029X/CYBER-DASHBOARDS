@@ -1165,19 +1165,17 @@ window.addEventListener('unhandledrejection', e => {
         gl_Position = u_proj * u_view * worldPos;
       }`;
 
-    // The mesh's baked base-color, metallic-roughness, and emissive
-    // textures all share the same corruption: every UV island contains
-    // a fragment of unrelated content (confirmed by direct inspection of
-    // all four channels — base color, roughness, metalness, emissive all
-    // show the identical shattered-mosaic pattern, since they were baked
-    // from the same broken UV unwrap). There is no clean per-pixel
-    // material signal anywhere in this asset except the normal map.
-    // Given that, surface "material" here is built procedurally instead
-    // of sampled: a two-tone split driven by how much normal-map detail
-    // a point has (smooth plate vs. seam/strap/grime), real specular
-    // highlights (the missing ingredient that was making this read as a
-    // flat-shaded silhouette rather than a lit object), and warm/cool
-    // light color temperature instead of flat grey lighting.
+    // Texture sampling was previously suspected broken — every UV island
+    // looked like a fragment of unrelated content when the raw image was
+    // inspected flat. That's actually normal for any baked PBR atlas
+    // (islands are packed wherever the bake tool puts them, not adjacent
+    // to their position on the body) and was a red herring. The real bug
+    // was `UNPACK_FLIP_Y_WEBGL` being set true on upload: glTF defines UV
+    // origin at top-left (matching raw image row order), so flipping on
+    // upload sampled every triangle from a vertically mirrored row
+    // relative to its real UV coordinate, scattering content
+    // unpredictably across the model. With that corrected, the actual
+    // baked textures are sampled directly below.
     const FS = `
       ${derivExt ? '#extension GL_OES_standard_derivatives : enable' : ''}
       precision highp float;
@@ -1185,13 +1183,6 @@ window.addEventListener('unhandledrejection', e => {
       uniform sampler2D u_base, u_normalTex, u_emissive;
       uniform vec3 u_camPos, u_lightDir1, u_lightDir2;
       uniform float u_time;
-
-      // Primary plate color (cool blue-steel) and secondary seam/strap
-      // color (warm near-black leather) — pushed to a real, unmistakable
-      // hue difference rather than a subtle tint, since a soft version of
-      // this split rendered as flat grey once lit.
-      vec3 plateColor = vec3(0.16, 0.205, 0.235);
-      vec3 seamColor  = vec3(0.085, 0.058, 0.05);
 
       void main(){
         vec3 baseN = normalize(v_normal);
@@ -1209,14 +1200,9 @@ window.addEventListener('unhandledrejection', e => {
           float invmax = 1.0 / sqrt(max(dot(T,T), dot(B,B)) + 1e-8);
           T *= invmax; B *= invmax;
           vec3 nmRaw = texture2D(u_normalTex, v_uv).rgb * 2.0 - 1.0;
-          // How far this texel's normal deviates from pointing straight
-          // out of its tangent plane — near 0 on smooth plate surfaces,
-          // higher right at seams/straps/grime. This is genuinely clean
-          // per-pixel data (the normal map baked out undamaged), so it's
-          // reused below to drive material color, not just lighting.
           detailAmount = clamp(length(nmRaw.xy) * 2.2, 0.0, 1.0);
           vec3 nmSample = nmRaw;
-          nmSample.xy *= 0.65;
+          nmSample.xy *= 0.85;
           vec3 N = normalize(nmSample.x * T + nmSample.y * B + nmSample.z * baseN);
         #else
           vec3 N = baseN;
@@ -1224,14 +1210,7 @@ window.addEventListener('unhandledrejection', e => {
 
         vec3 V = normalize(u_camPos - v_worldPos);
 
-        vec3 albedo = mix(plateColor, seamColor, smoothstep(0.12, 0.55, detailAmount));
-
-        // Large-scale procedural panel variation so flat plate areas
-        // aren't a single uniform value either — coarse worldspace noise,
-        // independent of the broken UVs entirely.
-        float panelVary = 0.5 + 0.5 * sin(v_worldPos.x * 3.1 + v_worldPos.y * 1.7)
-                                * sin(v_worldPos.y * 2.3 - v_worldPos.z * 2.9 + 0.6);
-        albedo *= 0.92 + 0.16 * panelVary;
+        vec3 albedo = texture2D(u_base, v_uv).rgb;
 
         vec3 L1 = normalize(u_lightDir1);
         vec3 L2 = normalize(u_lightDir2);
@@ -1240,38 +1219,31 @@ window.addEventListener('unhandledrejection', e => {
 
         // Warm key light, cool fill — color temperature contrast reads
         // as "lit by something" rather than flat grey ambient.
-        vec3 keyColor = vec3(1.18, 1.0, 0.78);
-        vec3 fillColor = vec3(0.65, 0.82, 1.15);
-        vec3 lit = albedo * (0.55
-                              + diff1 * 1.2 * keyColor
-                              + diff2 * 0.6 * fillColor);
+        vec3 keyColor = vec3(1.1, 1.02, 0.92);
+        vec3 fillColor = vec3(0.82, 0.9, 1.08);
+        vec3 lit = albedo * (0.42
+                              + diff1 * 1.15 * keyColor
+                              + diff2 * 0.55 * fillColor);
 
-        // Specular highlight — the ingredient that was entirely missing
-        // before. Without this, even correctly-lit matte plating reads
-        // as a flat-shaded silhouette rather than a real surface; a
-        // tight, modest highlight is what sells "lit object" to the eye.
+        // Specular highlight so lit plating reads as a real surface
+        // rather than flat-shaded.
         vec3 H1 = normalize(L1 + V);
-        float specPower = mix(48.0, 10.0, detailAmount); // plates glossier than seams
-        float spec = pow(max(dot(N, H1), 0.0), specPower) * mix(0.55, 0.12, detailAmount);
+        float spec = pow(max(dot(N, H1), 0.0), 32.0) * 0.35;
         lit += keyColor * spec;
 
         vec3 color = lit;
 
         // Cyan rim light for cyberpunk aesthetic
         vec3 rimColor = vec3(0.13, 0.85, 0.95);
-        float rim = pow(1.0 - max(dot(N, V), 0.0), 2.2);
-        color += rimColor * rim * 0.5;
+        float rim = pow(1.0 - max(dot(N, V), 0.0), 2.4);
+        color += rimColor * rim * 0.35;
 
-        // Emissive trim glow — same fragmentation issue as the albedo,
-        // so it's used as a glow *mask* (luminance + clamp) rather than
-        // sampled as true color, which reads as scattered energy
-        // highlights rather than broken patches.
-        float emissiveMask = max(max(texture2D(u_emissive, v_uv).r,
-                                      texture2D(u_emissive, v_uv).g),
-                                  texture2D(u_emissive, v_uv).b);
-        emissiveMask = smoothstep(0.06, 0.4, emissiveMask);
-        float pulse = 0.8 + 0.2 * sin(u_time * 2.0);
-        color += rimColor * emissiveMask * pulse * 1.6;
+        // Emissive trim — sampled as real color now (not just a
+        // luminance mask), since the texture itself should be correct
+        // post-fix.
+        vec3 emissiveSample = texture2D(u_emissive, v_uv).rgb;
+        float pulse = 0.85 + 0.15 * sin(u_time * 2.0);
+        color += emissiveSample * pulse * 1.4;
 
         gl_FragColor = vec4(color, 1.0);
       }`;
