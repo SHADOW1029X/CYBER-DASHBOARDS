@@ -40,12 +40,13 @@
     @keyframes grain{0%{transform:translate(0,0)}50%{transform:translate(-6%,4%)}100%{transform:translate(3%,-5%)}}
 
     /* ── Combat Drone companion canvas ──
-       Fixed full-viewport, transparent, sits above page content (z-index:10)
-       but below nav/mobile-menu (z-index:200+) so it never blocks UI controls.
+       Fixed full-viewport, transparent, sits BEHIND page content
+       (main is z-index:10) so text/cards always render on top of it —
+       same layering as a background element, never obscuring copy.
        pointer-events:none — purely decorative, never intercepts clicks/taps. */
     #droneCanvas{
       position:fixed; inset:0; width:100vw; height:100vh;
-      z-index:90; pointer-events:none; display:block;
+      z-index:5; pointer-events:none; display:block;
       opacity:0; transition:opacity 1.1s var(--ease);
     }
     #droneCanvas.drone-visible{opacity:1;}
