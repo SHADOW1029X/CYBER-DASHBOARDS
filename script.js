@@ -1585,9 +1585,22 @@ window.addEventListener('unhandledrejection', e => {
       }
     }
 
+    let lastFrameT = null;
+    const autoSpinSpeed = 0.16; // rad/sec — slow continuous showcase spin
+
     function frame(t) {
       if (contextLost) { rafId = null; return; }
       if (!sectionVisible) { rafId = null; return; }
+
+      const dt = lastFrameT !== null ? Math.min((t - lastFrameT) / 1000, 0.1) : 0;
+      lastFrameT = t;
+
+      // Auto-spin keeps the model slowly turning on its own so it never
+      // just sits frozen — but it only drives targetYaw while the user
+      // isn't actively dragging, so a press-and-hold always immediately
+      // takes over control, and releasing lets it resume spinning from
+      // wherever it was left.
+      if (!dragging && !reduceMotion) targetYaw += autoSpinSpeed * dt;
 
       curYaw += (targetYaw - curYaw) * 0.12;
 
