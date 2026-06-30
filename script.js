@@ -1182,7 +1182,7 @@ window.addEventListener('unhandledrejection', e => {
       varying vec3 v_normal; varying vec2 v_uv; varying vec3 v_worldPos;
       uniform sampler2D u_base, u_normalTex, u_emissive;
       uniform vec3 u_camPos, u_lightDir1, u_lightDir2;
-      uniform float u_time;
+      uniform float u_time, u_headY, u_headBlend;
 
       void main(){
         vec3 baseN = normalize(v_normal);
@@ -1221,15 +1221,26 @@ window.addEventListener('unhandledrejection', e => {
         // as "lit by something" rather than flat grey ambient.
         vec3 keyColor = vec3(1.1, 1.02, 0.92);
         vec3 fillColor = vec3(0.82, 0.9, 1.08);
-        vec3 lit = albedo * (0.42
-                              + diff1 * 1.15 * keyColor
-                              + diff2 * 0.55 * fillColor);
+        vec3 lit = albedo * (0.26
+                              + diff1 * 0.95 * keyColor
+                              + diff2 * 0.38 * fillColor);
 
         // Specular highlight so lit plating reads as a real surface
-        // rather than flat-shaded.
+        // rather than flat-shaded — tighter + brighter for a shinier,
+        // more polished/metallic look on the body's armor plating.
+        // The head/face/hair isn't metal plating though, so the same
+        // hard specular there reads as plastic — fade it out toward
+        // the top of the model (skin/hair) while leaving the body's
+        // shine untouched.
+        float headMask = smoothstep(u_headY - u_headBlend, u_headY + u_headBlend, v_worldPos.y);
+        float specStrength = mix(1.0, 0.12, headMask);
+
         vec3 H1 = normalize(L1 + V);
-        float spec = pow(max(dot(N, H1), 0.0), 32.0) * 0.35;
-        lit += keyColor * spec;
+        vec3 H2 = normalize(L2 + V);
+        float spec1 = pow(max(dot(N, H1), 0.0), 64.0) * 0.85 * specStrength;
+        float spec2 = pow(max(dot(N, H2), 0.0), 64.0) * 0.4 * specStrength;
+        lit += keyColor * spec1;
+        lit += fillColor * spec2;
 
         vec3 color = lit;
 
@@ -1422,11 +1433,11 @@ window.addEventListener('unhandledrejection', e => {
     }
 
     let renderReady = false;
-    let halfHeight = 1, centerY = 0;
+    let halfHeight = 1, centerY = 0, headWorldY = 0, headBlend = 0.1;
     let posBuf, normBuf, uvBuf, idxBuf, indexCount;
     let texBase, texNormal, texEmissive, prog;
     let locPos, locNorm, locUV;
-    let uModel, uView, uProj, uNormalMat, uBase, uNormalTex, uEmissive, uCamPos, uLightDir1, uLightDir2, uTime;
+    let uModel, uView, uProj, uNormalMat, uBase, uNormalTex, uEmissive, uCamPos, uLightDir1, uLightDir2, uTime, uHeadY, uHeadBlend;
 
     (async function init() {
       try {
@@ -1446,6 +1457,12 @@ window.addEventListener('unhandledrejection', e => {
         }
         centerY = (minY + maxY) / 2;
         halfHeight = (maxY - minY) / 2;
+
+        // Head/face/hair starts ~16% of total height down from the top
+        // of the model. v_worldPos in the shader is local Y minus
+        // centerY (see modelMat below), so convert into that space.
+        headWorldY = (maxY - centerY) - 0.16 * (maxY - minY);
+        headBlend = (maxY - minY) * 0.05;
 
         setBootProgress(78, 'Decoding textures');
         const [baseImg, , normalImg, emissiveImg] = await Promise.all([0,1,2,3].map(i => loadImage(model.imageBlob(i))));
@@ -1486,6 +1503,8 @@ window.addEventListener('unhandledrejection', e => {
         uLightDir1 = gl.getUniformLocation(prog, 'u_lightDir1');
         uLightDir2 = gl.getUniformLocation(prog, 'u_lightDir2');
         uTime = gl.getUniformLocation(prog, 'u_time');
+        uHeadY = gl.getUniformLocation(prog, 'u_headY');
+        uHeadBlend = gl.getUniformLocation(prog, 'u_headBlend');
 
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
@@ -1626,6 +1645,8 @@ window.addEventListener('unhandledrejection', e => {
       gl.uniform3fv(uLightDir1, normalize3(lit1));
       gl.uniform3fv(uLightDir2, normalize3(lit2));
       gl.uniform1f(uTime, t / 1000);
+      gl.uniform1f(uHeadY, headWorldY);
+      gl.uniform1f(uHeadBlend, headBlend);
 
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texBase); gl.uniform1i(uBase, 0);
       gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, texNormal); gl.uniform1i(uNormalTex, 1);
