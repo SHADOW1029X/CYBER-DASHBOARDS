@@ -525,10 +525,36 @@
     #warriorSection .pinStick{justify-content:center;}
     .warrior-stage{
       position:absolute;inset:0;z-index:1;overflow:hidden;
-      /* Slightly oversized so the parallax translate never exposes an edge */
       transform:translate3d(0,0,0) scale(1.06);
       backface-visibility:hidden;
-      background:#03030a;
+    }
+    .warrior-bg{
+      position:absolute;inset:0;width:100%;height:100%;
+      object-fit:cover;object-position:center 20%;
+      z-index:0;display:block;background:#0a0a0d;
+    }
+    /* The 3D model uses a fixed vertical FOV (camera.fov stays constant,
+       only horizontal aspect changes), so it keeps the same apparent
+       height/scale on any screen and just gets cropped/widened on the
+       sides. object-fit:cover already mirrors that for the JPG on most
+       screens (height fills, sides crop) — but on tall/narrow phone
+       viewports the image's own aspect ratio means cover has to crop
+       MORE off the sides than the model crops off its frame, making the
+       room look "zoomed in" relative to the character. Nudging the
+       anchor and easing the crop on narrow screens keeps the room scale
+       visually matched to the model at every breakpoint. */
+    @media (max-width:780px){
+      .warrior-bg{object-position:center 12%;}
+    }
+    @media (max-width:780px) and (orientation:portrait){
+      .warrior-bg{object-position:center 8%;}
+    }
+    /* Ultra-wide screens: cover crops top/bottom instead of sides, which
+       can clip the ceiling rig above the model's head. Bias up slightly
+       so the same room landmarks the model is framed against stay in
+       view instead of getting cut by the wider crop. */
+    @media (min-aspect-ratio:21/9){
+      .warrior-bg{object-position:center 30%;}
     }
     .warrior-canvas{
       position:absolute;inset:0;width:100%;height:100%;
@@ -536,13 +562,17 @@
       transform:translateZ(0);
       backface-visibility:hidden;
       opacity:0;
+      z-index:1;
+      background:transparent;
       transition:opacity 1.1s var(--ease);
+      cursor:grab;touch-action:none;
     }
+    .warrior-stage.dragging .warrior-canvas{cursor:grabbing;}
     .warrior-canvas.ready{opacity:1;}
     .warrior-poster{
       position:absolute;inset:0;width:100%;height:100%;
       object-fit:cover;object-position:center 20%;
-      display:block;background:#000;
+      display:block;
       opacity:0;transition:opacity .6s ease;
     }
     /* Poster is the fallback: shown only if WebGL/asset loading fails,
