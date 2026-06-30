@@ -565,7 +565,7 @@
       z-index:1;
       background:transparent;
       transition:opacity 1.1s var(--ease);
-      cursor:grab;touch-action:none;
+      cursor:grab;touch-action:pan-y;
     }
     .warrior-stage.dragging .warrior-canvas{cursor:grabbing;}
     .warrior-canvas.ready{opacity:1;}
