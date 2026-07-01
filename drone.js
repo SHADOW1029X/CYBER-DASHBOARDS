@@ -231,8 +231,6 @@
 
       function buildPath() {
         docHeight = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
-        var focusEl = document.getElementById('focus');
-        var focusTop = focusEl ? focusEl.offsetTop : 0;
 
         KX = []; KY = []; KS = [];
 
@@ -248,7 +246,7 @@
           var rect = el.getBoundingClientRect();
           var top = window.scrollY + rect.top;
           var mid = top + rect.height * 0.5;
-          var at = clamp01((mid - 0) / docHeight);
+          var at = clamp01(mid / docHeight);
           // guarantee monotonic, minimum spacing so easing never collapses
           if (at <= prevAt + 0.015) at = prevAt + 0.015;
           prevAt = at;
@@ -274,6 +272,19 @@
       }
 
       function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+
+      // Every smoothing factor below (SMOOTH_POS, SMOOTH_ROT, etc.) was
+      // tuned by feel assuming a 60fps frame, applied as a flat per-frame
+      // lerp — which makes both the convergence speed AND the derived
+      // banking physics (vx/vy are frame-to-frame position deltas)
+      // silently frame-rate dependent: on a 144Hz display the drone
+      // would visibly converge to its target ~2.4x faster in real time,
+      // and bank less aggressively, than on a 60Hz display sampling the
+      // exact same scroll motion. dtLerp() re-derives the per-frame
+      // factor for the CURRENT frame's dt so a real-time half-life is
+      // preserved regardless of refresh rate; at exactly 60fps this is
+      // a no-op (returns k unchanged).
+      function dtLerp(k, dt) { return 1 - Math.pow(1 - k, dt * 60); }
 
       /* ── Keyframe sampler with smooth ease-in-out ──────────────── */
       function eio(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
@@ -312,7 +323,6 @@
       var BASE_SCALE = 0.026; // tuned below once real bbox is known, see load callback
 
       var L = { x: 0, y: halfH() * 1.15, sc: BASE_SCALE, yaw: 0, pitch: 0, roll: 0 };
-      var prevWorld = { x: 0, y: halfH() * 1.15 };
       var SMOOTH_POS = 0.05;
       var SMOOTH_ROT = 0.085;
       var SMOOTH_SC = 0.06;
@@ -359,7 +369,6 @@
         var h = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
         scrollT = clamp01(window.scrollY / h);
 
-        var focusEl = document.getElementById('focus');
         var heroEl = document.getElementById('hero');
         var shouldShow = true;
         if (heroEl) {
@@ -406,15 +415,13 @@
                 if (!m) return;
                 // Push metalness up and roughness down so the drone
                 // catches directional highlights like polished metal
-                if (m.metalness !== undefined) m.metalness = Math.max(m.metalness, 0.60);
-                if (m.roughness !== undefined) m.roughness = Math.min(m.roughness, 0.6);
-                m.envMapIntensity = 2.0;
+                if (m.metalness !== undefined) m.metalness = Math.max(m.metalness, 0.82);
+                if (m.roughness !== undefined) m.roughness = Math.min(m.roughness, 0.28);
+                m.envMapIntensity = 2.8;
                 m.needsUpdate = true;
               });
             }
           });
-          // Slightly boost exposure once after materials are set — not per-mesh
-          renderer.toneMappingExposure = 1.12;
 
           // Measure the EFFECTIVE bounding box after Three.js has already
           // applied the GLB's baked node matrices (90° axis conversion +
@@ -468,6 +475,11 @@
         if (mixer) mixer.update(dt);
         if (!drone) { renderer.render(scene, camera); return; }
 
+        // Safety floor purely for the velocity division below — guards
+        // against a degenerate near-zero dt (e.g. a duplicate rAF tick)
+        // blowing up vx/vy, without distorting normal frame timing.
+        var safeDt = dt > 0.0001 ? dt : 0.0001;
+
         var t = scrollT;
         var hh = halfH(), hw = halfW();
 
@@ -500,12 +512,17 @@
         // and correctly flips during a backtrack dip.
         var beforeX = L.x, beforeY = L.y;
 
-        L.x += (tx - L.x) * SMOOTH_POS;
-        L.y += (ty - L.y) * SMOOTH_POS;
-        L.sc += (tsc - L.sc) * SMOOTH_SC;
+        L.x += (tx - L.x) * dtLerp(SMOOTH_POS, dt);
+        L.y += (ty - L.y) * dtLerp(SMOOTH_POS, dt);
+        L.sc += (tsc - L.sc) * dtLerp(SMOOTH_SC, dt);
 
-        var vx = L.x - beforeX;
-        var vy = L.y - beforeY;
+        // Position delta normalized to "movement per standard 1/60s
+        // frame" — this is what makes vx/vy (and everything tuned
+        // against them below: bank angle, yaw-turn threshold, etc.)
+        // read identically regardless of the display's actual refresh
+        // rate, instead of banking more weakly at higher frame rates.
+        var vx = (L.x - beforeX) / (safeDt * 60);
+        var vy = (L.y - beforeY) / (safeDt * 60);
         var speed = Math.sqrt(vx * vx + vy * vy);
 
         // ── Idle tracking ──────────────────────────────────────────
@@ -539,11 +556,11 @@
         var vxAbs = Math.abs(vx);
         if (lookingAtCamera) {
           // Stayed still for a while — turn to look directly at the viewer.
-          L.yaw += (FACE_CAMERA_YAW - L.yaw) * SMOOTH_TURN;
+          L.yaw += (FACE_CAMERA_YAW - L.yaw) * dtLerp(SMOOTH_TURN, dt);
         } else if (vxAbs > 0.00035) {
           var n = vx / (vxAbs + VX_TURN_SCALE); // softsign, -1..1
           var targetYaw = (n + 1) * (Math.PI / 2); // -1→0 (left), +1→π (right)
-          L.yaw += (targetYaw - L.yaw) * SMOOTH_YAW;
+          L.yaw += (targetYaw - L.yaw) * dtLerp(SMOOTH_YAW, dt);
         }
         // else: no meaningful horizontal motion — hold the current
         // heading rather than snapping anywhere.
@@ -552,13 +569,13 @@
         //    nose down when descending — also nose-up when braking into
         //    a backtrack, matching how a real drone decelerates) ──
         var targetPitch = lookingAtCamera ? 0 : Math.max(-0.5, Math.min(0.5, -vy * 9.0));
-        L.pitch += (targetPitch - L.pitch) * (lookingAtCamera ? SMOOTH_TURN : SMOOTH_ROT);
+        L.pitch += (targetPitch - L.pitch) * dtLerp(lookingAtCamera ? SMOOTH_TURN : SMOOTH_ROT, dt);
 
         // ── Derive roll/bank from horizontal velocity — banks INTO the
         //    turn like a real quad/fixed-wing platform, including the
         //    hard bank-and-turn look when it reverses direction ──
         var targetRoll = lookingAtCamera ? 0 : Math.max(-0.68, Math.min(0.68, -vx * 13.5));
-        L.roll += (targetRoll - L.roll) * (lookingAtCamera ? SMOOTH_TURN : SMOOTH_ROT);
+        L.roll += (targetRoll - L.roll) * dtLerp(lookingAtCamera ? SMOOTH_TURN : SMOOTH_ROT, dt);
 
         // ── Idle hover micro-jitter — always alive, even mid-scroll-pause ──
         var hx = Math.cos(el * 1.7) * 0.006 + Math.sin(el * 3.0) * 0.0025;
