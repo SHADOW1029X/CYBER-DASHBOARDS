@@ -41,6 +41,32 @@ window.addEventListener('unhandledrejection', e => {
   // intact even for add-on systems loaded after this IIFE runs.
   window.__nytherionOnScroll = onScroll;
 
+  // ── SHARED RESIZE BUS ──
+  // Same idea, scoped to resize only (kept separate from the scroll bus
+  // above rather than folded in, since several subscribers here — mask
+  // radius, focus-frame placement — don't depend on scroll position at
+  // all, and merging them would mean redundantly recomputing on every
+  // scroll frame for no reason). Raw 'resize' events fire far more often
+  // than the name suggests — a mobile browser's address bar sliding away
+  // during scroll, or dragging a desktop window edge, can fire dozens in
+  // a row — so several independent systems doing layout-forcing reads
+  // (getBoundingClientRect) or expensive work (WebGL framebuffer resize)
+  // directly in a raw resize handler is a real source of jank. Batching
+  // to one rAF-scheduled pass fixes that the same way the scroll bus does.
+  const resizeSubscribers = [];
+  function onResize(fn) { resizeSubscribers.push(fn); }
+  let resizeRafPending = false;
+  function scheduleResizeUpdate() {
+    if (resizeRafPending) return;
+    resizeRafPending = true;
+    requestAnimationFrame(() => {
+      resizeRafPending = false;
+      for (let i = 0; i < resizeSubscribers.length; i++) resizeSubscribers[i]();
+    });
+  }
+  window.addEventListener('resize', scheduleResizeUpdate, { passive: true });
+  window.__nytherionOnResize = onResize;
+
   // ── SCROLL PROGRESS ──
   const prog = document.getElementById('prog');
   onScroll(() => {
@@ -192,7 +218,7 @@ window.addEventListener('unhandledrejection', e => {
     RADIUS = window.matchMedia('(pointer:coarse)').matches ? 210 : 290;
     applyMaskGradient();
   }
-  window.addEventListener('resize', resizeSL, {passive: true});
+  onResize(resizeSL);
   resizeSL();
 
   function clearMask() {
@@ -484,7 +510,7 @@ window.addEventListener('unhandledrejection', e => {
       placeFrame(autoIdx);
     }, 1900);
 
-    window.addEventListener('resize', () => placeFrame(manual ? manualIdx : autoIdx), { passive: true });
+    onResize(() => placeFrame(manual ? manualIdx : autoIdx));
     setTimeout(() => placeFrame(0), 140);
   })(); } catch (e) { console.error('[NYTHERION] setupTrueFocus failed:', e); }
 
@@ -659,8 +685,30 @@ window.addEventListener('unhandledrejection', e => {
     const ideaIO = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('in');
-          ideaIO.unobserve(entry.target);
+          const target = entry.target;
+          target.classList.add('in');
+          ideaIO.unobserve(target);
+
+          // .word-shell>i carries a permanent will-change:transform (see
+          // design.css) so the browser can pre-optimize this one-shot
+          // staggered reveal — but for a paragraph of ~20 words that's
+          // ~20 GPU compositing layers held open forever after a single
+          // ~1-2s animation, which is unnecessary memory/bandwidth
+          // pressure on mobile. Release them once the reveal has
+          // actually finished: timed from THIS paragraph's own longest
+          // per-word delay + the transition duration (with a small
+          // buffer), not a guessed constant, so it's correct regardless
+          // of paragraph length.
+          const shells = target.querySelectorAll('.word-shell>i');
+          let maxDelay = 0;
+          shells.forEach(i => {
+            const d = parseFloat(getComputedStyle(i).transitionDelay) || 0;
+            if (d > maxDelay) maxDelay = d;
+          });
+          const TRANSITION_S = 1.1; // matches .word-shell>i's transition-duration in design.css
+          setTimeout(() => {
+            shells.forEach(i => { i.style.willChange = 'auto'; });
+          }, (maxDelay + TRANSITION_S + 0.3) * 1000);
         }
       });
     }, { threshold: 0.18 });
@@ -959,7 +1007,14 @@ window.addEventListener('unhandledrejection', e => {
       // Fully stop the render loop (no rAF callback queued at all) once the
       // tab is off-screen, at rest (heat/erupt settled), and not focused —
       // six tiny nav pills don't need six perpetual WebGL render loops.
+      //
+      // For reduced-motion users specifically, the ambient plasma churn is
+      // frozen (see uTime below) — so once heat/erupt settle, the frame is
+      // byte-for-byte identical every time, and re-rendering it forever
+      // just because the pill happens to be on-screen is pure waste. Drop
+      // the visibility requirement in that case so it actually stops.
       function isIdle() {
+        if (reduced) return heatTarget === 0 && heat < 0.001 && erupt < 0.001;
         return !visible && heatTarget === 0 && heat < 0.001 && erupt < 0.001;
       }
 
