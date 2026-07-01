@@ -408,7 +408,7 @@
                 // catches directional highlights like polished metal
                 if (m.metalness !== undefined) m.metalness = Math.max(m.metalness, 0.75);
                 if (m.roughness !== undefined) m.roughness = Math.min(m.roughness, 0.18);
-                m.envMapIntensity = 3.5;
+                m.envMapIntensity = 7.0;
                 m.needsUpdate = true;
               });
             }
