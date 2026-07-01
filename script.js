@@ -1331,15 +1331,16 @@ window.addEventListener('unhandledrejection', e => {
     function translate(v) {
       return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, v[0],v[1],v[2],1]);
     }
-    // Uniform scale about the local origin, then translate to a world
-    // position — built directly (not via multiply()) so there's no
-    // composition-order ambiguity for this simple, very common case.
-    function scaleThenTranslate(s, v) {
-      return new Float32Array([s,0,0,0, 0,s,0,0, 0,0,s,0, v[0],v[1],v[2],1]);
-    }
     function scaleUniform(s) {
       return new Float32Array([s,0,0,0, 0,s,0,0, 0,0,s,0, 0,0,0,1]);
     }
+    // curYaw's per-frame lerp toward targetYaw (see frame()) was written
+    // as a flat per-frame factor, which makes it frame-rate dependent —
+    // the orbit would visibly catch up to a drag/auto-spin target faster
+    // in real time on a high-refresh display than on a 60Hz one. This
+    // re-derives the per-frame factor for the current dt so the real-time
+    // catch-up speed stays consistent; at exactly 60fps it's a no-op.
+    function dtLerp(k, dt) { return 1 - Math.pow(1 - k, dt * 60); }
     function multiply(a,b) {
       const out = new Float32Array(16);
       for (let i=0;i<4;i++) for (let j=0;j<4;j++) {
@@ -1775,7 +1776,7 @@ window.addEventListener('unhandledrejection', e => {
       // wherever it was left.
       if (!dragging && !reduceMotion) targetYaw += autoSpinSpeed * dt;
 
-      curYaw += (targetYaw - curYaw) * 0.12;
+      curYaw += (targetYaw - curYaw) * dtLerp(0.12, dt);
 
       resizeCanvas();
 
