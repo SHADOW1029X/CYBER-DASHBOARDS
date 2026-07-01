@@ -1265,6 +1265,23 @@ window.addEventListener('unhandledrejection', e => {
         gl_FragColor = vec4(color, 1.0);
       }`;
 
+    // ── ship/dome shaders ──
+    // The dome is a pre-baked, fully-lit 360 environment photo (its glTF
+    // material has emissiveFactor=[1,1,1] and specular=[0,0,0] — the
+    // asset is explicitly authored to be shown unlit). So this is a much
+    // simpler pass: sample the one texture straight through, no PBR, no
+    // normal mapping, no dynamic lights. Reuses the same vertex-shader
+    // shape (still needs a_normal bound since the source mesh has it, it
+    // just goes unused downstream).
+    const VS_SHIP = VS;
+    const FS_SHIP = `
+      precision highp float;
+      varying vec2 v_uv;
+      uniform sampler2D u_base;
+      void main(){
+        gl_FragColor = vec4(texture2D(u_base, v_uv).rgb, 1.0);
+      }`;
+
     function compile(type, src) {
       const s = gl.createShader(type);
       gl.shaderSource(s, src);
@@ -1301,6 +1318,12 @@ window.addEventListener('unhandledrejection', e => {
     }
     function translate(v) {
       return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, v[0],v[1],v[2],1]);
+    }
+    // Uniform scale about the local origin, then translate to a world
+    // position — built directly (not via multiply()) so there's no
+    // composition-order ambiguity for this simple, very common case.
+    function scaleThenTranslate(s, v) {
+      return new Float32Array([s,0,0,0, 0,s,0,0, 0,0,s,0, v[0],v[1],v[2],1]);
     }
     function multiply(a,b) {
       const out = new Float32Array(16);
@@ -1438,12 +1461,50 @@ window.addEventListener('unhandledrejection', e => {
       }
     }
 
+    // The dome (WarriorShip.glb) is loaded via plain fetch only — no
+    // base64 embed fallback, since it's a large (~2.8MB) purely-additive
+    // background layer, not the critical-path asset. If it can't be
+    // fetched (file://, or the file wasn't deployed alongside the page),
+    // the scene just falls back to the flat background photo behind the
+    // soldier, exactly like before — never blocks or fails the soldier
+    // render itself.
+    async function loadShipGLB() {
+      const res = await fetch('./WarriorShip.glb');
+      if (!res.ok) throw new Error('ship GLB fetch failed: ' + res.status);
+      return await res.arrayBuffer();
+    }
+
     let renderReady = false;
     let halfHeight = 1, centerY = 0, headWorldY = 0, headBlend = 0.1;
     let posBuf, normBuf, uvBuf, idxBuf, indexCount;
     let texBase, texNormal, texEmissive, prog;
     let locPos, locNorm, locUV;
     let uModel, uView, uProj, uNormalMat, uBase, uNormalTex, uEmissive, uCamPos, uLightDir1, uLightDir2, uTime, uHeadY, uHeadBlend;
+
+    // ── dome/ship state ──
+    // Sized relative to halfHeight (the soldier's own half-height, in
+    // whatever local units CyberSoldier.glb uses) so the dome scales
+    // correctly regardless of that model's arbitrary export scale.
+    // SHIP_RADIUS_FACTOR: dome radius, in soldier-half-heights. Chosen so
+    // it comfortably exceeds the camera's orbit distance (halfHeight*3.4,
+    // see ORBIT_DIST_FACTOR below) with a wide safety margin — the camera
+    // must never get close to the inner wall or the illusion breaks.
+    // SOLDIER_Y_SHIFT_FACTOR: how far down (in half-heights) to drop the
+    // soldier so he reads as standing inside the dome rather than
+    // floating at its exact center. The dome's own vertical center is
+    // deliberately kept equal to the camera's orbit height (not the
+    // soldier's feet) — that keeps the camera-to-dome-center distance
+    // constant and simple (always exactly the orbit radius) for reliable
+    // clearance, at the cost of not being pixel-perfect floor-aligned.
+    // These are the values most worth nudging after seeing the live
+    // render — this can't be visually previewed from here.
+    let shipReady = false;
+    let posBufShip, normBufShip, uvBufShip, idxBufShip, indexCountShip;
+    let texShipBase, progShip;
+    let locPosShip, locNormShip, locUVShip;
+    let uModelShip, uViewShip, uProjShip, uNormalMatShip, uBaseShip;
+    const SHIP_RADIUS_FACTOR = 6.0;
+    const SOLDIER_Y_SHIFT_FACTOR = 1.2;
 
     (async function init() {
       try {
@@ -1523,6 +1584,51 @@ window.addEventListener('unhandledrejection', e => {
         if (sub) sub.textContent = 'Press and hold to spin.';
       } catch (err) {
         fallbackToPoster(err && err.message ? err.message : err);
+      }
+    })();
+
+    // ── dome/ship loading (fully independent of the soldier) ──
+    // Never touches renderReady/fallbackToPoster: if this fails, the
+    // scene simply falls back to the flat background photo behind the
+    // soldier exactly as before, with a console warning for diagnosis.
+    (async function initShip() {
+      try {
+        const buf = await loadShipGLB();
+        const shipModel = parseGLB(buf);
+        indexCountShip = shipModel.indices.length;
+
+        const shipImg = await loadImage(shipModel.imageBlob(0));
+
+        const vsShip = compile(gl.VERTEX_SHADER, VS_SHIP);
+        const fsShip = compile(gl.FRAGMENT_SHADER, FS_SHIP);
+        progShip = gl.createProgram();
+        gl.attachShader(progShip, vsShip);
+        gl.attachShader(progShip, fsShip);
+        gl.linkProgram(progShip);
+        if (!gl.getProgramParameter(progShip, gl.LINK_STATUS)) {
+          throw new Error('ship program link error: ' + gl.getProgramInfoLog(progShip));
+        }
+
+        texShipBase = createTexture(shipImg);
+
+        posBufShip  = makeBuffer(gl.ARRAY_BUFFER, shipModel.positions);
+        normBufShip = makeBuffer(gl.ARRAY_BUFFER, shipModel.normals);
+        uvBufShip   = makeBuffer(gl.ARRAY_BUFFER, shipModel.uvs);
+        idxBufShip  = makeBuffer(gl.ELEMENT_ARRAY_BUFFER, shipModel.indices);
+
+        locPosShip  = gl.getAttribLocation(progShip, 'a_pos');
+        locNormShip = gl.getAttribLocation(progShip, 'a_normal');
+        locUVShip   = gl.getAttribLocation(progShip, 'a_uv');
+
+        uModelShip = gl.getUniformLocation(progShip, 'u_model');
+        uViewShip  = gl.getUniformLocation(progShip, 'u_view');
+        uProjShip  = gl.getUniformLocation(progShip, 'u_proj');
+        uNormalMatShip = gl.getUniformLocation(progShip, 'u_normalMat');
+        uBaseShip  = gl.getUniformLocation(progShip, 'u_base');
+
+        shipReady = true;
+      } catch (err) {
+        console.warn('[warrior] dome/ship not loaded, falling back to flat background:', err && err.message ? err.message : err);
       }
     })();
 
@@ -1614,17 +1720,32 @@ window.addEventListener('unhandledrejection', e => {
 
       const orbitAngle = curYaw;
       const aspect = canvas.width / canvas.height || 1;
-      const proj = perspective(Math.PI / 5, aspect, 0.1, 20);
 
       const dist = halfHeight * 3.4;
+      // The soldier is dropped down by this amount so he reads as
+      // standing inside the dome rather than floating at its exact
+      // center (see the constants + comment near their declaration).
+      const soldierYShift = halfHeight * SOLDIER_Y_SHIFT_FACTOR;
+      const eyeY = halfHeight * 0.15 - soldierYShift;
+      const lookAtY = halfHeight * 0.05 - soldierYShift;
+
+      // The dome's radius is sized in the same units, and its vertical
+      // center is pinned to the camera's own (constant) orbit height —
+      // that keeps the camera-to-dome-center distance fixed at exactly
+      // `dist` for the whole rotation, which is what makes the safety
+      // margin below simple and reliable rather than a moving target.
+      const shipRadius = halfHeight * SHIP_RADIUS_FACTOR;
+      const far = shipReady ? Math.max(20, (dist + shipRadius) * 1.3) : 20;
+      const proj = perspective(Math.PI / 5, aspect, 0.1, far);
+
       const eye = [
         Math.sin(orbitAngle) * dist,
-        halfHeight * 0.15,
+        eyeY,
         Math.cos(orbitAngle) * dist,
       ];
-      const view = lookAt(eye, [0, halfHeight * 0.05, 0], [0, 1, 0]);
+      const view = lookAt(eye, [0, lookAtY, 0], [0, 1, 0]);
 
-      const modelMat = translate([0, -centerY, 0]);
+      const modelMat = translate([0, -centerY - soldierYShift, 0]);
       const normalMat = new Float32Array([
         modelMat[0], modelMat[1], modelMat[2],
         modelMat[4], modelMat[5], modelMat[6],
@@ -1632,6 +1753,49 @@ window.addEventListener('unhandledrejection', e => {
       ]);
 
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      // ── dome, drawn first ──
+      // Backface culling is disabled just for this draw: the sphere is
+      // viewed from inside, and rather than gamble on which winding
+      // direction this particular export used, drawing both sides of
+      // this one low-poly sphere is effectively free.
+      if (shipReady) {
+        gl.disable(gl.CULL_FACE);
+        gl.useProgram(progShip);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, posBufShip);
+        gl.enableVertexAttribArray(locPosShip);
+        gl.vertexAttribPointer(locPosShip, 3, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, normBufShip);
+        gl.enableVertexAttribArray(locNormShip);
+        gl.vertexAttribPointer(locNormShip, 3, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, uvBufShip);
+        gl.enableVertexAttribArray(locUVShip);
+        gl.vertexAttribPointer(locUVShip, 2, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBufShip);
+
+        const modelMatShip = scaleThenTranslate(shipRadius, [0, eyeY, 0]);
+        const normalMatShip = new Float32Array([
+          modelMatShip[0], modelMatShip[1], modelMatShip[2],
+          modelMatShip[4], modelMatShip[5], modelMatShip[6],
+          modelMatShip[8], modelMatShip[9], modelMatShip[10],
+        ]);
+
+        gl.uniformMatrix4fv(uModelShip, false, modelMatShip);
+        gl.uniformMatrix4fv(uViewShip, false, view);
+        gl.uniformMatrix4fv(uProjShip, false, proj);
+        gl.uniformMatrix3fv(uNormalMatShip, false, normalMatShip);
+
+        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texShipBase); gl.uniform1i(uBaseShip, 0);
+
+        gl.drawElements(gl.TRIANGLES, indexCountShip, gl.UNSIGNED_INT, 0);
+
+        gl.enable(gl.CULL_FACE);
+        gl.useProgram(prog);
+      }
 
       gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
       gl.enableVertexAttribArray(locPos);
@@ -1664,7 +1828,12 @@ window.addEventListener('unhandledrejection', e => {
       gl.uniform3fv(uLightDir1, normalize3(lit1));
       gl.uniform3fv(uLightDir2, normalize3(lit2));
       gl.uniform1f(uTime, t / 1000);
-      gl.uniform1f(uHeadY, headWorldY);
+      // headWorldY was computed relative to the model's ORIGINAL centering
+      // (before soldierYShift moves the whole model down); since v_worldPos
+      // in the shader reflects that shift, the comparison threshold must
+      // be shifted by the same amount or the head/body specular split
+      // would drift to the wrong height on the character.
+      gl.uniform1f(uHeadY, headWorldY - soldierYShift);
       gl.uniform1f(uHeadBlend, headBlend);
 
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texBase); gl.uniform1i(uBase, 0);
@@ -1685,146 +1854,5 @@ window.addEventListener('unhandledrejection', e => {
       setTimeout(waitForReady, 100);
     })();
   })(); } catch (e) { console.error('[NYTHERION] setupWarriorSection failed:', e); }
-
-  // SYSTEM 9b: WARRIOR AMBIENT PARTICLES & LIGHTS
-  // ────────────────────────────────────────────────────────────────
-  // A thin, separate 2D-canvas layer inside the warrior stage: a small
-  // handful of drifting dust motes plus two slow-roaming soft light
-  // glows, tinted to the scene's own icy blue/cyan palette so the room
-  // reads as a live space rather than a flat photo behind the model.
-  // Deliberately sparse — the brief was "don't over add" — and fully
-  // isolated in its own try/catch: a failure here can never affect the
-  // model render, the boot sequence, or anything else on the page.
-  try { (function setupWarriorAmbience() {
-    const stage = document.getElementById('warriorStage');
-    const section = document.getElementById('warriorSection');
-    if (!stage || !section) return;
-
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    const canvas = document.createElement('canvas');
-    canvas.className = 'warrior-ambience';
-    canvas.setAttribute('aria-hidden', 'true');
-
-    // Inserted BEFORE the model canvas (same z-index, DOM order decides
-    // paint order) so the particles/lights sit behind the character and
-    // only show through the transparent parts of the model render —
-    // i.e. floating in the room around the warrior, not over him.
-    const modelCanvas = document.getElementById('warriorCanvas');
-    if (modelCanvas && modelCanvas.parentElement === stage) {
-      stage.insertBefore(canvas, modelCanvas);
-    } else {
-      stage.appendChild(canvas);
-    }
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let W = 0, H = 0;
-    const DPR = Math.min(window.devicePixelRatio || 1, 2);
-    function resize() {
-      const r = stage.getBoundingClientRect();
-      W = Math.max(1, r.width);
-      H = Math.max(1, r.height);
-      canvas.width = W * DPR;
-      canvas.height = H * DPR;
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // draw in CSS-pixel space from here on
-    }
-    resize();
-    window.addEventListener('resize', resize, { passive: true });
-
-    // Exact accent colors from design.css (--blue / --magenta, the
-    // latter actually a cyan) so the glow reads as part of this scene's
-    // own lighting rather than a generic UI accent.
-    const PARTICLE_COLORS = { cyan: '196,240,246', blue: '178,205,255' };
-
-    // A small handful of dust motes — few in number, soft, twinkling.
-    const PARTICLE_COUNT = 14;
-    const particles = [];
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      particles.push({
-        x: Math.random(),
-        y: Math.random(),
-        r: 0.9 + Math.random() * 1.6,
-        speed: 0.005 + Math.random() * 0.010,     // slow upward drift, screen-fractions/sec
-        driftAmp: 0.010 + Math.random() * 0.018,  // gentle side-to-side sway
-        driftFreq: 0.12 + Math.random() * 0.22,
-        phase: Math.random() * Math.PI * 2,
-        twinklePhase: Math.random() * Math.PI * 2,
-        twinkleSpeed: 0.35 + Math.random() * 0.55,
-        hue: Math.random() < 0.55 ? 'cyan' : 'blue'
-      });
-    }
-
-    // Two large, very slow-roaming soft glows — like bounced light off
-    // the crystal walls in the background photo, gently breathing.
-    const lights = [
-      { x: 0.30, y: 0.34, r: 0.40, hue: '34,198,230', baseAlpha: 0.09, speed: 0.016, phase: 0.0 },
-      { x: 0.72, y: 0.58, r: 0.34, hue: '63,140,255', baseAlpha: 0.08, speed: 0.012, phase: 2.3 }
-    ];
-
-    let raf = null;
-    let running = false;
-    const t0 = performance.now(); // never reset — pausing off-screen just skips time, no pop on resume
-
-    function frame(now) {
-      if (!running) return;
-      const t = (now - t0) / 1000;
-      ctx.clearRect(0, 0, W, H);
-      ctx.globalCompositeOperation = 'lighter'; // only ever brightens, never darkens
-
-      for (let i = 0; i < lights.length; i++) {
-        const Lg = lights[i];
-        const lx = (Lg.x + Math.sin(t * Lg.speed + Lg.phase) * 0.06) * W;
-        const ly = (Lg.y + Math.cos(t * Lg.speed * 0.8 + Lg.phase) * 0.05) * H;
-        const lr = Lg.r * Math.min(W, H) * (0.92 + Math.sin(t * 0.2 + Lg.phase) * 0.08);
-        const alpha = Lg.baseAlpha * (0.85 + Math.sin(t * 0.25 + Lg.phase) * 0.15);
-        const grad = ctx.createRadialGradient(lx, ly, 0, lx, ly, lr);
-        grad.addColorStop(0, 'rgba(' + Lg.hue + ',' + alpha.toFixed(3) + ')');
-        grad.addColorStop(1, 'rgba(' + Lg.hue + ',0)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, W, H);
-      }
-
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        let py = p.y - ((t * p.speed) % 1);
-        if (py < -0.05) py += 1.1;
-        const px = p.x + Math.sin(t * p.driftFreq + p.phase) * p.driftAmp;
-        const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * p.twinkleSpeed + p.twinklePhase));
-        const cx = px * W, cy = py * H;
-        const alpha = 0.5 * twinkle;
-        const glowR = p.r * 4;
-        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowR);
-        grad.addColorStop(0, 'rgba(' + PARTICLE_COLORS[p.hue] + ',' + alpha.toFixed(3) + ')');
-        grad.addColorStop(1, 'rgba(' + PARTICLE_COLORS[p.hue] + ',0)');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.globalCompositeOperation = 'source-over';
-      raf = requestAnimationFrame(frame);
-    }
-
-    function start() {
-      if (running) return;
-      running = true;
-      raf = requestAnimationFrame(frame);
-    }
-    function stop() {
-      running = false;
-      if (raf) cancelAnimationFrame(raf);
-      raf = null;
-    }
-
-    // Same "stop the loop entirely when off-screen" discipline as the
-    // model render and the drone — zero cost while scrolled away.
-    const ambienceIO = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) start(); else stop();
-    }, { threshold: 0 });
-    ambienceIO.observe(section);
-  })(); } catch (e) { console.error('[NYTHERION] setupWarriorAmbience failed:', e); }
 
 })();
