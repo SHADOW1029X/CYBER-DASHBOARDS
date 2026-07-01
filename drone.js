@@ -409,7 +409,6 @@
                 if (m.metalness !== undefined) m.metalness = Math.max(m.metalness, 1.0);
                 if (m.roughness !== undefined) m.roughness = Math.min(m.roughness, 0.8);
                 m.envMapIntensity = 3.5;
-                renderer.toneMappingExposure = 1.15;
                 m.needsUpdate = true;
               });
             }
