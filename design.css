@@ -677,16 +677,6 @@
       transition:opacity 1.1s var(--ease);
       cursor:grab;touch-action:pan-y;
     }
-    /* Ambient dust motes + slow-roaming light glows, sitting BEHIND the
-       model canvas (same z-index, but inserted earlier in the DOM so
-       the model paints on top of it) and in front of the flat bg image.
-       Screen blend so it only ever brightens, never darkens or muddies
-       the underlying photo — reads as atmosphere, not an overlay. */
-    .warrior-ambience{
-      position:absolute;inset:0;width:100%;height:100%;
-      z-index:1;pointer-events:none;
-      mix-blend-mode:screen;
-    }
     .warrior-stage.dragging .warrior-canvas{cursor:grabbing;}
     .warrior-canvas.ready{opacity:1;}
     .warrior-poster{
