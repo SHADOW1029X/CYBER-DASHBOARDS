@@ -1532,14 +1532,28 @@ window.addEventListener('unhandledrejection', e => {
     // baked into the source file's "Sketchfab_model" node matrix, which
     // our GLB parser never reads (see rotateX()'s comment for the full
     // derivation). Computed once since it never changes.
-    const SHIP_AXIS_CORRECTION = rotateX(Math.PI / 2);
+    //
+    // NOTE: this must be -90°, not +90°. The file's own matrix maps
+    // local Y→world(0,0,-1) and local Z→world(0,1,0) — worked out by
+    // hand from the raw column values in the node's `matrix` array.
+    // +90° produces the mirror image of that (floor/ceiling swapped),
+    // which is what caused the dome to render upside-down.
+    const SHIP_AXIS_CORRECTION = rotateX(-Math.PI / 2);
 
     // ── camera framing ──
     // Pulled in close and aimed at chest/upper-torso height for a tight
     // hero-shot crop — the legs run out below the bottom of the frame by
     // design, keeping the character large and centered rather than a
     // small full-body figure floating in the middle of the dome.
-    const CAMERA_DIST_FACTOR = 2.0;    // was 3.4 — closer camera, bigger figure
+    //
+    // CAMERA_FOV widened from the original 36° to actually show a good
+    // amount of the dome's surrounding structure (walls, ceiling arcs)
+    // rather than a tight telephoto crop of just the wall directly
+    // ahead — this is the main knob for "see more of the interior".
+    // CAMERA_DIST_FACTOR was pulled in further to compensate, since a
+    // wider lens alone would otherwise shrink the character.
+    const CAMERA_FOV = Math.PI * (58 / 180); // was 36°
+    const CAMERA_DIST_FACTOR = 1.5;    // was 2.0 — closer still, compensating for the wider FOV
     const CAMERA_EYE_Y_FACTOR = 0.5;   // was 0.15 — aimed up near chest/shoulder height
     const CAMERA_LOOKAT_Y_FACTOR = 0.4; // was 0.05
 
@@ -1778,7 +1792,7 @@ window.addEventListener('unhandledrejection', e => {
       // point in the rotation.
       const camToDomeCenter = Math.sqrt(dist * dist + domeYOffset * domeYOffset);
       const far = shipReady ? Math.max(20, (camToDomeCenter + shipRadius) * 1.3) : 20;
-      const proj = perspective(Math.PI / 5, aspect, 0.1, far);
+      const proj = perspective(CAMERA_FOV, aspect, 0.1, far);
 
       const eye = [
         Math.sin(orbitAngle) * dist,
