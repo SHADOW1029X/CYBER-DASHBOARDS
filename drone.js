@@ -66,11 +66,25 @@
 
     try {
 
+      /* ── Device tier ───────────────────────────────────────────
+         A coarse (touch) pointer or a low logical core count is a
+         reasonable, cheap proxy for "budget/mobile GPU" without any
+         GPU-capability query. Used below to trim the more expensive
+         settings (antialiasing, dynamic light count, particle count)
+         on constrained devices — this scene is a nice-to-have visual
+         companion, not core content, so it should degrade gracefully
+         rather than cost the same everywhere regardless of hardware. */
+      var isLowPower = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+        (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+
       /* ── Renderer ──────────────────────────────────────────────
          alpha:true so the page's own background shows through;
-         the drone canvas only ever paints the model + its glow. */
+         the drone canvas only ever paints the model + its glow.
+         Antialiasing is the priciest of these flags on a mobile GPU,
+         especially combined with the DPR-2 pixel ratio below, so it's
+         skipped on the low-power tier. */
       var renderer = new THREE.WebGLRenderer({
-        canvas: CANVAS, antialias: true, alpha: true, powerPreference: 'high-performance'
+        canvas: CANVAS, antialias: !isLowPower, alpha: true, powerPreference: 'high-performance'
       });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -98,7 +112,13 @@
       /* ── Lights ────────────────────────────────────────────────
          Cool blue/cyan key + magenta rim, matching NYTHERION's
          --blue / --magenta accent palette so the drone feels native
-         to the site rather than a foreign drop-in. */
+         to the site rather than a foreign drop-in.
+         Every additional dynamic light is a full extra per-fragment
+         lighting pass on the drone's PBR material — on the low-power
+         tier the two least visually-critical lights (the secondary
+         cyan rim and the front fill, both subtle accents layered on
+         top of the three that do the real shaping/highlight work) are
+         skipped rather than paid for everywhere regardless of GPU. */
       scene.add(new THREE.AmbientLight(0x3a4a78, 2.0));
 
       // Key: cooler, stronger — simulates a bright environment reflection
@@ -113,12 +133,14 @@
       var rim = new THREE.DirectionalLight(0xffffff, 4.5);
       rim.position.set(-6, 4, -3); scene.add(rim);
 
-      // Secondary rim: cyan accent to match site palette
-      var rim2 = new THREE.DirectionalLight(0x22c6e6, 2.8);
-      rim2.position.set(5, -2, -4); scene.add(rim2);
+      if (!isLowPower) {
+        // Secondary rim: cyan accent to match site palette
+        var rim2 = new THREE.DirectionalLight(0x22c6e6, 2.8);
+        rim2.position.set(5, -2, -4); scene.add(rim2);
 
-      var fill = new THREE.DirectionalLight(0x3f8cff, 2.2);
-      fill.position.set(4, -2, 4); scene.add(fill);
+        var fill = new THREE.DirectionalLight(0x3f8cff, 2.2);
+        fill.position.set(4, -2, 4); scene.add(fill);
+      }
 
       var glowA = new THREE.PointLight(0x3f8cff, 5.5, 5.5);
       var glowB = new THREE.PointLight(0x22c6e6, 4.0, 4.0);
@@ -126,7 +148,7 @@
 
       /* ── Subtle ambient particles (depth cue, very low opacity) ─ */
       (function () {
-        var n = 160, pos = new Float32Array(n * 3);
+        var n = isLowPower ? 70 : 160, pos = new Float32Array(n * 3);
         for (var i = 0; i < n; i++) {
           pos[i * 3] = (Math.random() - 0.5) * 20;
           pos[i * 3 + 1] = (Math.random() - 0.5) * 26;
@@ -390,13 +412,36 @@
       } else {
         window.addEventListener('scroll', updateScrollProgress, { passive: true });
       }
-      window.addEventListener('resize', function () {
+
+      // Resize work here is genuinely expensive — buildPath() does up to
+      // ten getBoundingClientRect() calls (forces layout) and
+      // renderer.setSize() reallocates the WebGL framebuffer — so doing
+      // it on every raw 'resize' event is a real jank risk: a mobile
+      // browser's address bar sliding away during scroll, or dragging a
+      // desktop window edge, can fire many of these in quick succession.
+      // Prefer the shared, rAF-batched resize bus if script.js exposed
+      // one; otherwise fall back to a small local debounce so this stays
+      // 100% functional standalone.
+      function handleResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         buildPath();
         updateScrollProgress();
-      });
+      }
+      if (typeof window.__nytherionOnResize === 'function') {
+        window.__nytherionOnResize(handleResize);
+      } else {
+        var resizeRafPending = false;
+        window.addEventListener('resize', function () {
+          if (resizeRafPending) return;
+          resizeRafPending = true;
+          requestAnimationFrame(function () {
+            resizeRafPending = false;
+            handleResize();
+          });
+        }, { passive: true });
+      }
 
       /* ── Load GLB ──────────────────────────────────────────────── */
       new THREE.GLTFLoader().load(
