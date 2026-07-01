@@ -335,7 +335,7 @@
           // Target: drone's longest dimension ≈ 32% of viewport height —
           // prominent like the clown fish, but small enough to weave
           // between corners without overwhelming the section content.
-          var targetWorldSize = halfH() * 2 * 0.46;
+          var targetWorldSize = halfH() * 2 * 0.60;
           BASE_SCALE = targetWorldSize / maxDim;
 
           drone.scale.setScalar(BASE_SCALE);
