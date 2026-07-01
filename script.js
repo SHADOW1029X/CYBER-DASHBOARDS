@@ -1485,26 +1485,33 @@ window.addEventListener('unhandledrejection', e => {
     // Sized relative to halfHeight (the soldier's own half-height, in
     // whatever local units CyberSoldier.glb uses) so the dome scales
     // correctly regardless of that model's arbitrary export scale.
-    // SHIP_RADIUS_FACTOR: dome radius, in soldier-half-heights. Chosen so
-    // it comfortably exceeds the camera's orbit distance (halfHeight*3.4,
-    // see ORBIT_DIST_FACTOR below) with a wide safety margin — the camera
-    // must never get close to the inner wall or the illusion breaks.
-    // SOLDIER_Y_SHIFT_FACTOR: how far down (in half-heights) to drop the
-    // soldier so he reads as standing inside the dome rather than
-    // floating at its exact center. The dome's own vertical center is
-    // deliberately kept equal to the camera's orbit height (not the
-    // soldier's feet) — that keeps the camera-to-dome-center distance
-    // constant and simple (always exactly the orbit radius) for reliable
-    // clearance, at the cost of not being pixel-perfect floor-aligned.
-    // These are the values most worth nudging after seeing the live
-    // render — this can't be visually previewed from here.
+    //
+    // SHIP_RADIUS_FACTOR: dome radius, in soldier-half-heights. Must
+    // comfortably exceed the camera-to-dome-center distance below with a
+    // wide safety margin, or the camera can clip through the inner wall.
+    //
+    // DOME_Y_OFFSET_FACTOR: how far to raise the dome's center ABOVE the
+    // camera's fixed orbit height (in half-heights). The dome's floor
+    // sits at (domeCenterY - radius); raising the dome brings that floor
+    // closer to the soldier's feet, so this is the actual "ground the
+    // character in the scene" knob. (An earlier version of this tried
+    // shifting the soldier + dome down together instead — that cancels
+    // out geometrically and does nothing, so it was dropped in favor of
+    // this, which is the one that actually has a visible effect.)
+    //
+    // Both of these are exactly the values worth nudging after seeing
+    // the live render, since the geometry can't be visually previewed
+    // from here. Raising DOME_Y_OFFSET_FACTOR brings the floor closer
+    // but eats into the camera's clearance margin — if the dome wall
+    // ever looks like it's clipping into the camera during the orbit,
+    // lower this first before touching anything else.
     let shipReady = false;
     let posBufShip, normBufShip, uvBufShip, idxBufShip, indexCountShip;
     let texShipBase, progShip;
     let locPosShip, locNormShip, locUVShip;
     let uModelShip, uViewShip, uProjShip, uNormalMatShip, uBaseShip;
-    const SHIP_RADIUS_FACTOR = 6.0;
-    const SOLDIER_Y_SHIFT_FACTOR = 1.2;
+    const SHIP_RADIUS_FACTOR = 7.0;
+    const DOME_Y_OFFSET_FACTOR = 3.0;
 
     (async function init() {
       try {
@@ -1722,20 +1729,25 @@ window.addEventListener('unhandledrejection', e => {
       const aspect = canvas.width / canvas.height || 1;
 
       const dist = halfHeight * 3.4;
-      // The soldier is dropped down by this amount so he reads as
-      // standing inside the dome rather than floating at its exact
-      // center (see the constants + comment near their declaration).
-      const soldierYShift = halfHeight * SOLDIER_Y_SHIFT_FACTOR;
-      const eyeY = halfHeight * 0.15 - soldierYShift;
-      const lookAtY = halfHeight * 0.05 - soldierYShift;
+      const eyeY = halfHeight * 0.15;
+      const lookAtY = halfHeight * 0.05;
 
-      // The dome's radius is sized in the same units, and its vertical
-      // center is pinned to the camera's own (constant) orbit height —
-      // that keeps the camera-to-dome-center distance fixed at exactly
-      // `dist` for the whole rotation, which is what makes the safety
-      // margin below simple and reliable rather than a moving target.
+      // Dome center sits ABOVE the camera's fixed orbit height by
+      // DOME_Y_OFFSET_FACTOR half-heights — this is what actually brings
+      // the dome's floor closer to the soldier's (unmoved) feet. See the
+      // comment by the constants' declaration for why this replaced an
+      // earlier "shift the soldier down" attempt that had no real effect.
+      const domeYOffset = halfHeight * DOME_Y_OFFSET_FACTOR;
+      const domeCenterY = eyeY + domeYOffset;
+
       const shipRadius = halfHeight * SHIP_RADIUS_FACTOR;
-      const far = shipReady ? Math.max(20, (dist + shipRadius) * 1.3) : 20;
+      // Camera-to-dome-center distance is constant through the whole
+      // orbit (only x/z swing; both camera and dome-center Y are fixed),
+      // so this margin check only needs doing once, right here — not
+      // something that can drift into a clipping wall at some other
+      // point in the rotation.
+      const camToDomeCenter = Math.sqrt(dist * dist + domeYOffset * domeYOffset);
+      const far = shipReady ? Math.max(20, (camToDomeCenter + shipRadius) * 1.3) : 20;
       const proj = perspective(Math.PI / 5, aspect, 0.1, far);
 
       const eye = [
@@ -1745,7 +1757,7 @@ window.addEventListener('unhandledrejection', e => {
       ];
       const view = lookAt(eye, [0, lookAtY, 0], [0, 1, 0]);
 
-      const modelMat = translate([0, -centerY - soldierYShift, 0]);
+      const modelMat = translate([0, -centerY, 0]);
       const normalMat = new Float32Array([
         modelMat[0], modelMat[1], modelMat[2],
         modelMat[4], modelMat[5], modelMat[6],
@@ -1777,7 +1789,7 @@ window.addEventListener('unhandledrejection', e => {
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBufShip);
 
-        const modelMatShip = scaleThenTranslate(shipRadius, [0, eyeY, 0]);
+        const modelMatShip = scaleThenTranslate(shipRadius, [0, domeCenterY, 0]);
         const normalMatShip = new Float32Array([
           modelMatShip[0], modelMatShip[1], modelMatShip[2],
           modelMatShip[4], modelMatShip[5], modelMatShip[6],
@@ -1828,12 +1840,7 @@ window.addEventListener('unhandledrejection', e => {
       gl.uniform3fv(uLightDir1, normalize3(lit1));
       gl.uniform3fv(uLightDir2, normalize3(lit2));
       gl.uniform1f(uTime, t / 1000);
-      // headWorldY was computed relative to the model's ORIGINAL centering
-      // (before soldierYShift moves the whole model down); since v_worldPos
-      // in the shader reflects that shift, the comparison threshold must
-      // be shifted by the same amount or the head/body specular split
-      // would drift to the wrong height on the character.
-      gl.uniform1f(uHeadY, headWorldY - soldierYShift);
+      gl.uniform1f(uHeadY, headWorldY);
       gl.uniform1f(uHeadBlend, headBlend);
 
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texBase); gl.uniform1i(uBase, 0);
