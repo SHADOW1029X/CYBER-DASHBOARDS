@@ -406,8 +406,8 @@
                 if (!m) return;
                 // Push metalness up and roughness down so the drone
                 // catches directional highlights like polished metal
-                if (m.metalness !== undefined) m.metalness = Math.max(m.metalness, 10.0);
-                if (m.roughness !== undefined) m.roughness = Math.min(m.roughness, 0.18);
+                if (m.metalness !== undefined) m.metalness = Math.max(m.metalness, 0.65);
+                if (m.roughness !== undefined) m.roughness = Math.min(m.roughness, 0.5);
                 m.envMapIntensity = 4.5;
                 renderer.toneMappingExposure = 1.15;
                 m.needsUpdate = true;
