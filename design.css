@@ -31,6 +31,20 @@
       --glass-shadow: 0 1px 0 0 rgba(255,255,255,0.16) inset, 0 -1px 0 0 rgba(0,0,0,0.22) inset, 0 14px 38px rgba(2,4,14,0.32);
       --glass-shadow-hover: 0 1px 0 0 rgba(255,255,255,0.24) inset, 0 -1px 0 0 rgba(0,0,0,0.26) inset, 0 18px 46px rgba(2,4,14,0.4), 0 0 0 1px rgba(120,170,255,0.08), 0 0 28px rgba(80,150,255,0.14);
     }
+    /* Low-power device override (class set synchronously in UI.html's
+       <head>, before first paint — see the script there for the exact
+       heuristic). The SVG lens filter is the single most expensive
+       visual effect on the page: a real per-pixel optical distortion
+       recomputed against everything behind ~15+ panels. Since every one
+       of those panels reads backdrop-filter through these two custom
+       properties rather than a hardcoded url(...), overriding them here
+       is enough to swap every panel on the page to the same cheap blur
+       already used as the Safari/older-Chromium fallback below — no
+       per-panel changes needed. */
+    html.low-power {
+      --glass-lens: blur(12px) saturate(130%);
+      --glass-lens-subtle: blur(8px) saturate(120%);
+    }
     *{margin:0;padding:0;box-sizing:border-box;}
     html,body{width:100%;}
     html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;overscroll-behavior-y:none;}
