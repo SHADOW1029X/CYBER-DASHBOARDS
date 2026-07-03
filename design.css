@@ -221,7 +221,7 @@
       pointer-events:none;
       mix-blend-mode:screen; /* additive — brightens over the base glyph rather than muddying it */
       opacity:0;
-      text-shadow:0 0 14px currentColor; /* neon bloom on the split channels themselves */
+      text-shadow:0 0 5px currentColor; /* small bloom on the split channels — kept tight so it doesn't wash into the background */
     }
     .glitch-text::before{
       color:#ff2b5e;
@@ -275,28 +275,31 @@
       0%,100%{background-position:0% 50%;}
       50%{background-position:100% 50%;}
     }
-    /* Ambient breathing glow (smooth) with sharp brightness/contrast
-       flashes cut in at the exact same timestamps as the glitch hits
-       above — same 3.2s duration keeps them locked together. Individual
-       keyframes can override the animation's easing for just the
-       transition INTO them, which is what makes the flash-in feel like
-       a snap while the rest of the cycle still breathes smoothly. */
+    /* Ambient breathing glow (smooth) with brief accent flashes cut in
+       at the exact same timestamps as the glitch hits above — same
+       3.2s duration keeps them locked together. Kept deliberately
+       modest (small blur radii, low opacity, mild brightness swing) so
+       it reads as a subtle energy pulse rather than a bloom that washes
+       out the background image behind the text. Individual keyframes
+       can override the animation's easing for just the transition INTO
+       them, which is what makes the flash-in feel like a snap while the
+       rest of the cycle still breathes smoothly. */
     @keyframes forgeGlow{
-      0%{filter:drop-shadow(0 0 14px rgba(63,140,255,.45)) drop-shadow(0 0 34px rgba(34,198,230,.22)) brightness(1);}
-      45%{filter:drop-shadow(0 0 22px rgba(63,140,255,.65)) drop-shadow(0 0 50px rgba(34,198,230,.36)) brightness(1.04);}
-      89%{filter:drop-shadow(0 0 14px rgba(63,140,255,.45)) drop-shadow(0 0 34px rgba(34,198,230,.22)) brightness(1);}
+      0%{filter:drop-shadow(0 0 4px rgba(63,140,255,.22)) drop-shadow(0 0 9px rgba(34,198,230,.1)) brightness(1);}
+      45%{filter:drop-shadow(0 0 6px rgba(63,140,255,.3)) drop-shadow(0 0 12px rgba(34,198,230,.15)) brightness(1.02);}
+      89%{filter:drop-shadow(0 0 4px rgba(63,140,255,.22)) drop-shadow(0 0 9px rgba(34,198,230,.1)) brightness(1);}
       89.5%{animation-timing-function:steps(1,jump-end);
-        filter:drop-shadow(0 0 34px rgba(255,43,94,.95)) drop-shadow(0 0 74px rgba(34,198,230,.7)) brightness(1.7) contrast(1.35);}
+        filter:drop-shadow(0 0 9px rgba(255,43,94,.4)) drop-shadow(0 0 16px rgba(34,198,230,.2)) brightness(1.1) contrast(1.05);}
       90.9%{animation-timing-function:steps(1,jump-end);
-        filter:drop-shadow(0 0 8px rgba(63,140,255,.25)) brightness(.6);}
+        filter:drop-shadow(0 0 3px rgba(63,140,255,.14)) brightness(.88);}
       91.6%{animation-timing-function:steps(1,jump-end);
-        filter:drop-shadow(0 0 30px rgba(34,198,230,.95)) drop-shadow(0 0 60px rgba(255,43,94,.55)) brightness(1.6);}
+        filter:drop-shadow(0 0 8px rgba(34,198,230,.4)) drop-shadow(0 0 14px rgba(255,43,94,.2)) brightness(1.08);}
       93%{animation-timing-function:steps(1,jump-end);
-        filter:drop-shadow(0 0 10px rgba(63,140,255,.3)) brightness(.65);}
+        filter:drop-shadow(0 0 4px rgba(63,140,255,.16)) brightness(.9);}
       93.6%{animation-timing-function:steps(1,jump-end);
-        filter:drop-shadow(0 0 28px rgba(255,43,94,.85)) drop-shadow(0 0 56px rgba(34,198,230,.5)) brightness(1.5);}
+        filter:drop-shadow(0 0 8px rgba(255,43,94,.35)) drop-shadow(0 0 13px rgba(34,198,230,.18)) brightness(1.07);}
       94.3%,100%{animation-timing-function:ease-in-out;
-        filter:drop-shadow(0 0 14px rgba(63,140,255,.45)) drop-shadow(0 0 34px rgba(34,198,230,.22)) brightness(1);}
+        filter:drop-shadow(0 0 4px rgba(63,140,255,.22)) drop-shadow(0 0 9px rgba(34,198,230,.1)) brightness(1);}
     }
     @media (prefers-reduced-motion: reduce){
       .glitch-text::before,.glitch-text::after{display:none;}
