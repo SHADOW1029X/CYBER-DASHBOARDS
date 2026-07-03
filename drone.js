@@ -195,9 +195,21 @@
         { x: -0.20, y: -0.62 }  // bottom-center (settles near footer)
       ];
 
+      // Depth (world Z) per waypoint, cycled the same way as
+      // CORNER_PATTERN — this is what actually gives the flight real
+      // depth instead of confining it to a flat plane. Units are world
+      // space at CAM_Z=9: 0 is the old fixed plane, positive is toward
+      // the camera (bigger/closer), negative is away (smaller/farther).
+      // Bounded well clear of the camera on the near side (closest
+      // approach still leaves ~5.5 world units of clearance) and not so
+      // far on the far side that it shrinks to nothing.
+      var DEPTH_PATTERN = [
+        1.6, -3.2, 0.4, -4.4, 2.8, -1.2, 3.4, -2.0, 0.8, -3.8
+      ];
+
       /* Build keyframe arrays once layout is known. Recomputed on
          resize/orientation change since section heights can reflow. */
-      var KX = [], KY = [], KS = [], docHeight = 1;
+      var KX = [], KY = [], KZ = [], KS = [], docHeight = 1;
 
       /* ── Per-session randomisation ───────────────────────────────
          Two independent sources of randomness, generated ONCE per
@@ -213,7 +225,7 @@
       function clampRange(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
       var CORNER_JITTER = CORNER_PATTERN.map(function () {
-        return { dx: rand(-0.05, 0.05), dy: rand(-0.045, 0.045), ds: rand(-0.08, 0.10) };
+        return { dx: rand(-0.05, 0.05), dy: rand(-0.045, 0.045), ds: rand(-0.08, 0.10), dz: rand(-0.5, 0.5) };
       });
 
       var BACKTRACK_PULSES = (function () {
@@ -254,11 +266,12 @@
       function buildPath() {
         docHeight = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
 
-        KX = []; KY = []; KS = [];
+        KX = []; KY = []; KZ = []; KS = [];
 
         // Before #focus: drone stays parked off the top edge (invisible / fading).
         KX.push({ at: 0, v: CORNER_PATTERN[0].x });
         KY.push({ at: 0, v: 1.15 }); // parked above viewport
+        KZ.push({ at: 0, v: 0 });
         KS.push({ at: 0, v: 0.85 });
 
         var prevAt = 0;
@@ -275,6 +288,7 @@
 
           var c = CORNER_PATTERN[i % CORNER_PATTERN.length];
           var j = CORNER_JITTER[i % CORNER_JITTER.length];
+          var dz = DEPTH_PATTERN[i % DEPTH_PATTERN.length];
           // gentle scale pulse — bigger when entering a section, easing
           // down slightly mid-section, matching the PeachWeb depth illusion
           var pulse = 0.92 + (i % 3 === 0 ? 0.18 : i % 3 === 1 ? -0.06 : 0.08);
@@ -284,12 +298,14 @@
           // making the actual path different on every page load.
           KX.push({ at: at, v: clampRange(c.x + j.dx, -0.86, 0.86) });
           KY.push({ at: at, v: clampRange(c.y + j.dy, -0.86, 0.86) });
+          KZ.push({ at: at, v: clampRange(dz + j.dz, -5.0, 3.5) });
           KS.push({ at: at, v: clampRange(pulse + j.ds, 0.62, 1.15) });
         }
 
         // Tail: settle near the footer, slightly lower + centered.
         KX.push({ at: 1.0, v: -0.10 });
         KY.push({ at: 1.0, v: -0.70 });
+        KZ.push({ at: 1.0, v: 0 });
         KS.push({ at: 1.0, v: 0.80 });
       }
 
@@ -344,7 +360,7 @@
 
       var BASE_SCALE = 0.026; // tuned below once real bbox is known, see load callback
 
-      var L = { x: 0, y: halfH() * 1.15, sc: BASE_SCALE, yaw: 0, pitch: 0, roll: 0 };
+      var L = { x: 0, y: halfH() * 1.15, z: 0, sc: BASE_SCALE, yaw: 0, pitch: 0, roll: 0 };
       var SMOOTH_POS = 0.05;
       var SMOOTH_ROT = 0.085;
       var SMOOTH_SC = 0.06;
@@ -368,20 +384,51 @@
       var FACE_CAMERA_YAW = Math.PI / 2; // calibrated below — see heading notes
 
       // ── Heading calibration ──────────────────────────────────────
-      // yaw = 0 was confirmed to already face LEFT (-X) correctly, and a
-      // full 180° (π rad) turn faces RIGHT (+X) — a straight small-angle
-      // "bank" formula can only ever cover a fraction of that, which is
-      // why rightward travel previously looked tail-first. VX_TURN_SCALE
-      // controls how quickly horizontal speed saturates the turn toward
-      // a full 0→π sweep; lower = snappier full turns at lower speeds.
-      var VX_TURN_SCALE = 0.02;
+      // yaw = 0 was confirmed to face LEFT (-X, world-space) and yaw = π
+      // faces RIGHT (+X) — a straight small-angle "bank" formula can only
+      // ever cover a fraction of that, which is why rightward travel
+      // previously looked tail-first before this was fixed to a full
+      // 0→π sweep.
+      //
+      // Now that the drone also travels in depth (Z, toward/away from
+      // the camera), heading needs to track BOTH horizontal axes, not
+      // just X — otherwise flying straight toward the camera would still
+      // show a left/right-only profile view instead of the nose actually
+      // swinging to point at the viewer. Rather than guess the mapping
+      // for the new axis, it's derived the same rigorous way the
+      // left/right fix was: droneGroup.rotation.y is a standard Three.js
+      // Y-axis rotation, and with the confirmed forward direction at
+      // yaw=0 being local -X, the general forward vector for ANY yaw is
+      //   forward(yaw) = (-cos(yaw), 0, sin(yaw))
+      // (this satisfies forward(0)=(-1,0,0) and forward(π)=(1,0,0),
+      // matching both tested/confirmed points exactly). Solving that for
+      // a target direction (vx, vz) gives:
+      //   yaw = atan2(vz, -vx)
+      // which reduces to the exact same tested left/right formula when
+      // vz=0, and by the same derivation, yaw=+π/2 faces +Z (toward the
+      // camera) and yaw=-π/2 faces -Z (away/deeper into the screen) —
+      // both new cases, not directly tested live, but following from
+      // the identical math that got left/right verifiably correct.
+      // Shortest-path angle lerp — needed now that yaw spans the FULL
+      // (-π, π] range (previously only ever produced [0, π]): naively
+      // lerping the raw angle values can spin the wrong way around a
+      // ±π seam (e.g. 3.0 → -3.0 is a tiny visual turn but a huge raw
+      // numeric jump). This always takes the short way regardless of how
+      // the two angles happen to be represented.
+      function lerpAngle(from, to, factor) {
+        var d = (to - from) % (Math.PI * 2);
+        if (d > Math.PI) d -= Math.PI * 2;
+        if (d < -Math.PI) d += Math.PI * 2;
+        return from + d * factor;
+      }
 
       // Randomised wander phases — generated once per load so the
       // organic weave (independent of scroll) never repeats the same
       // pattern twice, at effectively zero per-frame cost (a few sines).
       var WPH = {
         x1: rand(0, Math.PI * 2), x2: rand(0, Math.PI * 2),
-        y1: rand(0, Math.PI * 2), y2: rand(0, Math.PI * 2)
+        y1: rand(0, Math.PI * 2), y2: rand(0, Math.PI * 2),
+        z1: rand(0, Math.PI * 2), z2: rand(0, Math.PI * 2)
       };
 
       var scrollT = 0;
@@ -526,7 +573,20 @@
         var safeDt = dt > 0.0001 ? dt : 0.0001;
 
         var t = scrollT;
-        var hh = halfH(), hw = halfW();
+        // Frustum half-size AT THE DRONE'S CURRENT DEPTH (previous
+        // frame's smoothed L.z), not the fixed z=0 plane the flight used
+        // to live on. This is what makes normalized X/Y waypoints stay
+        // meaningful as the drone moves toward/away from the camera: at
+        // a closer depth the visible frustum is narrower, so the same
+        // -1..1 waypoint value correctly maps to a smaller world-space
+        // offset there — without this, the drone would fly off the
+        // visible edge too early whenever it's closer than the old fixed
+        // plane. camDist is floored well above zero purely as a defensive
+        // guard against a pathological overshoot; KZ itself never gets
+        // remotely close to that floor.
+        var camDist = Math.max(CAM_Z - L.z, 1.0);
+        var hh = camDist * Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+        var hw = hh * (window.innerWidth / window.innerHeight);
 
         // Sample time is warped by the scheduled backtrack pulses: for a
         // brief window the effective position along the path moves
@@ -541,34 +601,40 @@
 
         var tx = hw * sample(KX, tEff);
         var ty = hh * sample(KY, tEff);
+        var tz = sample(KZ, tEff);
         var tsc = BASE_SCALE * sample(KS, t);
 
         // Continuous organic wander — low-amplitude, non-repeating drift
         // layered on top of the section-to-section path so the route
         // never reads as a rigid straight line between waypoints. Cheap:
-        // a handful of sines, no extra geometry or draw calls.
+        // a handful of sines, no extra geometry or draw calls. The depth
+        // wander is in raw world units (not screen-normalized like x/y,
+        // since depth isn't relative to frustum size).
         var wx = (Math.sin(el * 0.53 + WPH.x1) * 0.032 + Math.sin(el * 0.21 + WPH.x2) * 0.016) * hw;
         var wy = (Math.cos(el * 0.47 + WPH.y1) * 0.026 + Math.sin(el * 0.19 + WPH.y2) * 0.014) * hh;
-        tx += wx; ty += wy;
+        var wz = Math.sin(el * 0.31 + WPH.z1) * 0.35 + Math.sin(el * 0.13 + WPH.z2) * 0.18;
+        tx += wx; ty += wy; tz += wz;
 
         // Track previous SMOOTHED position (not raw target) so velocity
         // reflects actual on-screen motion — this is what drives correct,
         // non-jittery banking even when scroll is choppy (trackpad/wheel),
         // and correctly flips during a backtrack dip.
-        var beforeX = L.x, beforeY = L.y;
+        var beforeX = L.x, beforeY = L.y, beforeZ = L.z;
 
         L.x += (tx - L.x) * dtLerp(SMOOTH_POS, dt);
         L.y += (ty - L.y) * dtLerp(SMOOTH_POS, dt);
+        L.z += (tz - L.z) * dtLerp(SMOOTH_POS, dt);
         L.sc += (tsc - L.sc) * dtLerp(SMOOTH_SC, dt);
 
         // Position delta normalized to "movement per standard 1/60s
-        // frame" — this is what makes vx/vy (and everything tuned
+        // frame" — this is what makes vx/vy/vz (and everything tuned
         // against them below: bank angle, yaw-turn threshold, etc.)
         // read identically regardless of the display's actual refresh
         // rate, instead of banking more weakly at higher frame rates.
         var vx = (L.x - beforeX) / (safeDt * 60);
         var vy = (L.y - beforeY) / (safeDt * 60);
-        var speed = Math.sqrt(vx * vx + vy * vy);
+        var vz = (L.z - beforeZ) / (safeDt * 60);
+        var speed = Math.sqrt(vx * vx + vy * vy + vz * vz);
 
         // ── Idle tracking ──────────────────────────────────────────
         // Keyed off the actual SCROLL POSITION, not on-screen speed —
@@ -585,29 +651,24 @@
         var lookingAtCamera = idleTime >= IDLE_LOOK_DELAY;
 
         // ── Derive heading (yaw) ─────────────────────────────────────
-        // Horizontal travel maps across the FULL 0→π sweep (not a small
-        // clamped bank) since the model's neutral pose already faces
-        // left (yaw≈0) and needs a genuine half-turn to face right
-        // (yaw≈π) — a small-angle clamp can never reach that, which is
-        // what caused rightward travel to read as flying backwards.
-        // A softsign of vx gives a smooth, saturating -1..1 value that
-        // maps directly onto that 0..π sweep, and naturally handles the
-        // reversed direction during a backtrack dip the same way.
-        //
-        // Gated on |vx| specifically (not overall speed) — pure vertical
-        // travel (vx≈0, vy≠0) now holds the current heading instead of
-        // swinging the nose toward the camera, which is what a real
-        // drone climbing/diving in place would do.
-        var vxAbs = Math.abs(vx);
+        // Full omnidirectional heading in the horizontal plane — see the
+        // "Heading calibration" comment above for the derivation. Gated
+        // on the combined X/Z speed specifically (not overall speed, and
+        // not vx alone anymore): pure vertical travel (vy≠0 only) now
+        // holds the current heading instead of swinging the nose,
+        // matching how a real drone climbing/diving in place would
+        // behave — same logic as before, just extended to also hold
+        // steady when there's genuinely no horizontal-plane motion even
+        // if depth is involved elsewhere in the frame's motion blend.
+        var horizSpeed = Math.sqrt(vx * vx + vz * vz);
         if (lookingAtCamera) {
           // Stayed still for a while — turn to look directly at the viewer.
-          L.yaw += (FACE_CAMERA_YAW - L.yaw) * dtLerp(SMOOTH_TURN, dt);
-        } else if (vxAbs > 0.00035) {
-          var n = vx / (vxAbs + VX_TURN_SCALE); // softsign, -1..1
-          var targetYaw = (n + 1) * (Math.PI / 2); // -1→0 (left), +1→π (right)
-          L.yaw += (targetYaw - L.yaw) * dtLerp(SMOOTH_YAW, dt);
+          L.yaw = lerpAngle(L.yaw, FACE_CAMERA_YAW, dtLerp(SMOOTH_TURN, dt));
+        } else if (horizSpeed > 0.00035) {
+          var targetYaw = Math.atan2(vz, -vx);
+          L.yaw = lerpAngle(L.yaw, targetYaw, dtLerp(SMOOTH_YAW, dt));
         }
-        // else: no meaningful horizontal motion — hold the current
+        // else: no meaningful horizontal-plane motion — hold the current
         // heading rather than snapping anywhere.
 
         // ── Derive pitch from vertical velocity (nose up when climbing,
@@ -625,9 +686,10 @@
         // ── Idle hover micro-jitter — always alive, even mid-scroll-pause ──
         var hx = Math.cos(el * 1.7) * 0.006 + Math.sin(el * 3.0) * 0.0025;
         var hy = Math.sin(el * 1.4) * 0.009 + Math.cos(el * 2.4) * 0.004;
+        var hz = Math.sin(el * 1.55) * 0.05 + Math.cos(el * 2.7) * 0.02;
         var hr = Math.sin(el * 2.0) * 0.012;
 
-        droneGroup.position.set(L.x + hx, L.y + hy, 0);
+        droneGroup.position.set(L.x + hx, L.y + hy, L.z + hz);
         droneGroup.rotation.order = 'YZX';
         droneGroup.rotation.y = L.yaw;
         droneGroup.rotation.z = L.roll + hr;
@@ -636,9 +698,10 @@
         drone.rotation.x = L.pitch;
         drone.scale.setScalar(L.sc);
 
-        // Engine glow follows + pulses with speed
-        glowA.position.set(L.x, L.y - 0.05, 0.3);
-        glowB.position.set(L.x + 0.04, L.y + 0.03, 0.2);
+        // Engine glow follows + pulses with speed (offsets are relative
+        // to the drone's own current depth now, not an absolute Z)
+        glowA.position.set(L.x, L.y - 0.05, L.z + 0.3);
+        glowB.position.set(L.x + 0.04, L.y + 0.03, L.z + 0.2);
         glowA.intensity = 5.0 + Math.sin(el * 3.4) * 2.0 + speed * 50;
         glowB.intensity = 4.0 + Math.cos(el * 2.7) * 1.6 + speed * 35;
 
