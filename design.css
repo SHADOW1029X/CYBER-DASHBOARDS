@@ -306,7 +306,7 @@
       .glitch-text .g-base{
         animation:none!important;
         background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-        filter:drop-shadow(0 0 18px rgba(63,140,255,.5)) drop-shadow(0 0 40px rgba(34,198,230,.3));
+        filter:drop-shadow(0 0 4px rgba(63,140,255,.22)) drop-shadow(0 0 9px rgba(34,198,230,.1));
       }
     }
 
