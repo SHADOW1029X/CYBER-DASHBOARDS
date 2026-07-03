@@ -175,9 +175,9 @@
          across any viewport / resize). */
 
       var SECTION_IDS = [
-        'focus', 'ideaSection', 'how-it-works', 'warriorSection',
+        'pages', 'focus', 'ideaSection', 'how-it-works', 'warriorSection',
         'physicsSection', 'engineSection', 'touchSection',
-        'pages', 'stack', 'manifestoSection'
+        'stack', 'manifestoSection'
       ];
 
       // Alternating corner targets per section (screen-normalised).
