@@ -193,6 +193,71 @@
     #hero .lede{font-size:clamp(15px,2.1vw,23px);max-width:32ch;color:rgba(225,230,250,0.9);font-weight:400;line-height:1.35;}
     #hero .lede em{font-family:var(--serif);font-style:italic;}
 
+    /* ── FORGE PIXEL GLITCH ──
+       Classic sci-fi chromatic-split glitch: two colored duplicates of
+       the text (via ::before/::after reading the same data-text, so
+       nothing has to be typed twice) sit hidden most of the time, then
+       briefly flash into view, offset, and sliced into blocky horizontal
+       bands using steps() timing rather than smooth easing — steps()
+       is what gives it that jumpy, "digital" snap instead of a liquid
+       wave-warp look. Runs as an infrequent ~350ms burst once every 5s
+       (system-hiccup pacing) rather than continuous flicker, which
+       would read as broken/annoying on a hero heading rather than
+       intentional. Purely CSS, no JS/runtime cost. */
+    .glitch-text{
+      position:relative;
+      display:inline-block;
+    }
+    .glitch-text::before,
+    .glitch-text::after{
+      content:attr(data-text);
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      mix-blend-mode:screen; /* additive — brightens over the base glyph rather than muddying it */
+      opacity:0;
+    }
+    .glitch-text::before{
+      color:#ff2b5e;
+      animation:glitchRed 5s steps(1,jump-end) infinite;
+    }
+    .glitch-text::after{
+      color:var(--magenta); /* the site's actual cyan accent, #22c6e6 */
+      animation:glitchCyan 5s steps(1,jump-end) infinite;
+    }
+    .glitch-text .g-base{
+      display:inline-block;
+      animation:glitchShift 5s steps(1,jump-end) infinite;
+    }
+    @keyframes glitchRed{
+      0%,91%,100%{opacity:0;clip-path:inset(45% 0 45% 0);transform:translate(0,0);}
+      92%{opacity:.85;clip-path:inset(8% 0 62% 0);transform:translate(-4px,0);}
+      92.5%{opacity:.8;clip-path:inset(58% 0 6% 0);transform:translate(3px,1px);}
+      93.5%{opacity:0;}
+      94%{opacity:.85;clip-path:inset(28% 0 42% 0);transform:translate(-3px,-1px);}
+      94.6%{opacity:.7;clip-path:inset(68% 0 12% 0);transform:translate(2px,0);}
+      95.2%{opacity:0;transform:translate(0,0);}
+    }
+    @keyframes glitchCyan{
+      0%,91%,100%{opacity:0;clip-path:inset(20% 0 65% 0);transform:translate(0,0);}
+      92%{opacity:.85;clip-path:inset(52% 0 18% 0);transform:translate(4px,0);}
+      92.5%{opacity:.8;clip-path:inset(4% 0 72% 0);transform:translate(-3px,-1px);}
+      93.5%{opacity:0;}
+      94%{opacity:.85;clip-path:inset(38% 0 24% 0);transform:translate(3px,1px);}
+      94.6%{opacity:.7;clip-path:inset(14% 0 58% 0);transform:translate(-2px,0);}
+      95.2%{opacity:0;transform:translate(0,0);}
+    }
+    @keyframes glitchShift{
+      0%,91%,93.5%,94%,95.2%,100%{transform:translate(0,0);filter:none;}
+      92%{transform:translate(2px,0);}
+      92.5%{transform:translate(-2px,1px);}
+      94.6%{transform:translate(1px,-1px) skewX(-1deg);}
+    }
+    @media (prefers-reduced-motion: reduce){
+      .glitch-text::before,.glitch-text::after{display:none;}
+      .glitch-text .g-base{animation:none!important;}
+    }
+
     /* ── OVERLAY IMAGE LAYERS ── */
     .hero-bg-base{position:absolute;inset:0;z-index:10;
     background:
