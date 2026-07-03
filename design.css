@@ -197,13 +197,18 @@
        Classic sci-fi chromatic-split glitch: two colored duplicates of
        the text (via ::before/::after reading the same data-text, so
        nothing has to be typed twice) sit hidden most of the time, then
-       briefly flash into view, offset, and sliced into blocky horizontal
-       bands using steps() timing rather than smooth easing — steps()
-       is what gives it that jumpy, "digital" snap instead of a liquid
-       wave-warp look. Runs as an infrequent ~350ms burst once every 5s
-       (system-hiccup pacing) rather than continuous flicker, which
-       would read as broken/annoying on a hero heading rather than
-       intentional. Purely CSS, no JS/runtime cost. */
+       violently flash into view, offset, and sliced into blocky
+       horizontal bands using steps() timing rather than smooth easing —
+       steps() is what gives it that jumpy, "digital" snap instead of a
+       liquid wave-warp look. The base glyphs themselves carry the
+       site's own signature gradient (var(--grad)) with a slow shimmer,
+       plus a glow that breathes gently at rest and slams into a sharp
+       brightness/contrast flash exactly when the glitch hits — three
+       separate animations on three different properties (transform /
+       background-position / filter) so they layer without fighting
+       each other for control of the same property. Runs a busier,
+       multi-hit burst once every 3.2s (still infrequent enough to read
+       as "power surge," not "broken"). Purely CSS, no JS/runtime cost. */
     .glitch-text{
       position:relative;
       display:inline-block;
@@ -216,46 +221,90 @@
       pointer-events:none;
       mix-blend-mode:screen; /* additive — brightens over the base glyph rather than muddying it */
       opacity:0;
+      text-shadow:0 0 14px currentColor; /* neon bloom on the split channels themselves */
     }
     .glitch-text::before{
       color:#ff2b5e;
-      animation:glitchRed 5s steps(1,jump-end) infinite;
+      animation:glitchRed 3.2s steps(1,jump-end) infinite;
     }
     .glitch-text::after{
       color:var(--magenta); /* the site's actual cyan accent, #22c6e6 */
-      animation:glitchCyan 5s steps(1,jump-end) infinite;
+      animation:glitchCyan 3.2s steps(1,jump-end) infinite;
     }
     .glitch-text .g-base{
       display:inline-block;
-      animation:glitchShift 5s steps(1,jump-end) infinite;
+      background:var(--grad);
+      background-size:220% 100%;
+      -webkit-background-clip:text;
+      background-clip:text;
+      -webkit-text-fill-color:transparent;
+      animation:
+        glitchShift 3.2s steps(1,jump-end) infinite,
+        forgeShimmer 7s ease-in-out infinite,
+        forgeGlow 3.2s ease-in-out infinite;
     }
     @keyframes glitchRed{
-      0%,91%,100%{opacity:0;clip-path:inset(45% 0 45% 0);transform:translate(0,0);}
-      92%{opacity:.85;clip-path:inset(8% 0 62% 0);transform:translate(-4px,0);}
-      92.5%{opacity:.8;clip-path:inset(58% 0 6% 0);transform:translate(3px,1px);}
-      93.5%{opacity:0;}
-      94%{opacity:.85;clip-path:inset(28% 0 42% 0);transform:translate(-3px,-1px);}
-      94.6%{opacity:.7;clip-path:inset(68% 0 12% 0);transform:translate(2px,0);}
-      95.2%{opacity:0;transform:translate(0,0);}
+      0%,89%,100%{opacity:0;clip-path:inset(45% 0 45% 0);transform:translate(0,0);}
+      89.5%{opacity:.9;clip-path:inset(6% 0 68% 0);transform:translate(-8px,0);}
+      90.2%{opacity:.85;clip-path:inset(64% 0 4% 0);transform:translate(6px,2px);}
+      90.9%{opacity:0;}
+      91.6%{opacity:.9;clip-path:inset(20% 0 55% 0);transform:translate(-6px,-2px);}
+      92.3%{opacity:.7;clip-path:inset(74% 0 8% 0);transform:translate(5px,0);}
+      93%{opacity:0;}
+      93.6%{opacity:.85;clip-path:inset(35% 0 30% 0);transform:translate(-7px,1px);}
+      94.3%{opacity:0;transform:translate(0,0);}
     }
     @keyframes glitchCyan{
-      0%,91%,100%{opacity:0;clip-path:inset(20% 0 65% 0);transform:translate(0,0);}
-      92%{opacity:.85;clip-path:inset(52% 0 18% 0);transform:translate(4px,0);}
-      92.5%{opacity:.8;clip-path:inset(4% 0 72% 0);transform:translate(-3px,-1px);}
-      93.5%{opacity:0;}
-      94%{opacity:.85;clip-path:inset(38% 0 24% 0);transform:translate(3px,1px);}
-      94.6%{opacity:.7;clip-path:inset(14% 0 58% 0);transform:translate(-2px,0);}
-      95.2%{opacity:0;transform:translate(0,0);}
+      0%,89%,100%{opacity:0;clip-path:inset(20% 0 65% 0);transform:translate(0,0);}
+      89.5%{opacity:.9;clip-path:inset(58% 0 20% 0);transform:translate(8px,0);}
+      90.2%{opacity:.85;clip-path:inset(2% 0 78% 0);transform:translate(-6px,-2px);}
+      90.9%{opacity:0;}
+      91.6%{opacity:.9;clip-path:inset(42% 0 28% 0);transform:translate(6px,2px);}
+      92.3%{opacity:.7;clip-path:inset(10% 0 62% 0);transform:translate(-5px,0);}
+      93%{opacity:0;}
+      93.6%{opacity:.85;clip-path:inset(50% 0 12% 0);transform:translate(7px,-1px);}
+      94.3%{opacity:0;transform:translate(0,0);}
     }
     @keyframes glitchShift{
-      0%,91%,93.5%,94%,95.2%,100%{transform:translate(0,0);filter:none;}
-      92%{transform:translate(2px,0);}
-      92.5%{transform:translate(-2px,1px);}
-      94.6%{transform:translate(1px,-1px) skewX(-1deg);}
+      0%,89%,90.9%,91.6%,93%,93.6%,94.3%,100%{transform:translate(0,0) skewX(0);}
+      89.5%{transform:translate(3px,0);}
+      90.2%{transform:translate(-3px,1px);}
+      92.3%{transform:translate(2px,-1px) skewX(-1.5deg);}
+    }
+    @keyframes forgeShimmer{
+      0%,100%{background-position:0% 50%;}
+      50%{background-position:100% 50%;}
+    }
+    /* Ambient breathing glow (smooth) with sharp brightness/contrast
+       flashes cut in at the exact same timestamps as the glitch hits
+       above — same 3.2s duration keeps them locked together. Individual
+       keyframes can override the animation's easing for just the
+       transition INTO them, which is what makes the flash-in feel like
+       a snap while the rest of the cycle still breathes smoothly. */
+    @keyframes forgeGlow{
+      0%{filter:drop-shadow(0 0 14px rgba(63,140,255,.45)) drop-shadow(0 0 34px rgba(34,198,230,.22)) brightness(1);}
+      45%{filter:drop-shadow(0 0 22px rgba(63,140,255,.65)) drop-shadow(0 0 50px rgba(34,198,230,.36)) brightness(1.04);}
+      89%{filter:drop-shadow(0 0 14px rgba(63,140,255,.45)) drop-shadow(0 0 34px rgba(34,198,230,.22)) brightness(1);}
+      89.5%{animation-timing-function:steps(1,jump-end);
+        filter:drop-shadow(0 0 34px rgba(255,43,94,.95)) drop-shadow(0 0 74px rgba(34,198,230,.7)) brightness(1.7) contrast(1.35);}
+      90.9%{animation-timing-function:steps(1,jump-end);
+        filter:drop-shadow(0 0 8px rgba(63,140,255,.25)) brightness(.6);}
+      91.6%{animation-timing-function:steps(1,jump-end);
+        filter:drop-shadow(0 0 30px rgba(34,198,230,.95)) drop-shadow(0 0 60px rgba(255,43,94,.55)) brightness(1.6);}
+      93%{animation-timing-function:steps(1,jump-end);
+        filter:drop-shadow(0 0 10px rgba(63,140,255,.3)) brightness(.65);}
+      93.6%{animation-timing-function:steps(1,jump-end);
+        filter:drop-shadow(0 0 28px rgba(255,43,94,.85)) drop-shadow(0 0 56px rgba(34,198,230,.5)) brightness(1.5);}
+      94.3%,100%{animation-timing-function:ease-in-out;
+        filter:drop-shadow(0 0 14px rgba(63,140,255,.45)) drop-shadow(0 0 34px rgba(34,198,230,.22)) brightness(1);}
     }
     @media (prefers-reduced-motion: reduce){
       .glitch-text::before,.glitch-text::after{display:none;}
-      .glitch-text .g-base{animation:none!important;}
+      .glitch-text .g-base{
+        animation:none!important;
+        background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+        filter:drop-shadow(0 0 18px rgba(63,140,255,.5)) drop-shadow(0 0 40px rgba(34,198,230,.3));
+      }
     }
 
     /* ── OVERLAY IMAGE LAYERS ── */
