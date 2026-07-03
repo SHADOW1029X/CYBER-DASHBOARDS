@@ -154,6 +154,196 @@
   </div>
 </section>
 
+<!-- ── PAGES / COMPONENTS ── -->
+<section id="pages">
+  <div class="section-inner">
+    <p class="sec-label sr">Component Library</p>
+    <h2 class="sec-heading sr sr-d1">The <span>Six Pages</span></h2>
+
+    <!-- Page Tabs -->
+    <div class="pages-nav sr sr-d2" role="tablist" aria-label="Component pages">
+      <button class="page-tab active" data-tab="login" type="button" role="tab" id="tabbtn-login" aria-selected="true" aria-controls="tab-login"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Login</span></button>
+      <button class="page-tab" data-tab="register" type="button" role="tab" id="tabbtn-register" aria-selected="false" aria-controls="tab-register" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Register</span></button>
+      <button class="page-tab" data-tab="dashboard" type="button" role="tab" id="tabbtn-dashboard" aria-selected="false" aria-controls="tab-dashboard" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Dashboard</span></button>
+      <button class="page-tab" data-tab="profile" type="button" role="tab" id="tabbtn-profile" aria-selected="false" aria-controls="tab-profile" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Profile</span></button>
+      <button class="page-tab" data-tab="leaderboard" type="button" role="tab" id="tabbtn-leaderboard" aria-selected="false" aria-controls="tab-leaderboard" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Leaderboard</span></button>
+      <button class="page-tab" data-tab="ui" type="button" role="tab" id="tabbtn-ui" aria-selected="false" aria-controls="tab-ui" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">UI Lab</span></button>
+    </div>
+
+    <!-- Login -->
+    <div class="page-panel active" id="tab-login" role="tabpanel" aria-labelledby="tabbtn-login" tabindex="0">
+      <div class="page-hero-bar">
+        <div class="page-name">Login System</div>
+        <span class="page-badge">Auth Gateway</span>
+      </div>
+      <p class="page-overview">The authentication entry point. WebGL background, credential validation, Cloudflare D1 session management, and AbortController-guarded fetch with configurable timeout fallback.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <div class="feat-title">Secure Auth Flow</div>
+          <div class="feat-body">PBKDF2 password hashing, constant-time comparison, and HttpOnly cookie session tokens with 7-day TTL rotation.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="feat-title">Edge Validation</div>
+          <div class="feat-body">All validation runs at the Cloudflare Worker layer. SQL injection prevention, rate-limiting, and D1 parameterized queries by default.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+          <div class="feat-title">Timeout Guards</div>
+          <div class="feat-body">AbortController signals cancel stalled requests after 8s. Visual countdown feedback and graceful error state recovery built in.</div>
+        </div>
+      </div>
+      <div class="workflow">
+        <div class="workflow-title">Auth Sequence</div>
+        <div class="workflow-steps">
+          <div class="wf-step"><div class="wf-num">1</div><div class="wf-text">User submits credentials — client-side format validation fires before any network request.</div></div>
+          <div class="wf-step"><div class="wf-num">2</div><div class="wf-text">AbortController-wrapped fetch hits the Cloudflare Worker within 8s timeout.</div></div>
+          <div class="wf-step"><div class="wf-num">3</div><div class="wf-text">Worker queries D1 with parameterized SQL, verifies hash, issues session cookie.</div></div>
+          <div class="wf-step"><div class="wf-num">4</div><div class="wf-text">Client stores session reference in memory, redirects to Dashboard on 200 OK.</div></div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Cloudflare Workers</span><span class="tech-tag">D1 SQL</span><span class="tech-tag">AbortController</span><span class="tech-tag">PBKDF2</span><span class="tech-tag">HttpOnly Cookies</span></div>
+    </div>
+
+    <!-- Register -->
+    <div class="page-panel" id="tab-register" role="tabpanel" aria-labelledby="tabbtn-register" tabindex="0" hidden>
+      <div class="page-hero-bar">
+        <div class="page-name">Registration System</div>
+        <span class="page-badge">User Onboarding</span>
+      </div>
+      <p class="page-overview">Multi-step account creation with real-time field validation, username uniqueness checks against D1, and role assignment. Progressive disclosure reduces cognitive load across three form stages.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="feat-title">Progressive Steps</div>
+          <div class="feat-body">Three-stage form with animated transitions. Each step validates independently before unlocking the next, reducing form abandonment.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="feat-title">Live Validation</div>
+          <div class="feat-body">Username uniqueness verified on blur via debounced D1 lookup. Password strength meter updates in real time with entropy scoring.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <div class="feat-title">Security Headers Suite</div>
+          <div class="feat-body">CSP with default-src 'none', X-Content-Type-Options: nosniff, X-Frame-Options: DENY, Referrer-Policy: no-referrer enforced on all registration endpoints.</div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Multi-step Forms</span><span class="tech-tag">D1 Uniqueness Check</span><span class="tech-tag">Entropy Scoring</span><span class="tech-tag">CSP Headers</span></div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="page-panel" id="tab-dashboard" role="tabpanel" aria-labelledby="tabbtn-dashboard" tabindex="0" hidden>
+      <div class="page-hero-bar">
+        <div class="page-name">Analytics Dashboard</div>
+        <span class="page-badge">Data Command Center</span>
+      </div>
+      <p class="page-overview">Live metrics, Canvas-rendered charts, and real-time D1 queries. Built for decision-makers who need sub-second data refresh without a full page reload.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+          <div class="feat-title">Canvas Charts</div>
+          <div class="feat-body">Line, bar, and scatter plots rendered directly on Canvas 2D. No chart library — pure geometry from raw D1 query results, animated on data update.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+          <div class="feat-title">Live Metrics Stream</div>
+          <div class="feat-body">Polling loop with configurable interval. Differential updates applied to DOM — only changed nodes re-render, keeping the interface responsive.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          <div class="feat-title">Export Pipeline</div>
+          <div class="feat-body">One-click CSV, TXT, and PDF export via Blob API. No server round-trip — data serializes client-side and triggers browser download directly.</div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Canvas API</span><span class="tech-tag">Blob API</span><span class="tech-tag">Fetch API</span><span class="tech-tag">D1 SQL</span><span class="tech-tag">CSV Export</span></div>
+    </div>
+
+    <!-- Profile -->
+    <div class="page-panel" id="tab-profile" role="tabpanel" aria-labelledby="tabbtn-profile" tabindex="0" hidden>
+      <div class="page-hero-bar">
+        <div class="page-name">User Profile</div>
+        <span class="page-badge">Identity Management</span>
+      </div>
+      <p class="page-overview">Editable user profile with avatar upload, bio editing, and settings persistence. Changes optimistically update the UI before the D1 write confirms.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="feat-title">Optimistic Updates</div>
+          <div class="feat-body">UI state changes instantly on user action. Background D1 write confirms asynchronously. Rollback triggers on error with user notification.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+          <div class="feat-title">Avatar Processing</div>
+          <div class="feat-body">Client-side canvas resize and compression before upload. MIME type validation, 2MB cap, and WebP conversion for bandwidth efficiency.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2"/></svg></div>
+          <div class="feat-title">Preference Sync</div>
+          <div class="feat-body">Theme, notification, and accessibility settings stored in D1 user record. Applied on session load so preferences follow the user across devices.</div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Canvas Resize</span><span class="tech-tag">WebP Conversion</span><span class="tech-tag">Optimistic UI</span><span class="tech-tag">D1 Preferences</span></div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="page-panel" id="tab-leaderboard" role="tabpanel" aria-labelledby="tabbtn-leaderboard" tabindex="0" hidden>
+      <div class="page-hero-bar">
+        <div class="page-name">Leaderboard</div>
+        <span class="page-badge">Live Rankings</span>
+      </div>
+      <p class="page-overview">Ranked user table with live D1 queries, animated rank transitions, and search/filter. Virtualized rendering handles thousands of rows without scroll jank.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
+          <div class="feat-title">Virtual Scroll</div>
+          <div class="feat-body">DOM recycling renders only visible rows. 10,000-entry boards scroll at 60fps with no layout thrash or memory growth.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+          <div class="feat-title">Rank Animations</div>
+          <div class="feat-body">FLIP-technique animations fire when ranks shift. Entries slide to new positions with spring physics — no layout recalculation mid-animation.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+          <div class="feat-title">Search Index</div>
+          <div class="feat-body">Client-side trie search across usernames. Results appear on every keystroke with zero network requests using pre-fetched session data.</div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Virtual DOM</span><span class="tech-tag">FLIP Animation</span><span class="tech-tag">Trie Search</span><span class="tech-tag">D1 Rankings</span></div>
+    </div>
+
+    <!-- UI Lab -->
+    <div class="page-panel" id="tab-ui" role="tabpanel" aria-labelledby="tabbtn-ui" tabindex="0" hidden>
+      <div class="page-hero-bar">
+        <div class="page-name">UI Component Lab</div>
+        <span class="page-badge">Design System</span>
+      </div>
+      <p class="page-overview">Live component sandbox — every UI element from the system displayed in all states. Developers preview tokens, spacing, and motion specs before integration.</p>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+          <div class="feat-title">Motion Catalog</div>
+          <div class="feat-body">Every animation easing, duration, and trigger documented with live preview. Exported as CSS custom property tokens for system-wide consistency.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <div class="feat-title">Security Headers Suite</div>
+          <div class="feat-body">CSP with default-src 'none', scripts restricted to unpkg.com and Google Fonts only. X-Content-Type-Options, X-Frame-Options, and Permissions-Policy enforced.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+          <div class="feat-title">WebGL Background Engine</div>
+          <div class="feat-body">Three.js tube geometries from PerformanceCurve calculations. Additive color shading with custom fragment shaders. UnrealBloomPass for cohesive neon glow.</div>
+        </div>
+      </div>
+      <div class="tech-row"><span class="tech-tag">Three.js</span><span class="tech-tag">UnrealBloomPass</span><span class="tech-tag">AdditiveBlending</span><span class="tech-tag">ShaderPass</span><span class="tech-tag">Space Grotesk</span><span class="tech-tag">Instrument Serif</span></div>
+    </div>
+
+  </div>
+</section>
+
 <!-- ── TRUE FOCUS BAND ── -->
 <section id="focus">
   <div class="wrap">
@@ -419,196 +609,6 @@
     <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Precise</span></div></div>
   </div>
   <p class="grid-hint reveal">Move your cursor · touch to activate</p>
-</section>
-
-<!-- ── PAGES / COMPONENTS ── -->
-<section id="pages">
-  <div class="section-inner">
-    <p class="sec-label sr">Component Library</p>
-    <h2 class="sec-heading sr sr-d1">The <span>Six Pages</span></h2>
-
-    <!-- Page Tabs -->
-    <div class="pages-nav sr sr-d2" role="tablist" aria-label="Component pages">
-      <button class="page-tab active" data-tab="login" type="button" role="tab" id="tabbtn-login" aria-selected="true" aria-controls="tab-login"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Login</span></button>
-      <button class="page-tab" data-tab="register" type="button" role="tab" id="tabbtn-register" aria-selected="false" aria-controls="tab-register" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Register</span></button>
-      <button class="page-tab" data-tab="dashboard" type="button" role="tab" id="tabbtn-dashboard" aria-selected="false" aria-controls="tab-dashboard" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Dashboard</span></button>
-      <button class="page-tab" data-tab="profile" type="button" role="tab" id="tabbtn-profile" aria-selected="false" aria-controls="tab-profile" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Profile</span></button>
-      <button class="page-tab" data-tab="leaderboard" type="button" role="tab" id="tabbtn-leaderboard" aria-selected="false" aria-controls="tab-leaderboard" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">Leaderboard</span></button>
-      <button class="page-tab" data-tab="ui" type="button" role="tab" id="tabbtn-ui" aria-selected="false" aria-controls="tab-ui" tabindex="-1"><canvas class="page-tab-gl" aria-hidden="true"></canvas><span class="page-tab-label">UI Lab</span></button>
-    </div>
-
-    <!-- Login -->
-    <div class="page-panel active" id="tab-login" role="tabpanel" aria-labelledby="tabbtn-login" tabindex="0">
-      <div class="page-hero-bar">
-        <div class="page-name">Login System</div>
-        <span class="page-badge">Auth Gateway</span>
-      </div>
-      <p class="page-overview">The authentication entry point. WebGL background, credential validation, Cloudflare D1 session management, and AbortController-guarded fetch with configurable timeout fallback.</p>
-      <div class="features-grid">
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-          <div class="feat-title">Secure Auth Flow</div>
-          <div class="feat-body">PBKDF2 password hashing, constant-time comparison, and HttpOnly cookie session tokens with 7-day TTL rotation.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-          <div class="feat-title">Edge Validation</div>
-          <div class="feat-body">All validation runs at the Cloudflare Worker layer. SQL injection prevention, rate-limiting, and D1 parameterized queries by default.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
-          <div class="feat-title">Timeout Guards</div>
-          <div class="feat-body">AbortController signals cancel stalled requests after 8s. Visual countdown feedback and graceful error state recovery built in.</div>
-        </div>
-      </div>
-      <div class="workflow">
-        <div class="workflow-title">Auth Sequence</div>
-        <div class="workflow-steps">
-          <div class="wf-step"><div class="wf-num">1</div><div class="wf-text">User submits credentials — client-side format validation fires before any network request.</div></div>
-          <div class="wf-step"><div class="wf-num">2</div><div class="wf-text">AbortController-wrapped fetch hits the Cloudflare Worker within 8s timeout.</div></div>
-          <div class="wf-step"><div class="wf-num">3</div><div class="wf-text">Worker queries D1 with parameterized SQL, verifies hash, issues session cookie.</div></div>
-          <div class="wf-step"><div class="wf-num">4</div><div class="wf-text">Client stores session reference in memory, redirects to Dashboard on 200 OK.</div></div>
-        </div>
-      </div>
-      <div class="tech-row"><span class="tech-tag">Cloudflare Workers</span><span class="tech-tag">D1 SQL</span><span class="tech-tag">AbortController</span><span class="tech-tag">PBKDF2</span><span class="tech-tag">HttpOnly Cookies</span></div>
-    </div>
-
-    <!-- Register -->
-    <div class="page-panel" id="tab-register" role="tabpanel" aria-labelledby="tabbtn-register" tabindex="0" hidden>
-      <div class="page-hero-bar">
-        <div class="page-name">Registration System</div>
-        <span class="page-badge">User Onboarding</span>
-      </div>
-      <p class="page-overview">Multi-step account creation with real-time field validation, username uniqueness checks against D1, and role assignment. Progressive disclosure reduces cognitive load across three form stages.</p>
-      <div class="features-grid">
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-          <div class="feat-title">Progressive Steps</div>
-          <div class="feat-body">Three-stage form with animated transitions. Each step validates independently before unlocking the next, reducing form abandonment.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="feat-title">Live Validation</div>
-          <div class="feat-body">Username uniqueness verified on blur via debounced D1 lookup. Password strength meter updates in real time with entropy scoring.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
-          <div class="feat-title">Security Headers Suite</div>
-          <div class="feat-body">CSP with default-src 'none', X-Content-Type-Options: nosniff, X-Frame-Options: DENY, Referrer-Policy: no-referrer enforced on all registration endpoints.</div>
-        </div>
-      </div>
-      <div class="tech-row"><span class="tech-tag">Multi-step Forms</span><span class="tech-tag">D1 Uniqueness Check</span><span class="tech-tag">Entropy Scoring</span><span class="tech-tag">CSP Headers</span></div>
-    </div>
-
-    <!-- Dashboard -->
-    <div class="page-panel" id="tab-dashboard" role="tabpanel" aria-labelledby="tabbtn-dashboard" tabindex="0" hidden>
-      <div class="page-hero-bar">
-        <div class="page-name">Analytics Dashboard</div>
-        <span class="page-badge">Data Command Center</span>
-      </div>
-      <p class="page-overview">Live metrics, Canvas-rendered charts, and real-time D1 queries. Built for decision-makers who need sub-second data refresh without a full page reload.</p>
-      <div class="features-grid">
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
-          <div class="feat-title">Canvas Charts</div>
-          <div class="feat-body">Line, bar, and scatter plots rendered directly on Canvas 2D. No chart library — pure geometry from raw D1 query results, animated on data update.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-          <div class="feat-title">Live Metrics Stream</div>
-          <div class="feat-body">Polling loop with configurable interval. Differential updates applied to DOM — only changed nodes re-render, keeping the interface responsive.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
-          <div class="feat-title">Export Pipeline</div>
-          <div class="feat-body">One-click CSV, TXT, and PDF export via Blob API. No server round-trip — data serializes client-side and triggers browser download directly.</div>
-        </div>
-      </div>
-      <div class="tech-row"><span class="tech-tag">Canvas API</span><span class="tech-tag">Blob API</span><span class="tech-tag">Fetch API</span><span class="tech-tag">D1 SQL</span><span class="tech-tag">CSV Export</span></div>
-    </div>
-
-    <!-- Profile -->
-    <div class="page-panel" id="tab-profile" role="tabpanel" aria-labelledby="tabbtn-profile" tabindex="0" hidden>
-      <div class="page-hero-bar">
-        <div class="page-name">User Profile</div>
-        <span class="page-badge">Identity Management</span>
-      </div>
-      <p class="page-overview">Editable user profile with avatar upload, bio editing, and settings persistence. Changes optimistically update the UI before the D1 write confirms.</p>
-      <div class="features-grid">
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-          <div class="feat-title">Optimistic Updates</div>
-          <div class="feat-body">UI state changes instantly on user action. Background D1 write confirms asynchronously. Rollback triggers on error with user notification.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
-          <div class="feat-title">Avatar Processing</div>
-          <div class="feat-body">Client-side canvas resize and compression before upload. MIME type validation, 2MB cap, and WebP conversion for bandwidth efficiency.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2"/></svg></div>
-          <div class="feat-title">Preference Sync</div>
-          <div class="feat-body">Theme, notification, and accessibility settings stored in D1 user record. Applied on session load so preferences follow the user across devices.</div>
-        </div>
-      </div>
-      <div class="tech-row"><span class="tech-tag">Canvas Resize</span><span class="tech-tag">WebP Conversion</span><span class="tech-tag">Optimistic UI</span><span class="tech-tag">D1 Preferences</span></div>
-    </div>
-
-    <!-- Leaderboard -->
-    <div class="page-panel" id="tab-leaderboard" role="tabpanel" aria-labelledby="tabbtn-leaderboard" tabindex="0" hidden>
-      <div class="page-hero-bar">
-        <div class="page-name">Leaderboard</div>
-        <span class="page-badge">Live Rankings</span>
-      </div>
-      <p class="page-overview">Ranked user table with live D1 queries, animated rank transitions, and search/filter. Virtualized rendering handles thousands of rows without scroll jank.</p>
-      <div class="features-grid">
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
-          <div class="feat-title">Virtual Scroll</div>
-          <div class="feat-body">DOM recycling renders only visible rows. 10,000-entry boards scroll at 60fps with no layout thrash or memory growth.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
-          <div class="feat-title">Rank Animations</div>
-          <div class="feat-body">FLIP-technique animations fire when ranks shift. Entries slide to new positions with spring physics — no layout recalculation mid-animation.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-          <div class="feat-title">Search Index</div>
-          <div class="feat-body">Client-side trie search across usernames. Results appear on every keystroke with zero network requests using pre-fetched session data.</div>
-        </div>
-      </div>
-      <div class="tech-row"><span class="tech-tag">Virtual DOM</span><span class="tech-tag">FLIP Animation</span><span class="tech-tag">Trie Search</span><span class="tech-tag">D1 Rankings</span></div>
-    </div>
-
-    <!-- UI Lab -->
-    <div class="page-panel" id="tab-ui" role="tabpanel" aria-labelledby="tabbtn-ui" tabindex="0" hidden>
-      <div class="page-hero-bar">
-        <div class="page-name">UI Component Lab</div>
-        <span class="page-badge">Design System</span>
-      </div>
-      <p class="page-overview">Live component sandbox — every UI element from the system displayed in all states. Developers preview tokens, spacing, and motion specs before integration.</p>
-      <div class="features-grid">
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
-          <div class="feat-title">Motion Catalog</div>
-          <div class="feat-body">Every animation easing, duration, and trigger documented with live preview. Exported as CSS custom property tokens for system-wide consistency.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
-          <div class="feat-title">Security Headers Suite</div>
-          <div class="feat-body">CSP with default-src 'none', scripts restricted to unpkg.com and Google Fonts only. X-Content-Type-Options, X-Frame-Options, and Permissions-Policy enforced.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
-          <div class="feat-title">WebGL Background Engine</div>
-          <div class="feat-body">Three.js tube geometries from PerformanceCurve calculations. Additive color shading with custom fragment shaders. UnrealBloomPass for cohesive neon glow.</div>
-        </div>
-      </div>
-      <div class="tech-row"><span class="tech-tag">Three.js</span><span class="tech-tag">UnrealBloomPass</span><span class="tech-tag">AdditiveBlending</span><span class="tech-tag">ShaderPass</span><span class="tech-tag">Space Grotesk</span><span class="tech-tag">Instrument Serif</span></div>
-    </div>
-
-  </div>
 </section>
 
 <div class="cyber-divider"></div>
