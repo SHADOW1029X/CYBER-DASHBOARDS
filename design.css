@@ -181,33 +181,45 @@
 
     /* ── HERO ── */
     #hero{position:relative;width:100%;height:100dvh;min-height:620px;overflow:hidden;z-index:2;}
-    .hero-content{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;
-    justify-content:center;padding:clamp(1rem,5vw,3rem);padding-top:80px;}
-    /* Capped well short of full-bleed and kept left-aligned — the
-       background portrait sits roughly center-right of frame, so
-       confining all hero text to this narrower column keeps it clear of
+    /* Plain positioning container now (no more flex-centering) — each
+       piece of hero text is its own absolutely-positioned corner block,
+       matching the decorative corner-bracket frame (#heroHud) rather
+       than clustering everything into one centered column. The padding
+       here is what each corner's top/left/right/bottom:0 sits flush
+       against (an absolutely-positioned child's containing block is its
+       positioned ancestor's PADDING box, so this "just works" as the
+       edge inset without any extra math per corner). */
+    .hero-content{position:absolute;inset:0;z-index:50;padding:clamp(1rem,5vw,3rem);padding-top:80px;}
+    .hero-corner{position:absolute;}
+    .hero-corner-tl{top:80px;left:clamp(1rem,5vw,3rem);}
+    /* Capped well short of full-bleed — the background portrait sits
+       roughly center-right of frame, so keeping the main heading block
+       narrow and anchored to the bottom-left corner keeps it clear of
        the face rather than sprawling across it. min() keeps it from
        ever feeling cramped on very narrow viewports (scales down with
        the viewport there) while capping it on wide desktop screens. */
-    .hero-content .wrap{width:100%;max-width:min(560px,46vw);}
-    /* Mobile: revert to full-width. The narrow-viewport `cover` crop of
-       the background image is a much more zoomed-in, different
-       composition than the desktop one this column width was tuned
-       against — keeping the desktop constraint here would just needlessly
-       cramp the text on small screens for no benefit. */
-    @media(max-width:767px){.hero-content .wrap{max-width:100%;}}
-    #hero .eyebrow{margin-bottom:26px;opacity:0;animation:fadeUp .9s .15s var(--ease) forwards;}
+    .hero-corner-bl{bottom:clamp(1rem,5vw,3rem);left:clamp(1rem,5vw,3rem);max-width:min(600px,52vw);}
+    .hero-corner-br{bottom:clamp(1rem,5vw,3rem);right:clamp(1rem,5vw,3rem);max-width:42vw;text-align:right;
+    display:flex;flex-direction:column;align-items:flex-end;gap:14px;}
+    /* Mobile: the bottom two corners can crowd each other on a narrow
+       viewport where there's much less horizontal room to separate
+       them — loosen the caps a bit and shrink the badge/version corner
+       specifically, since it's the less critical of the two. */
+    @media(max-width:767px){
+      .hero-corner-bl{max-width:78vw;}
+      .hero-corner-br{max-width:46vw;}
+      .hero-version{font-size:9px!important;}
+    }
+    #hero .eyebrow{opacity:0;animation:fadeUp .9s .15s var(--ease) forwards;}
     #hero h1{font-weight:600;letter-spacing:-0.05em;line-height:0.85;font-size:clamp(48px,7vw,120px);margin-left:-0.02em;
     opacity:0;animation:blurReveal 1.1s .28s var(--ease) forwards;}
     #hero h1 .d{color:var(--blue);}
-    /* Stacked single-column now that the wrap itself is narrow — the
-       old row layout (lede left, status badge pinned right via
-       space-between) assumed a full-width block and would otherwise
-       squeeze awkwardly into this tighter column. */
-    #hero .sub{margin-top:30px;display:flex;flex-direction:column;align-items:flex-start;gap:20px;
-    opacity:0;animation:fadeUp 1s .7s var(--ease) forwards;}
-    #hero .lede{font-size:clamp(15px,2.1vw,23px);max-width:32ch;color:rgba(225,230,250,0.9);font-weight:400;line-height:1.35;}
+    #hero .lede{margin-top:22px;font-size:clamp(15px,2.1vw,23px);color:rgba(225,230,250,0.9);font-weight:400;line-height:1.35;
+    opacity:0;animation:fadeUp 1s .55s var(--ease) forwards;}
     #hero .lede em{font-family:var(--serif);font-style:italic;}
+    .hero-corner-br{opacity:0;animation:fadeUp 1s .7s var(--ease) forwards;}
+    .hero-version{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--faint);text-align:right;line-height:2;}
 
     /* ── FORGE PIXEL GLITCH ──
        Classic sci-fi chromatic-split glitch: two colored duplicates of
