@@ -198,15 +198,18 @@
        the face rather than sprawling across it. min() keeps it from
        ever feeling cramped on very narrow viewports (scales down with
        the viewport there) while capping it on wide desktop screens.
-       bottom offset is deliberately more generous than a plain edge
-       inset — flush against the bottom edge left this crowding directly
-       into the scroll cue with no breathing room (and on shorter
-       viewports, uncomfortably close to being clipped outright). Raised
-       just enough to clear that without creeping back up toward the
-       face this block was originally pushed down and to the side to
-       avoid. */
-    .hero-corner-bl{bottom:clamp(4rem,10vh,6rem);left:clamp(1rem,5vw,3rem);max-width:min(600px,52vw);}
-    .hero-corner-br{bottom:clamp(4rem,10vh,6rem);right:clamp(1rem,5vw,3rem);max-width:42vw;text-align:right;
+       bottom offset: clamp(MIN, PREFERRED, MAX) only actually USES the
+       vh-based preferred value when it falls between MIN and MAX — the
+       previous attempt here set MIN too high relative to what 10vh
+       computes to at typical hero heights (~600-700px), so the result
+       was silently floored at ~64px the whole time, barely different
+       from the original 48px edge inset — which is exactly why that
+       fix visibly did nothing. Rebuilt so the floor itself (7rem/112px)
+       IS the actual intended clearance for ordinary viewport heights,
+       with the vh term only taking over and scaling it further up on
+       genuinely tall viewports (past ~800px). */
+    .hero-corner-bl{bottom:clamp(7rem,14vh,10rem);left:clamp(1rem,5vw,3rem);max-width:min(600px,52vw);}
+    .hero-corner-br{bottom:clamp(7rem,14vh,10rem);right:clamp(1rem,5vw,3rem);max-width:42vw;text-align:right;
     display:flex;flex-direction:column;align-items:flex-end;gap:14px;}
     /* Mobile: the bottom two corners can crowd each other on a narrow
        viewport where there's much less horizontal room to separate
