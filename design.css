@@ -208,22 +208,35 @@
     .hero-corner-br{top:50%;transform:translateY(-50%);right:clamp(1rem,5vw,3rem);max-width:30vw;text-align:right;
     display:flex;flex-direction:column;align-items:flex-end;gap:14px;}
     @media(max-width:767px){
-      /* On a tall portrait crop the subject's raised hands and torso
-         occupy most of the lower frame, so anchoring text to the
-         bottom corners (as on desktop) leaves no clear space and the
-         two blocks collide with each other and with the subject. The
-         one reliably clear area is the dark background strip between
-         the eyebrow tag and the top of the hair, so on mobile the
-         whole content group stacks there instead: top-anchored, single
-         column, all left-aligned. */
-      .hero-content{display:flex;flex-direction:column;justify-content:flex-start;gap:18px;}
-      .hero-corner-tl,.hero-corner-bl,.hero-corner-br{
+      /* The gap between the eyebrow tag and the hairline isn't a
+         reliable safe zone — it can shrink to almost nothing depending
+         on the mobile browser's chrome state (address bar shown/hidden
+         changes the dynamic viewport height, which changes how the
+         cover-sized portrait crops). What IS reliably clear of the
+         face in every observed crop is the area below the chin, so the
+         heading/lede/badge/version group stacks as a single column
+         anchored to the bottom there — same idea as before, just
+         anchored at the opposite end. The eyebrow tag stays pinned at
+         the top independently (it's excluded from this flex flow
+         because it's still position:absolute). */
+      .hero-content{display:flex;flex-direction:column;justify-content:flex-end;gap:18px;
+      padding-bottom:calc(8rem + env(safe-area-inset-bottom));}
+      .hero-corner-bl,.hero-corner-br{
         position:static;top:auto;left:auto;right:auto;bottom:auto;transform:none;max-width:100%;
       }
       .hero-corner-bl{max-width:92vw;}
       .hero-corner-br{align-items:flex-start;text-align:left;}
       .hero-version{text-align:left;font-size:9px!important;}
       .hero-corner-br .chip{font-size:9px;padding:6px 12px;}
+      /* Mobile browser chrome (the address bar) resizing as the person
+         scrolls changes 100dvh mid-session, which was making the
+         "cover" background crop jump around between page loads —
+         sometimes leaving a tall gap above the subject, sometimes
+         almost none, as seen across real device screenshots. svh (the
+         viewport height with browser UI fully expanded) stays fixed,
+         so the crop is consistent instead of shifting under the fixed
+         bottom-anchored text above. */
+      #hero{height:100svh;}
     }
     /* Short viewports — most commonly a phone held in landscape — can be
        wider than the 767px breakpoint above yet only ~350-450px tall.
