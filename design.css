@@ -192,32 +192,20 @@
     .hero-content{position:absolute;inset:0;z-index:50;padding:clamp(1rem,5vw,3rem);padding-top:80px;}
     .hero-corner{position:absolute;}
     .hero-corner-tl{top:80px;left:clamp(1rem,5vw,3rem);}
-    /* Capped well short of full-bleed — the background portrait sits
-       roughly center-right of frame, so keeping the main heading block
-       narrow and anchored to the bottom-left corner keeps it clear of
-       the face rather than sprawling across it. min() keeps it from
-       ever feeling cramped on very narrow viewports (scales down with
-       the viewport there) while capping it on wide desktop screens.
-       bottom offset: clamp(MIN, PREFERRED, MAX) only actually USES the
-       vh-based preferred value when it falls between MIN and MAX — the
-       previous attempt here set MIN too high relative to what 10vh
-       computes to at typical hero heights (~600-700px), so the result
-       was silently floored at ~64px the whole time, barely different
-       from the original 48px edge inset — which is exactly why that
-       fix visibly did nothing. Rebuilt so the floor itself (7rem/112px)
-       IS the actual intended clearance for ordinary viewport heights,
-       with the vh term only taking over and scaling it further up on
-       genuinely tall viewports (past ~800px). */
-    .hero-corner-bl{bottom:clamp(7rem,14vh,10rem);left:clamp(1rem,5vw,3rem);max-width:min(600px,52vw);}
-    .hero-corner-br{bottom:clamp(7rem,14vh,10rem);right:clamp(1rem,5vw,3rem);max-width:42vw;text-align:right;
+    /* Vertically centered (rather than crammed against the bottom edge)
+       so the block sits in the calm space to the left/right of the
+       portrait instead of leaving a large empty gap above it. Width is
+       capped narrow enough (min(440px,34vw) / 30vw) to stay clear of the
+       face, which sits roughly center-right of the frame. */
+    .hero-corner-bl{top:50%;transform:translateY(-50%);left:clamp(1rem,5vw,3rem);max-width:min(440px,34vw);}
+    .hero-corner-br{top:50%;transform:translateY(-50%);right:clamp(1rem,5vw,3rem);max-width:30vw;text-align:right;
     display:flex;flex-direction:column;align-items:flex-end;gap:14px;}
-    /* Mobile: the bottom two corners can crowd each other on a narrow
-       viewport where there's much less horizontal room to separate
-       them — loosen the caps a bit and shrink the badge/version corner
-       specifically, since it's the less critical of the two. */
+    /* Mobile: the portrait crop fills much more of the frame here, so
+       keep the original bottom-anchored placement (only the width caps
+       loosen to give the two corners room to breathe). */
     @media(max-width:767px){
-      .hero-corner-bl{max-width:78vw;}
-      .hero-corner-br{max-width:46vw;}
+      .hero-corner-bl{top:auto;transform:none;bottom:clamp(7rem,14vh,10rem);max-width:78vw;}
+      .hero-corner-br{top:auto;transform:none;bottom:clamp(7rem,14vh,10rem);max-width:46vw;}
       .hero-version{font-size:9px!important;}
     }
     #hero .eyebrow{opacity:0;animation:fadeUp .9s .15s var(--ease) forwards;}
@@ -227,7 +215,7 @@
     #hero .lede{margin-top:18px;font-size:clamp(15px,2.1vw,23px);color:rgba(225,230,250,0.9);font-weight:400;line-height:1.3;
     opacity:0;animation:fadeUp 1s .55s var(--ease) forwards;}
     #hero .lede em{font-family:var(--serif);font-style:italic;}
-    .hero-corner-br{opacity:0;animation:fadeUp 1s .7s var(--ease) forwards;}
+    .hero-corner-br .chip,.hero-corner-br .hero-version{opacity:0;animation:fadeUp 1s .7s var(--ease) forwards;}
     .hero-version{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
     color:var(--faint);text-align:right;line-height:2;}
 
