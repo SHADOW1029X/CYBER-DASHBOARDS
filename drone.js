@@ -107,7 +107,6 @@
       camera.lookAt(0, 0, 0);
 
       function halfH() { return CAM_Z * Math.tan(THREE.MathUtils.degToRad(FOV / 2)); }
-      function halfW() { return halfH() * (window.innerWidth / window.innerHeight); }
 
       /* ── Lights ────────────────────────────────────────────────
          Cool blue/cyan key + magenta rim, matching NYTHERION's
