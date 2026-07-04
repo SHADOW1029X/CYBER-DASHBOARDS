@@ -166,6 +166,17 @@ window.addEventListener('unhandledrejection', e => {
   const track = document.querySelector('.marq .track');
   if (track) {
     track.innerHTML += track.innerHTML;
+
+    // Same treatment as the manifesto ticker further down this file:
+    // pause the (infinite, 22s-loop) scroll animation when it's off-
+    // screen rather than let it run the whole session regardless.
+    const marqEl = track.closest('.marq');
+    if (marqEl) {
+      const marqIO = new IntersectionObserver(entries => {
+        track.style.animationPlayState = entries[0].isIntersecting ? 'running' : 'paused';
+      }, { threshold: 0 });
+      marqIO.observe(marqEl);
+    }
   }
 
   // ── SPOTLIGHT / OVERLAY IMAGE ──
@@ -209,6 +220,21 @@ window.addEventListener('unhandledrejection', e => {
   const heroIO = new IntersectionObserver(entries => {
     heroVisible = entries[0].isIntersecting;
     if (!heroVisible) clearMask();
+
+    // Same idea for the FORGE glitch text's CSS animations (RGB split,
+    // shimmer, glow-pulse — several concurrent keyframe animations
+    // including filter:drop-shadow(), one of the pricier properties to
+    // animate continuously). Unlike everything else on this page they
+    // don't have a natural "stop when idle" condition — animation:infinite
+    // runs forever regardless of visibility unless told otherwise. Since
+    // the hero is the very first section, it's off-screen for most of a
+    // session on a page this long, so this is worth the one-line pause.
+    // (The actual animations live on ::before/::after and a child span,
+    // not on .glitch-text itself — those aren't directly settable via
+    // inline style, so this toggles a class instead; see design.css's
+    // .glitch-text.paused rule for where the pause actually applies.)
+    const glitchEl = document.querySelector('.glitch-text');
+    if (glitchEl) glitchEl.classList.toggle('paused', !heroVisible);
   }, {threshold: 0});
   heroIO.observe(heroEl);
 
@@ -1113,6 +1139,12 @@ window.addEventListener('unhandledrejection', e => {
 
     const coarsePtr    = window.matchMedia('(pointer:coarse)').matches;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Same device-tier check used for the glass-lens/glitch CSS fallbacks
+    // (class set synchronously in UI.html's <head>) and drone.js's own
+    // quality scaling — antialiasing is one of the pricier WebGL context
+    // flags, especially stacked with the DPR-2 pixel ratio below, so
+    // it's skipped on constrained devices rather than paid for everywhere.
+    const isLowPowerDevice = document.documentElement.classList.contains('low-power');
 
     function fallbackToPoster(reason) {
       console.warn('[warrior] falling back to poster:', reason);
@@ -1120,7 +1152,7 @@ window.addEventListener('unhandledrejection', e => {
       boot.classList.add('done');
     }
 
-    const gl = canvas.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: false, powerPreference: 'high-performance' });
+    const gl = canvas.getContext('webgl', { antialias: !isLowPowerDevice, alpha: true, premultipliedAlpha: false, powerPreference: 'high-performance' });
     if (!gl) { fallbackToPoster('no WebGL context'); return; }
 
     const uintExt = gl.getExtension('OES_element_index_uint');
@@ -1797,16 +1829,25 @@ window.addEventListener('unhandledrejection', e => {
     const PARALLAX_YAW_MAX = 0.16;   // ~9°
     const PARALLAX_TILT_MAX = 0.18;  // in halfHeight units, applied to eye+lookAt together
 
+    // Cached rather than read fresh on every mousemove — the stage's
+    // viewport-relative position only actually changes on scroll/resize,
+    // so recomputing it dozens of times a second (mousemove can fire
+    // that often) is pure waste. Refreshed via the same shared
+    // scroll/resize buses everything else on the page uses.
+    let stageRect = stage.getBoundingClientRect();
+    function refreshStageRect() { stageRect = stage.getBoundingClientRect(); }
+    onScroll(refreshStageRect);
+    onResize(refreshStageRect);
+
     window.addEventListener('pointermove', e => {
-      if (!sectionVisible) return; // avoid a layout-forcing rect read while scrolled away
+      if (!sectionVisible) return; // still worth skipping — no point tracking parallax nobody can see
       if (e.pointerType && e.pointerType !== 'mouse') return; // touch/pen: leave to drag-to-spin only
-      const r = stage.getBoundingClientRect();
       // Normalized position relative to the stage, but not clamped to
       // it — moving the mouse further past the edge keeps pushing the
       // parallax toward its max rather than snapping, which feels more
       // natural than a hard cutoff right at the canvas boundary.
-      parallaxTX = clamp(((e.clientX - r.left) / Math.max(r.width, 1)) * 2 - 1, -1.6, 1.6);
-      parallaxTY = clamp(((e.clientY - r.top) / Math.max(r.height, 1)) * 2 - 1, -1.6, 1.6);
+      parallaxTX = clamp(((e.clientX - stageRect.left) / Math.max(stageRect.width, 1)) * 2 - 1, -1.6, 1.6);
+      parallaxTY = clamp(((e.clientY - stageRect.top) / Math.max(stageRect.height, 1)) * 2 - 1, -1.6, 1.6);
     }, { passive: true });
     // Ease back to center rather than freezing wherever the cursor was
     // when it left the browser window (mouseleave on document is the
@@ -1844,7 +1885,7 @@ window.addEventListener('unhandledrejection', e => {
     window.addEventListener('pointercancel', onPointerUp, { passive: true });
 
     function resizeCanvas() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, isLowPowerDevice ? 1.5 : 2);
       const w = Math.max(1, Math.round(canvas.clientWidth * dpr));
       const h = Math.max(1, Math.round(canvas.clientHeight * dpr));
       if (canvas.width !== w || canvas.height !== h) {
