@@ -197,9 +197,16 @@
        narrow and anchored to the bottom-left corner keeps it clear of
        the face rather than sprawling across it. min() keeps it from
        ever feeling cramped on very narrow viewports (scales down with
-       the viewport there) while capping it on wide desktop screens. */
-    .hero-corner-bl{bottom:clamp(1rem,5vw,3rem);left:clamp(1rem,5vw,3rem);max-width:min(600px,52vw);}
-    .hero-corner-br{bottom:clamp(1rem,5vw,3rem);right:clamp(1rem,5vw,3rem);max-width:42vw;text-align:right;
+       the viewport there) while capping it on wide desktop screens.
+       bottom offset is deliberately more generous than a plain edge
+       inset — flush against the bottom edge left this crowding directly
+       into the scroll cue with no breathing room (and on shorter
+       viewports, uncomfortably close to being clipped outright). Raised
+       just enough to clear that without creeping back up toward the
+       face this block was originally pushed down and to the side to
+       avoid. */
+    .hero-corner-bl{bottom:clamp(4rem,10vh,6rem);left:clamp(1rem,5vw,3rem);max-width:min(600px,52vw);}
+    .hero-corner-br{bottom:clamp(4rem,10vh,6rem);right:clamp(1rem,5vw,3rem);max-width:42vw;text-align:right;
     display:flex;flex-direction:column;align-items:flex-end;gap:14px;}
     /* Mobile: the bottom two corners can crowd each other on a narrow
        viewport where there's much less horizontal room to separate
@@ -214,7 +221,7 @@
     #hero h1{font-weight:600;letter-spacing:-0.05em;line-height:0.85;font-size:clamp(48px,7vw,120px);margin-left:-0.02em;
     opacity:0;animation:blurReveal 1.1s .28s var(--ease) forwards;}
     #hero h1 .d{color:var(--blue);}
-    #hero .lede{margin-top:22px;font-size:clamp(15px,2.1vw,23px);color:rgba(225,230,250,0.9);font-weight:400;line-height:1.35;
+    #hero .lede{margin-top:18px;font-size:clamp(15px,2.1vw,23px);color:rgba(225,230,250,0.9);font-weight:400;line-height:1.3;
     opacity:0;animation:fadeUp 1s .55s var(--ease) forwards;}
     #hero .lede em{font-family:var(--serif);font-style:italic;}
     .hero-corner-br{opacity:0;animation:fadeUp 1s .7s var(--ease) forwards;}
