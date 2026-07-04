@@ -191,7 +191,14 @@
        edge inset without any extra math per corner). */
     .hero-content{position:absolute;inset:0;z-index:50;padding:clamp(1rem,5vw,3rem);padding-top:80px;}
     .hero-corner{position:absolute;}
-    .hero-corner-tl{top:80px;left:clamp(1rem,5vw,3rem);}
+    .hero-corner-tl{top:80px;left:clamp(1rem,5vw,3rem);
+    /* No width limit here previously — on narrow phones this label is
+       wide enough (long text + generous letter-spacing) to run past the
+       right edge of the screen and get clipped by #hero's overflow:
+       hidden. Capping it to the safe inset width lets it wrap onto a
+       second line instead; on desktop it's far below this cap so the
+       single-line look is unaffected. */
+    max-width:calc(100vw - 2 * clamp(1rem,5vw,3rem) - 8px);}
     /* Vertically centered (rather than crammed against the bottom edge)
        so the block sits in the calm space to the left/right of the
        portrait instead of leaving a large empty gap above it. Width is
@@ -205,8 +212,19 @@
        loosen to give the two corners room to breathe). */
     @media(max-width:767px){
       .hero-corner-bl{top:auto;transform:none;bottom:clamp(7rem,14vh,10rem);max-width:78vw;}
-      .hero-corner-br{top:auto;transform:none;bottom:clamp(7rem,14vh,10rem);max-width:46vw;}
+      .hero-corner-br{top:auto;transform:none;bottom:clamp(7rem,14vh,10rem);max-width:max(190px,46vw);}
       .hero-version{font-size:9px!important;}
+      .hero-corner-br .chip{font-size:9px;padding:6px 12px;}
+    }
+    /* Short viewports — most commonly a phone held in landscape — can be
+       wider than the 767px breakpoint above yet only ~350-450px tall.
+       Width alone would wrongly route these to the vertically-centered
+       desktop layout, inside a section whose min-height floor (620px)
+       then exceeds the real viewport, pushing the centered text below
+       the visible fold. Treat short viewports like mobile instead. */
+    @media(max-height:500px){
+      #hero{min-height:0;}
+      .hero-corner-bl,.hero-corner-br{top:auto;transform:none;bottom:1.75rem;}
     }
     #hero .eyebrow{opacity:0;animation:fadeUp .9s .15s var(--ease) forwards;}
     #hero h1{font-weight:600;letter-spacing:-0.05em;line-height:0.85;font-size:clamp(48px,7vw,120px);margin-left:-0.02em;
