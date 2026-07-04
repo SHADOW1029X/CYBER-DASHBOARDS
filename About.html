@@ -131,18 +131,19 @@
     <span class="bracket tl"></span><span class="bracket tr"></span>
     <span class="bracket bl"></span><span class="bracket br"></span>
   </div>
-  <!-- Layer 50: text content -->
+  <!-- Layer 50: text content, anchored to corners rather than centered
+       (matches the decorative corner-bracket frame in #heroHud above) -->
   <div class="hero-content">
-    <div class="wrap">
+    <div class="hero-corner hero-corner-tl">
       <div class="eyebrow">NYTHERION FRONTEND FORGE · Modern UI Framework</div>
+    </div>
+    <div class="hero-corner hero-corner-bl">
       <h1><span class="glitch-text" data-text="FORGE"><span class="g-base">FORGE</span></span><span class="d">.</span></h1>
-      <div class="sub">
-        <div class="lede">Advanced Interface Engineering &amp; Design System. A web-based framework delivering <em>high-fidelity</em> experiences and robust frontend architectures.</div>
-        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;">
-          <span class="chip"><span class="live"></span> <span>All Systems Operational</span></span>
-          <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--faint);text-align:left;line-height:2;">One Framework · Zero Compromise<br>v2.0 — 2026</div>
-        </div>
-      </div>
+      <div class="lede">Advanced Interface Engineering &amp; Design System. A web-based framework delivering <em>high-fidelity</em> experiences and robust frontend architectures.</div>
+    </div>
+    <div class="hero-corner hero-corner-br">
+      <span class="chip"><span class="live"></span> <span>All Systems Operational</span></span>
+      <div class="hero-version">One Framework · Zero Compromise<br>v2.0 — 2026</div>
     </div>
   </div>
   <!-- Touch hint (coarse devices) -->
