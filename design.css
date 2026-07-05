@@ -1037,9 +1037,11 @@
        (getBoundingClientRect()) in sync with what's really scrolling. */
     .pin-320{height:320vh;}
     .pin-420{height:420vh;}
+    .pin-260{height:260vh;}
     @supports (height: 100dvh){
       .pin-320{height:320dvh;}
       .pin-420{height:420dvh;}
+      .pin-260{height:260dvh;}
     }
     #pipeHead{
       position:absolute;top:clamp(80px,12vh,130px);left:0;right:0;z-index:5;
@@ -1244,16 +1246,12 @@
     /* ══════════════════════════════════════════════
        SYSTEM 2 — TOUCH: Interactive Grid Proximity
        ══════════════════════════════════════════════ */
-    #touchSection{
-      position:relative;
-      width:100%;
-      padding:clamp(90px,16vh,160px) 0;
-      background:transparent;
-      display:flex;
+    #touchSection{position:relative;width:100%;}
+    #touchSection .pinStick{
       flex-direction:column;
-      align-items:center;
       justify-content:center;
-      overflow:hidden;
+      padding:clamp(90px,16vh,160px) 0;
+      overflow:visible; /* cards animate in from slightly outside their box during the cascade */
     }
     #touchSection .touch-eyebrow{margin-bottom:clamp(1.5rem,3vw,2.5rem);}
     #touchSection .touch-heading{
@@ -1281,8 +1279,20 @@
     @media(max-width:560px){
       .interactive-grid{grid-template-columns:repeat(2,1fr);}
     }
+    /* Scroll-cascade target (setupShowcaseCascade in script.js). Kept as
+       its own wrapper around .grid-item rather than animating .grid-item
+       directly, purely so this transform and the hover-tilt transform
+       below never have to share one element. Base state here is the
+       plain, settled grid — JS only applies the "flying in" transform
+       while the cascade is actually in progress, then clears its inline
+       styles once a card settles, so no-JS or a script error both fail
+       safe to an ordinary static grid rather than a stuck/hidden card. */
+    .showcase-card{will-change:transform,opacity,filter;}
+    @media (prefers-reduced-motion:reduce){
+      .showcase-card{opacity:1!important;transform:none!important;filter:none!important;}
+    }
     .grid-item{
-      aspect-ratio:1;
+      aspect-ratio:4/3;
       border-radius:16px;
       perspective:1000px;
       will-change:transform;
@@ -1301,30 +1311,43 @@
       .grid-item{background:rgba(14,17,28,0.7);}
     }
     .item-inner{
+      position:relative;
       width:100%;
       height:100%;
-      background:radial-gradient(
-        circle at var(--mouse-x,50%) var(--mouse-y,50%),
-        rgba(47,107,255,0.18) 0%,
-        rgba(34,198,230,0.06) 40%,
-        transparent 65%
-      );
       border-radius:inherit;
+      overflow:hidden;
       will-change:transform;
       transition:transform 0.28s cubic-bezier(0.25,1,0.5,1);
-      /* label inside each cell */
-      display:flex;
-      align-items:flex-end;
-      padding:clamp(10px,1.5vw,16px);
+    }
+    /* Placeholder for the real product screenshots — swap the div below
+       for an <img src="..."> (or set background-image here) once those
+       are ready; everything else (rounding, caption overlay, hover
+       tilt) stays the same either way. */
+    .card-img{
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:center;
+      background:
+        radial-gradient(circle at var(--mouse-x,50%) var(--mouse-y,50%),rgba(47,107,255,0.18) 0%,rgba(34,198,230,0.06) 40%,transparent 65%),
+        linear-gradient(155deg,rgba(63,140,255,0.16),rgba(10,14,26,0.4) 55%,rgba(34,198,230,0.10));
+    }
+    .card-img-index{
+      font-family:var(--mono);
+      font-size:clamp(28px,4vw,44px);
+      font-weight:600;
+      letter-spacing:0.06em;
+      color:rgba(150,175,230,0.16);
     }
     .grid-item-label{
+      position:absolute;left:0;right:0;bottom:0;
       font-family:var(--mono);
       font-size:clamp(9px,1vw,11px);
       letter-spacing:0.16em;
       text-transform:uppercase;
-      color:rgba(150,162,210,0.45);
+      color:rgba(150,162,210,0.55);
       transition:color .3s ease;
       pointer-events:none;
+      padding:clamp(10px,1.5vw,16px);
+      background:linear-gradient(to top,rgba(4,6,12,0.55),transparent);
     }
     .grid-item:hover .grid-item-label{
       color:rgba(100,150,255,0.7);
