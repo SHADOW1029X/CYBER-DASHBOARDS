@@ -744,14 +744,23 @@ window.addEventListener('unhandledrejection', e => {
 
   // ══════════════════════════════════════════════════
   // SYSTEM 6: TOUCH SHOWCASE — SCROLL-DRIVEN CARD CASCADE
-  // Cards start scattered in depth (pushed back, tilted, scaled down,
-  // blurred) and fly into their grid slots as the section scrolls
-  // through its pin, staggered left-to-right/top-to-bottom so they
-  // settle in sequence rather than all at once. getBoundingClientRect()
-  // scroll-progress math matches the pipeline/engine scrubs above
-  // (SYSTEMS 3-4); the per-card easing curve is a plain hand-rolled
-  // easeOutCubic rather than a library, consistent with this file's
-  // no-CDN-dependency approach elsewhere (Aether Drive, Warrior 3D).
+  // Mirrors the reference's actual mechanic (a Three.js/GSAP glass-card
+  // deck), reimplemented in plain CSS 3D transforms to match this
+  // file's no-CDN-dependency approach elsewhere (Aether Drive, Warrior
+  // 3D): every card starts stacked at one shared center point (its
+  // mesh.position.set(0,0,-i*0.005) — i.e. all cards sit on top of each
+  // other, not scattered), then fans out along the same hyperbolic
+  // curve —
+  //   targetX = progress*6.0 - 2.8
+  //   targetY = -(progress-0.5)^2*2.4 + 0.3
+  // — reproduced here in pixels/degrees, with the same power2.out
+  // deceleration for the fan-out. Its reference then has a second stage
+  // that sweeps the cards on past the camera and off into nothing —
+  // that works for decorative background meshes, but ours carry real,
+  // still-need-to-be-legible content, so the second stage resolves them
+  // into their actual grid slots instead, using the reference's power1.
+  // in (accelerating) easing for that stage so the two-part rhythm —
+  // decelerate out, then accelerate to a snap — still reads the same.
   //
   // Deliberately animates a wrapper (.showcase-card) around .grid-item
   // rather than .grid-item itself: SYSTEM 7 right below already applies
@@ -761,9 +770,10 @@ window.addEventListener('unhandledrejection', e => {
   // work against — the two never fight over one element's transform.
   // ══════════════════════════════════════════════════
   try { (function setupShowcaseCascade() {
-    const pin = document.getElementById('touchSection');
+    const pin  = document.getElementById('touchSection');
+    const grid = document.getElementById('showcaseGrid');
     const cards = document.querySelectorAll('#touchSection .showcase-card');
-    if (!pin || !cards.length) return;
+    if (!pin || !grid || !cards.length) return;
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) return; // CSS forces the plain settled grid in this case
@@ -776,8 +786,29 @@ window.addEventListener('unhandledrejection', e => {
     const START    = 0.05;
     const STAGGER  = 0.08;
     const CARD_DUR = 0.4;
+    const STAGE1_SPLIT = 0.55; // fraction of each card's own timeline spent fanning out vs. resolving into place
 
-    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+    // How far each card's natural grid slot sits from the deck's shared
+    // center point — measured fresh (not hardcoded) so this holds up
+    // across breakpoints and the 2-column mobile grid. Re-measured with
+    // any in-flight transform cleared first, since reading
+    // getBoundingClientRect() on an already-transformed card would
+    // capture its current animated position instead of its true layout
+    // slot (this matters on resize mid-scroll, not just on first load).
+    let slot = [];
+    function measure() {
+      cards.forEach(card => { card.style.transform = ''; });
+      const gridRect = grid.getBoundingClientRect();
+      const gcx = gridRect.left + gridRect.width / 2;
+      const gcy = gridRect.top + gridRect.height / 2;
+      slot = Array.from(cards).map(card => {
+        const r = card.getBoundingClientRect();
+        return { x: gcx - (r.left + r.width / 2), y: gcy - (r.top + r.height / 2) };
+      });
+    }
+
+    function easeOutQuad(t) { return 1 - (1 - t) * (1 - t); }
+    function easeInQuad(t)  { return t * t; }
 
     function update() {
       const rect = pin.getBoundingClientRect();
@@ -794,38 +825,65 @@ window.addEventListener('unhandledrejection', e => {
         if (localT >= 1) {
           if (card.style.transform) {
             card.style.transform = '';
-            card.style.opacity = '';
             card.style.filter = '';
           }
           return;
         }
-        const eased = easeOutCubic(localT);
-        const dir = i % 2 === 0 ? -1 : 1; // alternate yaw left/right per card for variety
 
-        const y     = 90   * (1 - eased);   // settles upward into place
-        const z     = -260 * (1 - eased);   // emerges from depth
-        const rotX  = 8    * (1 - eased);
-        const rotY  = dir * 16 * (1 - eased);
-        const scale = 0.82 + (1 - 0.82) * eased;
-        const blur  = 10   * (1 - eased);
+        const p = total > 1 ? i / (total - 1) : 0; // this card's position across the deck, 0-1
+        const s = slot[i] || { x: 0, y: 0 };
 
-        card.style.opacity = String(eased);
-        card.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : '';
+        // The reference's hyperbolic fan target, in pixels: a wide
+        // horizontal spread with a shallow upward arc (cards higher in
+        // the middle, lower at the ends) — plus depth stacking and the
+        // matching rotation curve.
+        const fanX = (p - 0.5) * 460;
+        const fanY = -Math.pow(p - 0.5, 2) * 170 + 22;
+        const fanZ = -i * 46;
+        const fanRotY = -34 + p * 63;
+        const fanRotX = 4 - p * 7;
+        const fanRotZ = -6 + p * 10;
+
+        let x, y, z, rotX, rotY, rotZ;
+        // Fan-out endpoint, in the same coordinate space as s.x/s.y
+        // (i.e. relative to the shared grid-center starting point) —
+        // this is what stage 1 arrives at and stage 2 departs from.
+        const fanEndX = s.x + fanX, fanEndY = s.y + fanY;
+
+        if (localT <= STAGE1_SPLIT) {
+          // Stage 1 — from the shared deck center (s.x, s.y) outward to
+          // the hyperbolic fan position, decelerating (power2.out).
+          const e = easeOutQuad(localT / STAGE1_SPLIT);
+          x = s.x + (fanEndX - s.x) * e;
+          y = s.y + (fanEndY - s.y) * e;
+          z = fanZ * e;
+          rotX = fanRotX * e; rotY = fanRotY * e; rotZ = fanRotZ * e;
+        } else {
+          // Stage 2 — accelerating (power1.in) from the fanned position
+          // into this card's real grid slot (translate 0 = natural spot).
+          const e = easeInQuad((localT - STAGE1_SPLIT) / (1 - STAGE1_SPLIT));
+          x = fanEndX * (1 - e);
+          y = fanEndY * (1 - e);
+          z = fanZ * (1 - e);
+          rotX = fanRotX * (1 - e); rotY = fanRotY * (1 - e); rotZ = fanRotZ * (1 - e);
+        }
+
+        card.style.filter = '';
         card.style.transform =
-          `perspective(1400px) translate3d(0,${y.toFixed(2)}px,${z.toFixed(2)}px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale(${scale.toFixed(4)})`;
+          `perspective(1400px) translate3d(${x.toFixed(2)}px,${y.toFixed(2)}px,${z.toFixed(2)}px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg)`;
       });
     }
 
     onScroll(update);
-    onResize(update);
+    onResize(() => { measure(); update(); });
+    measure();
     update(); // initialise state on load (e.g. scroll-restored or deep-linked pages)
   })(); } catch (e) {
     console.error('[NYTHERION] setupShowcaseCascade failed:', e);
     // Fail safe to the plain settled grid rather than leaving cards
-    // stuck mid-flight (scattered/transparent) if something threw.
+    // stuck mid-flight (stacked/rotated) if something threw.
     document.querySelectorAll('#touchSection .showcase-card').forEach(card => {
       card.style.transform = '';
-      card.style.opacity = '';
       card.style.filter = '';
     });
   }
