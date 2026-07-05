@@ -1092,7 +1092,7 @@ window.addEventListener('unhandledrejection', e => {
   })(); } catch (e) { console.error('[NYTHERION] setupAetherTabs failed:', e); }
 
   // ══════════════════════════════════════════════════
-  // SYSTEM 9: WARRIOR SECTION SLIDE-IN/OUT REVEAL
+  // SYSTEM 9: WARRIOR SECTION FADE REVEAL
   // Deliberately kept separate from the WebGL setup below (rather than
   // folded into it) so the entrance/exit animation still runs even if
   // WebGL is unavailable and the section falls back to the static
@@ -1102,13 +1102,15 @@ window.addEventListener('unhandledrejection', e => {
   // The actual motion lives entirely in the CSS transition on
   // #warriorSection .pinStick / .pinStick.warrior-in (see design.css) —
   // this just flips that class on/off based on how far the pinned
-  // section has scrolled. Deliberately NOT driving opacity/transform
-  // directly from scroll position every frame (the previous approach
-  // here): tying the animation 1:1 to scroll pixels tracks the scroll
-  // wheel literally and reads as mechanical. Toggling a class and
-  // letting a CSS transition (real easing, real duration) animate
-  // between the two states is what actually produces a smooth "slides
-  // in and settles" arrival and departure.
+  // section has scrolled. Deliberately NOT driving opacity directly
+  // from scroll position every frame (an earlier approach here): tying
+  // the animation 1:1 to scroll pixels tracks the scroll wheel
+  // literally and reads as mechanical. Toggling a class and letting a
+  // CSS transition (real easing, real duration) animate between the
+  // two states is what actually produces a smooth, settled arrival and
+  // departure — matching a reference reveal (peachweb.io) that
+  // frame-by-frame analysis showed to be a pure opacity fade with no
+  // slide or scale.
   // ══════════════════════════════════════════════════
   try { (function setupWarriorReveal() {
     const section  = document.getElementById('warriorSection');
