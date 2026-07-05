@@ -863,7 +863,13 @@
     }
 
     /* ── WARRIOR CINEMATIC 3D ── */
-    #warriorSection .pinStick{justify-content:center;}
+    /* opacity/transform here are driven every scroll frame by
+       setupWarriorReveal() in script.js (fade+slide in/out as the
+       pinned section enters/leaves its scroll range) — will-change
+       keeps that on its own compositor layer instead of triggering
+       paint on the whole stack (canvas, vignette, boot HUD, caption)
+       underneath it every frame. */
+    #warriorSection .pinStick{justify-content:center;will-change:opacity,transform;}
     .warrior-stage{
       position:absolute;inset:0;z-index:1;overflow:hidden;
       transform:translate3d(0,0,0) scale(1.06);
