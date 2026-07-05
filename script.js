@@ -1092,7 +1092,75 @@ window.addEventListener('unhandledrejection', e => {
   })(); } catch (e) { console.error('[NYTHERION] setupAetherTabs failed:', e); }
 
   // ══════════════════════════════════════════════════
-  // SYSTEM 9: WARRIOR CINEMATIC 3D
+  // SYSTEM 9: WARRIOR SECTION FADE/SLIDE REVEAL
+  // Deliberately kept separate from the WebGL setup below (rather than
+  // folded into it) so the entrance/exit animation still runs even if
+  // WebGL is unavailable and the section falls back to the static
+  // poster — the fade/slide is a property of the *section*, not of the
+  // 3D render specifically.
+  //
+  // Cross-fades the whole pinned composition (background, canvas/
+  // poster, vignette, boot HUD and caption together, via the shared
+  // .pinStick wrapper) in as it's scrolled into the pin range and back
+  // out as it's scrolled toward the end of it, using the same
+  // getBoundingClientRect()-based progress math as the pipeline/engine
+  // scrubs above rather than a one-shot IntersectionObserver reveal —
+  // this section is pinned for a long scroll distance, so a graduated,
+  // scroll-tied transition reads as far more intentional than an
+  // instant on/off toggle would.
+  // ══════════════════════════════════════════════════
+  try { (function setupWarriorReveal() {
+    const section  = document.getElementById('warriorSection');
+    const pinStick = section && section.querySelector('.pinStick');
+    if (!section || !pinStick) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return; // leave fully visible, no scroll-tied motion
+
+    // Fraction of the pin's scroll range spent fading in / out. Kept
+    // short relative to the full pin height (this section is pinned for
+    // several viewport-heights of scroll) so the reveal reads as a
+    // quick, deliberate transition rather than something the user has
+    // to scroll through — the bulk of the scroll range is left for the
+    // actual press-and-hold interaction at full opacity.
+    const ENTER_FRACTION = 0.1;
+    const EXIT_FRACTION  = 0.1;
+    const SLIDE_PX = 40; // entrance rises up from below by this much; exit continues upward as it fades
+
+    function smoothstep(t) { return t * t * (3 - 2 * t); }
+
+    function update() {
+      const rect = section.getBoundingClientRect();
+      const pinHeight = rect.height - window.innerHeight;
+      // pinHeight <= 0 means the section is shorter than one viewport
+      // (never actually pins) — just leave it at rest, fully visible.
+      if (pinHeight <= 0) { pinStick.style.opacity = ''; pinStick.style.transform = ''; return; }
+
+      const progress = clamp(-rect.top / pinHeight, 0, 1);
+
+      let reveal = 1, slideDir = 0;
+      if (progress < ENTER_FRACTION) {
+        reveal = progress / ENTER_FRACTION;
+        slideDir = 1; // rising up into place from below
+      } else if (progress > 1 - EXIT_FRACTION) {
+        reveal = (1 - progress) / EXIT_FRACTION;
+        slideDir = -1; // continuing to rise, fading out on the way
+      }
+      reveal = smoothstep(clamp(reveal, 0, 1));
+
+      pinStick.style.opacity = String(reveal);
+      pinStick.style.transform = slideDir === 0
+        ? 'translate3d(0,0,0)'
+        : `translate3d(0, ${(1 - reveal) * SLIDE_PX * slideDir}px, 0)`;
+    }
+
+    onScroll(update);
+    onResize(update);
+    update(); // initialise state on load (e.g. scroll-restored or deep-linked pages)
+  })(); } catch (e) { console.error('[NYTHERION] setupWarriorReveal failed:', e); }
+
+  // ══════════════════════════════════════════════════
+  // SYSTEM 10: WARRIOR CINEMATIC 3D
   // Pure vanilla JS, no library/CDN dependency — same constraint as the
   // Aether Drive tab shaders above. Parses the CyberSoldier.glb binary by
   // hand (GLB container -> JSON + BIN chunks -> accessors), uploads
