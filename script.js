@@ -743,7 +743,95 @@ window.addEventListener('unhandledrejection', e => {
   })(); } catch (e) { console.error('[NYTHERION] setupIdeaSection failed:', e); }
 
   // ══════════════════════════════════════════════════
-  // SYSTEM 6: TOUCH — INTERACTIVE GRID PROXIMITY
+  // SYSTEM 6: TOUCH SHOWCASE — SCROLL-DRIVEN CARD CASCADE
+  // Cards start scattered in depth (pushed back, tilted, scaled down,
+  // blurred) and fly into their grid slots as the section scrolls
+  // through its pin, staggered left-to-right/top-to-bottom so they
+  // settle in sequence rather than all at once. getBoundingClientRect()
+  // scroll-progress math matches the pipeline/engine scrubs above
+  // (SYSTEMS 3-4); the per-card easing curve is a plain hand-rolled
+  // easeOutCubic rather than a library, consistent with this file's
+  // no-CDN-dependency approach elsewhere (Aether Drive, Warrior 3D).
+  //
+  // Deliberately animates a wrapper (.showcase-card) around .grid-item
+  // rather than .grid-item itself: SYSTEM 7 right below already applies
+  // its own transform to .grid-item/.item-inner for the cursor-
+  // proximity tilt, and once a card settles its inline styles here are
+  // cleared entirely so that system has a completely plain ancestor to
+  // work against — the two never fight over one element's transform.
+  // ══════════════════════════════════════════════════
+  try { (function setupShowcaseCascade() {
+    const pin = document.getElementById('touchSection');
+    const cards = document.querySelectorAll('#touchSection .showcase-card');
+    if (!pin || !cards.length) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return; // CSS forces the plain settled grid in this case
+
+    const total = cards.length;
+    // Tuned so the last card finishes settling at ~85% through the
+    // pin's scroll range — leaving a short dwell at the end where the
+    // fully-formed grid just sits still before the section releases,
+    // rather than the cascade finishing right as it unpins.
+    const START    = 0.05;
+    const STAGGER  = 0.08;
+    const CARD_DUR = 0.4;
+
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+    function update() {
+      const rect = pin.getBoundingClientRect();
+      const pinHeight = rect.height - window.innerHeight;
+      const progress = pinHeight > 0 ? clamp(-rect.top / pinHeight, 0, 1) : 1;
+
+      cards.forEach((card, i) => {
+        const phase = START + i * STAGGER;
+        const localT = clamp((progress - phase) / CARD_DUR, 0, 1);
+
+        // Settled: clear inline styles rather than leaving them at the
+        // "arrived" values, so a plain static grid (no-JS, or if this
+        // threw before getting here) looks pixel-identical to this state.
+        if (localT >= 1) {
+          if (card.style.transform) {
+            card.style.transform = '';
+            card.style.opacity = '';
+            card.style.filter = '';
+          }
+          return;
+        }
+        const eased = easeOutCubic(localT);
+        const dir = i % 2 === 0 ? -1 : 1; // alternate yaw left/right per card for variety
+
+        const y     = 90   * (1 - eased);   // settles upward into place
+        const z     = -260 * (1 - eased);   // emerges from depth
+        const rotX  = 8    * (1 - eased);
+        const rotY  = dir * 16 * (1 - eased);
+        const scale = 0.82 + (1 - 0.82) * eased;
+        const blur  = 10   * (1 - eased);
+
+        card.style.opacity = String(eased);
+        card.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : '';
+        card.style.transform =
+          `perspective(1400px) translate3d(0,${y.toFixed(2)}px,${z.toFixed(2)}px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale(${scale.toFixed(4)})`;
+      });
+    }
+
+    onScroll(update);
+    onResize(update);
+    update(); // initialise state on load (e.g. scroll-restored or deep-linked pages)
+  })(); } catch (e) {
+    console.error('[NYTHERION] setupShowcaseCascade failed:', e);
+    // Fail safe to the plain settled grid rather than leaving cards
+    // stuck mid-flight (scattered/transparent) if something threw.
+    document.querySelectorAll('#touchSection .showcase-card').forEach(card => {
+      card.style.transform = '';
+      card.style.opacity = '';
+      card.style.filter = '';
+    });
+  }
+
+  // ══════════════════════════════════════════════════
+  // SYSTEM 7: TOUCH — INTERACTIVE GRID PROXIMITY
   // ══════════════════════════════════════════════════
   try { (function setupTouchGrid() {
     const gridItems = document.querySelectorAll('#touchSection .grid-item');
@@ -857,7 +945,7 @@ window.addEventListener('unhandledrejection', e => {
   })(); } catch (e) { console.error('[NYTHERION] setupTouchGrid failed:', e); }
 
   // ══════════════════════════════════════════════════
-  // SYSTEM 7: MANIFESTO — STAGGERED LINES + TICKER
+  // SYSTEM 8: MANIFESTO — STAGGERED LINES + TICKER
   // ══════════════════════════════════════════════════
   try { (function setupManifesto() {
     // Assign stagger delays to each .word inside .manifesto-line
@@ -900,7 +988,7 @@ window.addEventListener('unhandledrejection', e => {
   })(); } catch (e) { console.error('[NYTHERION] setupManifesto failed:', e); }
 
   // ══════════════════════════════════════════════════
-  // SYSTEM 8: AETHER DRIVE — WebGL plasma shader on page tabs
+  // SYSTEM 9: AETHER DRIVE — WebGL plasma shader on page tabs
   // (ported verbatim from the Aether Drive reference button;
   //  same vertex/fragment shaders & easing, run per-button)
   // ══════════════════════════════════════════════════
@@ -1092,7 +1180,7 @@ window.addEventListener('unhandledrejection', e => {
   })(); } catch (e) { console.error('[NYTHERION] setupAetherTabs failed:', e); }
 
   // ══════════════════════════════════════════════════
-  // SYSTEM 9: WARRIOR SECTION FADE REVEAL
+  // SYSTEM 10: WARRIOR SECTION FADE REVEAL
   // Deliberately kept separate from the WebGL setup below (rather than
   // folded into it) so the entrance/exit animation still runs even if
   // WebGL is unavailable and the section falls back to the static
@@ -1153,7 +1241,7 @@ window.addEventListener('unhandledrejection', e => {
   }
 
   // ══════════════════════════════════════════════════
-  // SYSTEM 10: WARRIOR CINEMATIC 3D
+  // SYSTEM 11: WARRIOR CINEMATIC 3D
   // Pure vanilla JS, no library/CDN dependency — same constraint as the
   // Aether Drive tab shaders above. Parses the CyberSoldier.glb binary by
   // hand (GLB container -> JSON + BIN chunks -> accessors), uploads
