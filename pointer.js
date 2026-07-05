@@ -1,0 +1,225 @@
+// ══════════════════════════════════════════════════
+// CUSTOM CURSOR — ANIMATED ENERGY MODEL
+// Desktop only: replaces the native cursor with the animated glTF model,
+// rendered small and tracking the real cursor position. Adapted from the
+// reference Energy VFX Viewer (Pointer.html) — same renderer/lighting/
+// bloom setup and the same per-material glow treatment (emissive boost,
+// additive blending, depthWrite off, color multiply) — but reworked from
+// "auto-frame a model filling the whole viewport" into "render it small
+// and glue it to the mouse".
+//
+// This is the one place on the site that pulls in Three.js from a CDN.
+// Everywhere else (Warrior 3D, Aether Drive) is deliberately hand-rolled
+// WebGL to avoid exactly that kind of dependency — but reproducing a
+// textured, animated glTF with PBR materials and bloom post-processing
+// by hand is a fundamentally different scope of work than a cursor
+// warrants, so this one feature uses the library instead.
+//
+// Every failure path here (no WebGL, blocked CDN, model 404, slow
+// network) falls back to simply not running — the native cursor is
+// only ever hidden (html.custom-cursor-active, see design.css) after
+// the model has actually loaded and a frame has rendered, so nothing
+// here can leave a visitor without a visible cursor.
+// ══════════════════════════════════════════════════
+try {
+  // Touch/coarse-pointer devices have no persistent cursor to replace,
+  // and low-power/reduced-motion visitors shouldn't get an extra WebGL
+  // scene running behind every mouse move — bail out before creating
+  // anything.
+  const isDesktop = window.matchMedia('(pointer: fine) and (hover: hover)').matches;
+  const isLowPower = document.documentElement.classList.contains('low-power');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (isDesktop && !isLowPower && !reduceMotion) {
+    setupCustomCursor();
+  }
+} catch (e) {
+  console.error('[NYTHERION] pointer.js setup failed:', e);
+}
+
+async function setupCustomCursor() {
+  let THREE, GLTFLoader, EffectComposer, RenderPass, UnrealBloomPass;
+  try {
+    [
+      THREE,
+      { GLTFLoader },
+      { EffectComposer },
+      { RenderPass },
+      { UnrealBloomPass },
+    ] = await Promise.all([
+      import('three'),
+      import('three/addons/loaders/GLTFLoader.js'),
+      import('three/addons/postprocessing/EffectComposer.js'),
+      import('three/addons/postprocessing/RenderPass.js'),
+      import('three/addons/postprocessing/UnrealBloomPass.js'),
+    ]);
+  } catch (e) {
+    // CDN blocked/offline — no custom cursor, native cursor untouched.
+    console.error('[NYTHERION] custom cursor: three.js failed to load', e);
+    return;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.id = 'cursorCanvas';
+  canvas.style.opacity = '0'; // fades in once the model is actually ready
+  document.body.appendChild(canvas);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 1000);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.8;
+
+  // Same lighting rig as the reference viewer.
+  scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+  const key = new THREE.PointLight(0xffaa55, 10); key.position.set(3, 3, 4); scene.add(key);
+  const fill = new THREE.PointLight(0xff3300, 8); fill.position.set(-3, -1, -2); scene.add(fill);
+  const rim = new THREE.PointLight(0xffffff, 4); rim.position.set(0, 5, -5); scene.add(rim);
+
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  composer.addPass(new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight), 1.3, 0.35, 0.08
+  ));
+
+  // Target on-screen size for the cursor, in CSS pixels — this is what
+  // actually makes it read as a cursor rather than a floating model
+  // viewer; the reference auto-frames the model to fill the whole
+  // canvas, which is exactly what we don't want here.
+  const CURSOR_PX = 84;
+
+  let model = null;
+  let mixer = null;
+  let cameraDistance = 6;
+  let ready = false;
+
+  const loader = new GLTFLoader();
+  loader.load(
+    './af93a7ad086d47e39cfce7796e78df43_Textured.gltf',
+    (gltf) => {
+      model = gltf.scene;
+
+      // Same material pass as the reference: boost emissive, switch to
+      // additive+no-depth-write so overlapping glow blooms instead of
+      // occluding, and push the base color brighter so it has something
+      // for the bloom pass to actually pick up.
+      model.traverse((obj) => {
+        if (!obj.isMesh) return;
+        const m = obj.material;
+        if (m.emissive) m.emissiveIntensity = 5;
+        m.transparent = true;
+        m.blending = THREE.AdditiveBlending;
+        m.depthWrite = false;
+        if (m.color) m.color.multiplyScalar(2.2);
+        m.needsUpdate = true;
+      });
+
+      if (gltf.animations.length) {
+        mixer = new THREE.AnimationMixer(model);
+        gltf.animations.forEach((a) => mixer.clipAction(a).play());
+      }
+
+      // Center the model on its own origin so it rotates/tracks cleanly,
+      // then pick a camera distance that renders it at CURSOR_PX tall
+      // regardless of the model's native scale or viewport size.
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      model.position.sub(center);
+
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const vFOV = THREE.MathUtils.degToRad(camera.fov);
+      cameraDistance = (maxDim / (2 * Math.tan(vFOV / 2))) * (window.innerHeight / CURSOR_PX);
+
+      camera.position.set(0, 0, cameraDistance);
+      camera.lookAt(0, 0, 0);
+
+      scene.add(model);
+      ready = true;
+
+      // Only now — model loaded, first frame about to render — do we
+      // actually take over the cursor.
+      document.documentElement.classList.add('custom-cursor-active');
+      canvas.style.opacity = '1';
+    },
+    undefined,
+    (err) => {
+      console.error('[NYTHERION] custom cursor: model failed to load', err);
+      canvas.remove();
+    }
+  );
+
+  // Raw + smoothed mouse position, in CSS pixels. The smoothing gives
+  // the model a slight trailing follow rather than snapping frame to
+  // frame, which reads as intentional "energy" motion rather than lag.
+  const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+  const smoothed = { x: mouse.x, y: mouse.y };
+  let hasMoved = false;
+
+  window.addEventListener('pointermove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    if (!hasMoved) { smoothed.x = mouse.x; smoothed.y = mouse.y; hasMoved = true; }
+  }, { passive: true });
+
+  // Hide while the real cursor is off-window (e.g. over the browser
+  // chrome) rather than leaving it stranded at the last known position.
+  document.addEventListener('mouseleave', () => { canvas.style.opacity = '0'; });
+  document.addEventListener('mouseenter', () => { if (ready) canvas.style.opacity = '1'; });
+
+  // Also release it over anything that declares it wants the native
+  // cursor back (e.g. text selection areas), via a simple opt-out
+  // attribute rather than hard-coding selectors here.
+  document.addEventListener('pointerover', (e) => {
+    if (!ready) return;
+    const wantsNative = e.target.closest?.('[data-native-cursor]');
+    canvas.style.opacity = wantsNative ? '0' : '1';
+  });
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    if (mixer) mixer.update(clock.getDelta());
+
+    smoothed.x += (mouse.x - smoothed.x) * 0.25;
+    smoothed.y += (mouse.y - smoothed.y) * 0.25;
+
+    if (model) {
+      // Map screen-space mouse position to world-space at the model's
+      // depth plane, so it sits exactly under the cursor at any
+      // viewport size/aspect ratio.
+      const vFOV = THREE.MathUtils.degToRad(camera.fov);
+      const heightAtDepth = 2 * Math.tan(vFOV / 2) * cameraDistance;
+      const widthAtDepth = heightAtDepth * camera.aspect;
+      const nx = (smoothed.x / window.innerWidth) * 2 - 1;
+      const ny = -(smoothed.y / window.innerHeight) * 2 + 1;
+      model.position.x = (nx * widthAtDepth) / 2;
+      model.position.y = (ny * heightAtDepth) / 2;
+    }
+
+    composer.render();
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
+
+    // Re-derive the camera distance so the model stays CURSOR_PX tall
+    // after a resize instead of appearing to grow/shrink with the window.
+    if (model && ready) {
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const vFOV = THREE.MathUtils.degToRad(camera.fov);
+      cameraDistance = (maxDim / (2 * Math.tan(vFOV / 2))) * (window.innerHeight / CURSOR_PX);
+      camera.position.set(0, 0, cameraDistance);
+    }
+  });
+}
