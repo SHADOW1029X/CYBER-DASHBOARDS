@@ -598,21 +598,48 @@
 </section>
 
 <!-- ── TOUCH: INTERACTIVE GRID PROXIMITY ── -->
-<section id="touchSection">
+<!-- Cards fly in with staggered 3D depth as the section scrolls through
+     its pin (see setupShowcaseCascade in script.js), settling into the
+     grid — the existing cursor-proximity tilt (setupTouchGrid) then
+     takes over on .grid-item/.item-inner exactly as before; the two
+     systems animate different, unrelated elements so they never fight
+     over the same transform. -->
+<section class="pin pin-260" id="touchSection">
+<div class="pinStick">
   <p class="sec-label touch-eyebrow sr">Proximity Engine</p>
   <h2 class="touch-heading reveal">Now <span>touch</span> it.</h2>
-  <div class="interactive-grid">
-    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Real-time</span></div></div>
-    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Reactive</span></div></div>
-    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Alive</span></div></div>
-    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Edge</span></div></div>
-    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Fluid</span></div></div>
-    <div class="grid-item"><div class="item-inner"><span class="grid-item-label">Precise</span></div></div>
+  <div class="interactive-grid" id="showcaseGrid">
+    <div class="showcase-card"><div class="grid-item"><div class="item-inner">
+      <div class="card-img"><span class="card-img-index">01</span></div>
+      <span class="grid-item-label">Real-time</span>
+    </div></div></div>
+    <div class="showcase-card"><div class="grid-item"><div class="item-inner">
+      <div class="card-img"><span class="card-img-index">02</span></div>
+      <span class="grid-item-label">Reactive</span>
+    </div></div></div>
+    <div class="showcase-card"><div class="grid-item"><div class="item-inner">
+      <div class="card-img"><span class="card-img-index">03</span></div>
+      <span class="grid-item-label">Alive</span>
+    </div></div></div>
+    <div class="showcase-card"><div class="grid-item"><div class="item-inner">
+      <div class="card-img"><span class="card-img-index">04</span></div>
+      <span class="grid-item-label">Edge</span>
+    </div></div></div>
+    <div class="showcase-card"><div class="grid-item"><div class="item-inner">
+      <div class="card-img"><span class="card-img-index">05</span></div>
+      <span class="grid-item-label">Fluid</span>
+    </div></div></div>
+    <div class="showcase-card"><div class="grid-item"><div class="item-inner">
+      <div class="card-img"><span class="card-img-index">06</span></div>
+      <span class="grid-item-label">Precise</span>
+    </div></div></div>
   </div>
   <p class="grid-hint reveal">Move your cursor · touch to activate</p>
+</div>
 </section>
 
 <div class="cyber-divider"></div>
+
 
 <!-- ── TECH STACK ── -->
 <section id="stack">
