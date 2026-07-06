@@ -22,15 +22,22 @@
 // here can leave a visitor without a visible cursor.
 // ══════════════════════════════════════════════════
 try {
-  // Touch/coarse-pointer devices have no persistent cursor to replace,
-  // and low-power/reduced-motion visitors shouldn't get an extra WebGL
-  // scene running behind every mouse move — bail out before creating
-  // anything.
+  // Touch/coarse-pointer devices have no persistent cursor to replace.
+  // Note: deliberately NOT gating on the site's shared .low-power class
+  // here — that heuristic (hardwareConcurrency <= 4) was tuned for the
+  // heavier background effects elsewhere on the site and trips on a lot
+  // of perfectly ordinary desktops/laptops, which would silently skip
+  // this feature for a large chunk of real visitors. A small 84px model
+  // with bloom is a much lighter load than those other effects.
   const isDesktop = window.matchMedia('(pointer: fine) and (hover: hover)').matches;
-  const isLowPower = document.documentElement.classList.contains('low-power');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  if (isDesktop && !isLowPower && !reduceMotion) {
+  if (!isDesktop) {
+    console.log('[NYTHERION] custom cursor: skipped (no fine pointer/hover — touch device)');
+  } else if (reduceMotion) {
+    console.log('[NYTHERION] custom cursor: skipped (prefers-reduced-motion)');
+  } else {
+    console.log('[NYTHERION] custom cursor: starting setup…');
     setupCustomCursor();
   }
 } catch (e) {
@@ -55,9 +62,10 @@ async function setupCustomCursor() {
     ]);
   } catch (e) {
     // CDN blocked/offline — no custom cursor, native cursor untouched.
-    console.error('[NYTHERION] custom cursor: three.js failed to load', e);
+    console.error('[NYTHERION] custom cursor: three.js failed to load — check for an ad-blocker/extension or firewall blocking unpkg.com', e);
     return;
   }
+  console.log('[NYTHERION] custom cursor: three.js loaded, fetching model…');
 
   const canvas = document.createElement('canvas');
   canvas.id = 'cursorCanvas';
@@ -145,10 +153,11 @@ async function setupCustomCursor() {
       // actually take over the cursor.
       document.documentElement.classList.add('custom-cursor-active');
       canvas.style.opacity = '1';
+      console.log('[NYTHERION] custom cursor: active');
     },
     undefined,
     (err) => {
-      console.error('[NYTHERION] custom cursor: model failed to load', err);
+      console.error('[NYTHERION] custom cursor: model failed to load — check that af93a7ad086d47e39cfce7796e78df43_Textured.gltf was uploaded in the same folder as UI.html', err);
       canvas.remove();
     }
   );
