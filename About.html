@@ -54,6 +54,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="./visible.png" fetchpriority="high">
   <link rel="stylesheet" href="design.css">
+
+  <!-- Three.js, for the custom animated-model cursor only (pointer.js).
+       Everything else on this page (Warrior 3D, Aether Drive) is hand-
+       rolled WebGL specifically to avoid this kind of dependency — but
+       rendering an actual animated glTF with PBR materials and bloom
+       post-processing by hand is a different scale of effort than a
+       cursor deserves, so this one feature uses the library instead. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.179.1/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.179.1/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -759,5 +774,6 @@
 <script src="warrior-fallback-data.js"></script>
 <script src="script.js"></script>
 <script src="drone.js"></script>
+<script type="module" src="pointer.js"></script>
 </body>
 </html>
