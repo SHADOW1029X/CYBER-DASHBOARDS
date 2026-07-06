@@ -52,6 +52,22 @@
     a{color:inherit;text-decoration:none;}
     ::selection{background:rgba(63,140,255,0.35);color:#fff;}
 
+    /* Custom animated-model cursor (pointer.js). The native cursor is
+       only hidden once that class is added — which only happens after
+       the glTF has actually loaded and the WebGL scene is rendering —
+       so a blocked script, WebGL failure, or slow network never leaves
+       the visitor without any cursor at all. */
+    html.custom-cursor-active,
+    html.custom-cursor-active *{cursor:none!important;}
+    #cursorCanvas{
+      position:fixed;inset:0;
+      width:100%;height:100%;
+      pointer-events:none;
+      z-index:99999;
+      mix-blend-mode:screen;
+      transition:opacity .2s ease;
+    }
+
     /* keyboard focus — visible only for keyboard nav, never for mouse/touch */
     :focus{outline:none;}
     a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
