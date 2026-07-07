@@ -20,7 +20,7 @@
 //                world-unit = 1 CSS-pixel relationship — no per-frame
 //                trigonometry needed at all.
 //
-//   EFFICIENCY — renders into a small fixed-size canvas (a few hundred
+//   EFFICIENCY — renders into a small fixed-size canvas (~100px) instead
 //                px) instead of the full viewport. The model only ever
 //                occupies a tiny area of the screen, so the previous
 //                version was running full-resolution bloom post-
@@ -73,7 +73,7 @@ try {
   // Deliberately NOT gating on the site's shared .low-power class here
   // — that heuristic (hardwareConcurrency <= 4) was tuned for the
   // heavier background effects elsewhere on the site and trips on a
-  // lot of perfectly ordinary desktops/laptops. A small ~90px render
+  // lot of perfectly ordinary desktops/laptops. A small ~100px render
   // target is a much lighter load than those other effects anyway.
   const isDesktop = window.matchMedia('(pointer: fine) and (hover: hover)').matches;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -121,8 +121,8 @@ async function setupCustomCursor() {
   // Target size of the model itself, and the render target it sits in
   // (larger than the model to leave room for the bloom glow to bleed
   // outward without getting clipped at the canvas edge).
-  const CURSOR_PX = 84;
-  const CANVAS_PX = 220;
+  const CURSOR_PX = 34;
+  const CANVAS_PX = 100;
   const HALF = CANVAS_PX / 2;
   const HOVER_SCALE = 1.18;  // over a clickable element
   const PRESS_SCALE = 0.82;  // brief press feedback
@@ -134,7 +134,7 @@ async function setupCustomCursor() {
     'position:fixed', 'top:0', 'left:0',
     `width:${CANVAS_PX}px`, `height:${CANVAS_PX}px`,
     'pointer-events:none', 'z-index:99999',
-    'opacity:0', 'mix-blend-mode:screen',
+    'opacity:0',
     'transition:opacity .2s ease',
     'will-change:transform',
   ].join(';');
@@ -154,7 +154,7 @@ async function setupCustomCursor() {
   renderer.setSize(CANVAS_PX, CANVAS_PX, false); // false: canvas CSS size is set above, don't override it
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.8;
+  renderer.toneMappingExposure = 2.4;
 
   const scene = new THREE.Scene();
 
@@ -165,16 +165,19 @@ async function setupCustomCursor() {
   camera.position.set(0, 0, 10);
   camera.lookAt(0, 0, 0);
 
-  // Same lighting rig as the reference viewer.
-  scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-  const key = new THREE.PointLight(0xffaa55, 10); key.position.set(3, 3, 4); scene.add(key);
-  const fill = new THREE.PointLight(0xff3300, 8); fill.position.set(-3, -1, -2); scene.add(fill);
-  const rim = new THREE.PointLight(0xffffff, 4); rim.position.set(0, 5, -5); scene.add(rim);
+  // Brighter than the reference viewer's rig — at cursor size the model
+  // reads as much smaller/dimmer on screen than it does filling an
+  // entire viewport, so it needs more light and a stronger bloom to
+  // still read clearly at a glance.
+  scene.add(new THREE.AmbientLight(0xffffff, 2.2));
+  const key = new THREE.PointLight(0xffaa55, 16); key.position.set(3, 3, 4); scene.add(key);
+  const fill = new THREE.PointLight(0xff3300, 12); fill.position.set(-3, -1, -2); scene.add(fill);
+  const rim = new THREE.PointLight(0xffffff, 6); rim.position.set(0, 5, -5); scene.add(rim);
 
   const composer = new EffectComposer(renderer);
   composer.setSize(CANVAS_PX, CANVAS_PX);
   composer.addPass(new RenderPass(scene, camera));
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(CANVAS_PX, CANVAS_PX), 1.3, 0.35, 0.08));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(CANVAS_PX, CANVAS_PX), 2.2, 0.4, 0.03));
 
   let model = null;
   let mixer = null;
@@ -237,11 +240,11 @@ async function setupCustomCursor() {
       model.traverse((obj) => {
         if (!obj.isMesh) return;
         const m = obj.material;
-        if (m.emissive) m.emissiveIntensity = 5;
+        if (m.emissive) m.emissiveIntensity = 9;
         m.transparent = true;
         m.blending = THREE.AdditiveBlending;
         m.depthWrite = false;
-        if (m.color) m.color.multiplyScalar(2.2);
+        if (m.color) m.color.multiplyScalar(3.2);
         m.needsUpdate = true;
       });
 
@@ -354,8 +357,8 @@ async function setupCustomCursor() {
       const dt = Math.min(clock.getDelta(), 1 / 30);
       if (mixer) mixer.update(dt);
 
-      smoothed.x += (mouse.x - smoothed.x) * 0.25;
-      smoothed.y += (mouse.y - smoothed.y) * 0.25;
+      smoothed.x += (mouse.x - smoothed.x) * 0.65;
+      smoothed.y += (mouse.y - smoothed.y) * 0.65;
       canvas.style.transform = `translate3d(${(smoothed.x - HALF).toFixed(1)}px, ${(smoothed.y - HALF).toFixed(1)}px, 0)`;
 
       if (model) {
