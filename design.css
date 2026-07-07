@@ -56,17 +56,12 @@
        only hidden once that class is added — which only happens after
        the glTF has actually loaded and the WebGL scene is rendering —
        so a blocked script, WebGL failure, or slow network never leaves
-       the visitor without any cursor at all. */
+       the visitor without any cursor at all. (#cursorCanvas itself is
+       styled entirely inline by pointer.js — it's a small element that
+       follows the mouse via a transform, not a full-viewport overlay,
+       so there's nothing static worth declaring here.) */
     html.custom-cursor-active,
     html.custom-cursor-active *{cursor:none!important;}
-    #cursorCanvas{
-      position:fixed;inset:0;
-      width:100%;height:100%;
-      pointer-events:none;
-      z-index:99999;
-      mix-blend-mode:screen;
-      transition:opacity .2s ease;
-    }
 
     /* keyboard focus — visible only for keyboard nav, never for mouse/touch */
     :focus{outline:none;}
