@@ -155,6 +155,11 @@ async function setupCustomCursor() {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 2.4;
+  // alpha:true on the renderer only makes the canvas *capable* of
+  // transparency — it still clears to opaque black every frame unless
+  // told otherwise, which is exactly the solid dark box this was
+  // reported as looking like.
+  renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
 
@@ -176,7 +181,9 @@ async function setupCustomCursor() {
 
   const composer = new EffectComposer(renderer);
   composer.setSize(CANVAS_PX, CANVAS_PX);
-  composer.addPass(new RenderPass(scene, camera));
+  const renderPass = new RenderPass(scene, camera);
+  renderPass.clearAlpha = 0; // belt-and-suspenders: don't rely solely on the renderer's own clear settings propagating through the composer's internal render targets
+  composer.addPass(renderPass);
   composer.addPass(new UnrealBloomPass(new THREE.Vector2(CANVAS_PX, CANVAS_PX), 2.2, 0.4, 0.03));
 
   let model = null;
