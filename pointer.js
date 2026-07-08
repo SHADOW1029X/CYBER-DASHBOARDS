@@ -2,8 +2,8 @@
 // CUSTOM CURSOR — ANIMATED ENERGY MODEL
 // Desktop only: replaces the native cursor with the animated glTF model,
 // rendered small and tracking the real cursor position. Adapted from the
-// reference Energy VFX Viewer (Pointer.html) — same lighting/bloom setup
-// and the same per-material glow treatment (emissive boost, additive
+// reference Energy VFX Viewer (Pointer.html) — same lighting setup and
+// the same per-material glow treatment (emissive boost, additive
 // blending, depthWrite off, color multiply) — but reworked from "auto-
 // frame a model filling the whole viewport" into "render it small and
 // glue it to the mouse", plus a pass of accuracy/efficiency/reliability
@@ -21,20 +21,23 @@
 //                trigonometry needed at all.
 //
 //   EFFICIENCY — renders into a small fixed-size canvas (~100px) instead
-//                px) instead of the full viewport. The model only ever
-//                occupies a tiny area of the screen, so the previous
-//                version was running full-resolution bloom post-
-//                processing (which itself does several internal blur
-//                passes) across the *entire browser window* every
-//                frame to display something the size of an icon. The
-//                small canvas is repositioned to follow the mouse via
-//                a CSS transform (a compositor-level operation, not a
-//                re-render) instead of moving the model through world
+//                of the full viewport — the model only ever occupies a
+//                tiny area of the screen, so an earlier version of this
+//                rendering the full browser window every frame to
+//                display something the size of an icon was pure waste.
+//                The small canvas is repositioned to follow the mouse
+//                via a CSS transform (a compositor-level operation, not
+//                a re-render) instead of moving the model through world
 //                space — this also means window resizes no longer need
 //                to resize/reallocate the renderer or recompute camera
 //                distance at all, since the render target's pixel size
 //                never changes. The render loop also fully pauses via
 //                the Page Visibility API when the tab isn't active.
+//                Glow is done with a CSS drop-shadow filter on the
+//                canvas rather than a WebGL bloom post-processing pass
+//                (see the ACCURACY note by the canvas's filter style for
+//                why) — as a side effect this is also lighter-weight
+//                than running a multi-pass blur shader every frame.
 //
 //   RELIABILITY — WebGL context-loss is now handled explicitly (GPU
 //                driver resets, browser tab discarding, etc. can lose
@@ -57,8 +60,8 @@
 // This remains the one place on the site that pulls in Three.js from a
 // CDN — everywhere else (Warrior 3D, Aether Drive) is hand-rolled WebGL
 // specifically to avoid that, but reproducing a textured, animated glTF
-// with PBR materials and bloom by hand is a different scope of effort
-// than a cursor warrants.
+// with PBR materials by hand is a different scope of effort than a
+// cursor warrants.
 //
 // Every failure path here (no WebGL, blocked CDN, model load timeout,
 // repeated render errors, lost context that never recovers) falls back
@@ -96,20 +99,11 @@ async function setupCustomCursor() {
     return;
   }
 
-  let THREE, GLTFLoader, EffectComposer, RenderPass, UnrealBloomPass;
+  let THREE, GLTFLoader;
   try {
-    [
-      THREE,
-      { GLTFLoader },
-      { EffectComposer },
-      { RenderPass },
-      { UnrealBloomPass },
-    ] = await Promise.all([
+    [THREE, { GLTFLoader }] = await Promise.all([
       import('three'),
       import('three/addons/loaders/GLTFLoader.js'),
-      import('three/addons/postprocessing/EffectComposer.js'),
-      import('three/addons/postprocessing/RenderPass.js'),
-      import('three/addons/postprocessing/UnrealBloomPass.js'),
     ]);
   } catch (e) {
     // CDN blocked/offline — no custom cursor, native cursor untouched.
@@ -137,6 +131,16 @@ async function setupCustomCursor() {
     'opacity:0',
     'transition:opacity .2s ease',
     'will-change:transform',
+    // Glow via CSS instead of a WebGL bloom pass: UnrealBloomPass's
+    // multi-stage composite (bright-pass extract -> several blur
+    // passes -> final blend) does not reliably preserve the canvas's
+    // alpha channel through that pipeline, which is what was showing
+    // up as a solid opaque box instead of a transparent glow. A
+    // drop-shadow filter reads the canvas's actual rendered alpha
+    // silhouette directly, so it can't have that problem, and several
+    // stacked at increasing blur/decreasing opacity gives a soft
+    // falloff similar to what the bloom pass was going for.
+    'filter:drop-shadow(0 0 5px rgba(255,170,90,.95)) drop-shadow(0 0 14px rgba(255,110,40,.7)) drop-shadow(0 0 28px rgba(255,80,20,.4))',
   ].join(';');
   document.body.appendChild(canvas);
 
@@ -157,8 +161,7 @@ async function setupCustomCursor() {
   renderer.toneMappingExposure = 2.4;
   // alpha:true on the renderer only makes the canvas *capable* of
   // transparency — it still clears to opaque black every frame unless
-  // told otherwise, which is exactly the solid dark box this was
-  // reported as looking like.
+  // told otherwise.
   renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
@@ -172,19 +175,12 @@ async function setupCustomCursor() {
 
   // Brighter than the reference viewer's rig — at cursor size the model
   // reads as much smaller/dimmer on screen than it does filling an
-  // entire viewport, so it needs more light and a stronger bloom to
-  // still read clearly at a glance.
+  // entire viewport, so it needs more light to still read clearly at a
+  // glance (the CSS drop-shadow above handles the glow/bloom look now).
   scene.add(new THREE.AmbientLight(0xffffff, 2.2));
   const key = new THREE.PointLight(0xffaa55, 16); key.position.set(3, 3, 4); scene.add(key);
   const fill = new THREE.PointLight(0xff3300, 12); fill.position.set(-3, -1, -2); scene.add(fill);
   const rim = new THREE.PointLight(0xffffff, 6); rim.position.set(0, 5, -5); scene.add(rim);
-
-  const composer = new EffectComposer(renderer);
-  composer.setSize(CANVAS_PX, CANVAS_PX);
-  const renderPass = new RenderPass(scene, camera);
-  renderPass.clearAlpha = 0; // belt-and-suspenders: don't rely solely on the renderer's own clear settings propagating through the composer's internal render targets
-  composer.addPass(renderPass);
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(CANVAS_PX, CANVAS_PX), 2.2, 0.4, 0.03));
 
   let model = null;
   let mixer = null;
@@ -373,7 +369,7 @@ async function setupCustomCursor() {
         model.scale.setScalar(model.userData.baseScale * currentScale);
       }
 
-      composer.render();
+      renderer.render(scene, camera);
       errorStreak = 0;
     } catch (e) {
       errorStreak++;
@@ -385,7 +381,7 @@ async function setupCustomCursor() {
 
   // The render target's pixel size never changes (it's a small fixed
   // canvas, not full-viewport), so a resize no longer needs to touch
-  // the renderer, composer, or camera at all — only the mouse-tracking
-  // math above (which already reads window.innerWidth/innerHeight live
-  // on every frame) needs nothing further done here.
+  // the renderer or camera at all — only the mouse-tracking math above
+  // (which already reads window.innerWidth/innerHeight live on every
+  // frame) needs nothing further done here.
 }
