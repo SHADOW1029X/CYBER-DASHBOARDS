@@ -113,8 +113,8 @@ async function setupCustomCursor() {
   console.log('[NYTHERION] custom cursor: three.js loaded, fetching model…');
 
   // Target size of the model itself, and the render target it sits in
-  // (larger than the model to leave room for the bloom glow to bleed
-  // outward without getting clipped at the canvas edge).
+  // (larger than the model to leave room for the CSS glow's drop-shadow
+  // blur to bleed outward without getting clipped at the canvas edge).
   const CURSOR_PX = 34;
   const CANVAS_PX = 100;
   const HALF = CANVAS_PX / 2;
@@ -193,7 +193,17 @@ async function setupCustomCursor() {
   function teardown(reason) {
     if (!running) return;
     running = false;
+    ready = false;
     if (rafId) cancelAnimationFrame(rafId);
+    window.removeEventListener('pointermove', onPointerMove);
+    document.removeEventListener('mouseleave', onMouseLeave);
+    document.removeEventListener('mouseenter', onMouseEnter);
+    document.removeEventListener('pointerover', onPointerOver);
+    window.removeEventListener('pointerdown', onPointerDown);
+    window.removeEventListener('pointerup', onPointerUp);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    canvas.removeEventListener('webglcontextlost', onContextLost);
+    canvas.removeEventListener('webglcontextrestored', onContextRestored);
     document.documentElement.classList.remove('custom-cursor-active');
     canvas.remove();
     try { renderer.dispose(); } catch (_) {}
@@ -205,7 +215,7 @@ async function setupCustomCursor() {
   // would start throwing on every frame. If it comes back, we simply
   // let the next few frames resume naturally; if it doesn't within a
   // few seconds, tear down cleanly rather than leave a dead canvas.
-  canvas.addEventListener('webglcontextlost', (e) => {
+  function onContextLost(e) {
     e.preventDefault();
     console.warn('[NYTHERION] custom cursor: WebGL context lost, waiting to see if it recovers…');
     canvas.style.opacity = '0';
@@ -214,11 +224,13 @@ async function setupCustomCursor() {
         teardown('context lost and did not recover');
       }
     }, 4000);
-  }, false);
-  canvas.addEventListener('webglcontextrestored', () => {
+  }
+  function onContextRestored() {
     console.log('[NYTHERION] custom cursor: WebGL context restored');
     if (ready) canvas.style.opacity = '1';
-  }, false);
+  }
+  canvas.addEventListener('webglcontextlost', onContextLost, false);
+  canvas.addEventListener('webglcontextrestored', onContextRestored, false);
 
   const loader = new GLTFLoader();
   let loadTimedOut = false;
@@ -237,9 +249,9 @@ async function setupCustomCursor() {
       model = gltf.scene;
 
       // Same material pass as the reference: boost emissive, switch to
-      // additive+no-depth-write so overlapping glow blooms instead of
-      // occluding, and push the base color brighter so it has something
-      // for the bloom pass to actually pick up.
+      // additive+no-depth-write so overlapping glow blends instead of
+      // occluding, and push the base color brighter so there's more for
+      // the CSS drop-shadow glow to pick up.
       model.traverse((obj) => {
         if (!obj.isMesh) return;
         const m = obj.material;
@@ -292,16 +304,19 @@ async function setupCustomCursor() {
   const smoothed = { x: mouse.x, y: mouse.y };
   let hasMoved = false;
 
-  window.addEventListener('pointermove', (e) => {
+  function onPointerMove(e) {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
     if (!hasMoved) { smoothed.x = mouse.x; smoothed.y = mouse.y; hasMoved = true; }
-  }, { passive: true });
+  }
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
 
   // Hide while the real cursor is off-window (e.g. over the browser
   // chrome) rather than leaving it stranded at the last known position.
-  document.addEventListener('mouseleave', () => { canvas.style.opacity = '0'; });
-  document.addEventListener('mouseenter', () => { if (ready) canvas.style.opacity = '1'; });
+  function onMouseLeave() { canvas.style.opacity = '0'; }
+  function onMouseEnter() { if (ready) canvas.style.opacity = '1'; }
+  document.addEventListener('mouseleave', onMouseLeave);
+  document.addEventListener('mouseenter', onMouseEnter);
 
   // UX: hovering a clickable element scales the cursor up a bit —
   // restoring the "this is interactive" affordance a hidden native
@@ -310,7 +325,7 @@ async function setupCustomCursor() {
   // itself with [data-native-cursor].
   const HOVER_SELECTOR = 'a, button, input, textarea, select, [role="button"], [onclick], .grid-item, label, summary';
   let targetScale = 1;
-  document.addEventListener('pointerover', (e) => {
+  function onPointerOver(e) {
     if (!ready) return;
     const el = e.target;
     if (el.closest && el.closest('[data-native-cursor]')) {
@@ -319,18 +334,21 @@ async function setupCustomCursor() {
     }
     canvas.style.opacity = '1';
     targetScale = (el.closest && el.closest(HOVER_SELECTOR)) ? HOVER_SCALE : 1;
-  });
+  }
+  document.addEventListener('pointerover', onPointerOver);
 
   // UX: a quick tactile press/release pulse.
-  window.addEventListener('pointerdown', () => { if (ready) targetScale *= PRESS_SCALE; }, { passive: true });
-  window.addEventListener('pointerup', () => {
+  function onPointerDown() { if (ready) targetScale *= PRESS_SCALE; }
+  function onPointerUp() {
     if (!ready) return;
     // Recompute from scratch rather than dividing back out, in case the
     // element under the cursor changed mid-press.
     const el = document.elementFromPoint(mouse.x, mouse.y);
     const overNative = el && el.closest && el.closest('[data-native-cursor]');
     targetScale = (!overNative && el && el.closest && el.closest(HOVER_SELECTOR)) ? HOVER_SCALE : 1;
-  }, { passive: true });
+  }
+  window.addEventListener('pointerdown', onPointerDown, { passive: true });
+  window.addEventListener('pointerup', onPointerUp, { passive: true });
 
   const clock = new THREE.Clock();
   let currentScale = 1;
@@ -339,7 +357,7 @@ async function setupCustomCursor() {
   // battery animating a cursor nobody can see, and it sidesteps the
   // browser potentially throttling rAF in ways that cause a huge delta
   // jump on the mixer when the tab returns.
-  document.addEventListener('visibilitychange', () => {
+  function onVisibilityChange() {
     if (!ready) return;
     if (document.hidden) {
       if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
@@ -347,7 +365,8 @@ async function setupCustomCursor() {
       clock.getDelta(); // discard the time spent hidden
       rafId = requestAnimationFrame(animate);
     }
-  });
+  }
+  document.addEventListener('visibilitychange', onVisibilityChange);
 
   function animate() {
     if (!running) return;
