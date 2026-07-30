@@ -611,26 +611,14 @@
   <div class="panel a">
     <div class="panel-hdr">
       <div class="panel-title a">⊞ User-Facing Sites</div>
+      <button class="btn btn-amber" id="addSiteBtn" aria-label="Add a new user-facing site"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="btn-label">ADD URL</span></button>
     </div>
     <div class="panel-body">
       <div class="field-hint field-hint--mb">
         Live, public-facing endpoints. Share these URLs with end users.
       </div>
-      <div class="field">
-        <label for="urlNytherix">NYTHERIX — proxy endpoint</label>
-        <div class="copy-row">
-          <input type="text" id="urlNytherix" value="https://nytherix.nytherion.qzz.io"
-                 readonly tabindex="-1" spellcheck="false" aria-readonly="true">
-          <button class="btn btn-cyan copy-btn" data-copy-target="urlNytherix" aria-label="Copy NYTHERIX URL"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="btn-label">COPY</span></button>
-        </div>
-      </div>
-      <div class="field field-mt">
-        <label for="urlPhoton">PHOTON — capture node</label>
-        <div class="copy-row">
-          <input type="text" id="urlPhoton" value="https://photon.nytherion.qzz.io"
-                 readonly tabindex="-1" spellcheck="false" aria-readonly="true">
-          <button class="btn btn-cyan copy-btn" data-copy-target="urlPhoton" aria-label="Copy PHOTON URL"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="btn-label">COPY</span></button>
-        </div>
+      <div id="sitesList" aria-live="polite">
+        <div class="field-hint" id="sitesLoading">Loading sites…</div>
       </div>
     </div>
   </div>
@@ -658,6 +646,53 @@
     <div class="modal-foot">
       <button class="btn btn-cyan" data-close="nukeModal"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span class="btn-label">Cancel</span></button>
       <button class="btn btn-red" id="nukeConfirmBtn"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="btn-label">Logout</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL — Add/Edit User-Facing Site ════ -->
+<div class="modal-bg" id="siteModal" role="dialog" aria-modal="true" aria-labelledby="siteModalTitle">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-ttl" id="siteModalTitle">⊞ Add Site</div>
+      <button class="modal-x" data-close="siteModal" aria-label="Cancel">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="siteModalAlert" class="alert" role="alert" aria-live="assertive"></div>
+      <div class="field">
+        <label for="siteCaption">Caption</label>
+        <input type="text" id="siteCaption" placeholder="e.g. NYTHERIX — proxy endpoint" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field field-mt">
+        <label for="siteUrl">URL</label>
+        <input type="url" id="siteUrl" placeholder="https://example.com" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-cyan" data-close="siteModal"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span class="btn-label">Cancel</span></button>
+      <button class="btn btn-amber" id="siteSaveBtn"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg><span class="btn-label">Add</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL — Confirm Delete Site ════ -->
+<div class="modal-bg" id="deleteSiteModal" role="dialog" aria-modal="true" aria-labelledby="deleteSiteTitle">
+  <div class="modal danger">
+    <div class="modal-hdr">
+      <div class="modal-ttl r" id="deleteSiteTitle">⚠ Confirm Delete</div>
+      <button class="modal-x" data-close="deleteSiteModal" aria-label="Cancel">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-center">
+        <div class="modal-icon" aria-hidden="true">⛔</div>
+        <p class="modal-body-text">
+          Delete <span class="text-amber" id="deleteSiteCaption"></span>? This cannot be undone.
+        </p>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-cyan" data-close="deleteSiteModal"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span class="btn-label">Cancel</span></button>
+      <button class="btn btn-red" id="deleteSiteConfirmBtn"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span class="btn-label">Delete</span></button>
     </div>
   </div>
 </div>
@@ -891,7 +926,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ── COPY URL BUTTONS ───────────────────────────────────────────
-document.querySelectorAll('.copy-btn').forEach(btn => {
+function bindCopyButton(btn) {
   btn.addEventListener('click', async () => {
     const input = document.getElementById(btn.dataset.copyTarget);
     const origHTML = btn.innerHTML;
@@ -918,6 +953,197 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
       }
     }
   });
+}
+document.querySelectorAll('.copy-btn').forEach(bindCopyButton);
+
+// ── USER-FACING SITES (D1-backed) ───────────────────────────────
+let _editingSiteId  = null;  // site id currently being edited in siteModal, or null when adding
+let _deletingSiteId = null;  // site id pending confirmation in deleteSiteModal
+let _sitesCache     = [];    // last list of sites loaded from the worker
+
+// redirect to login on auth failure from a sites API call; returns true if handled
+function isSitesAuthFailure(res) {
+  if (res.status === 401 || res.status === 403) {
+    toast('Session expired — redirecting to login…', 't-a');
+    setTimeout(() => window.location.replace('index.html'), 800);
+    return true;
+  }
+  return false;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+function siteRowHTML(site) {
+  const caption = escapeHtml(site.caption);
+  const url     = escapeHtml(site.url);
+  const inputId = `siteUrlField_${site.id}`;
+  return `
+      <div class="field field-mt site-item" data-site-id="${site.id}">
+        <label for="${inputId}">${caption}</label>
+        <div class="copy-row">
+          <input type="text" id="${inputId}" value="${url}"
+                 readonly tabindex="-1" spellcheck="false" aria-readonly="true">
+          <button class="btn btn-cyan copy-btn" data-copy-target="${inputId}" aria-label="Copy ${caption} URL"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="btn-label">COPY</span></button>
+          <button class="btn btn-violet edit-site-btn" data-site-id="${site.id}" aria-label="Edit ${caption}"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span class="btn-label">EDIT</span></button>
+          <button class="btn btn-red delete-site-btn" data-site-id="${site.id}" aria-label="Delete ${caption}"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span class="btn-label">DELETE</span></button>
+        </div>
+      </div>`;
+}
+
+function renderSites(sites) {
+  _sitesCache = Array.isArray(sites) ? sites : [];
+  const container = document.getElementById('sitesList');
+  if (!_sitesCache.length) {
+    container.innerHTML = '<div class="field-hint" id="sitesEmpty">No user-facing sites configured yet. Click “ADD URL” to add one.</div>';
+    return;
+  }
+  container.innerHTML = _sitesCache.map(siteRowHTML).join('');
+  container.querySelectorAll('.copy-btn').forEach(bindCopyButton);
+  container.querySelectorAll('.edit-site-btn').forEach(btn => {
+    btn.addEventListener('click', () => openEditSite(btn.dataset.siteId));
+  });
+  container.querySelectorAll('.delete-site-btn').forEach(btn => {
+    btn.addEventListener('click', () => confirmDeleteSite(btn.dataset.siteId));
+  });
+}
+
+async function loadSites() {
+  try {
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 10_000);
+    const res  = await fetch(NYTHERIX_WORKER + '/api/sites', {
+      credentials: 'include', signal: ctrl.signal
+    });
+    clearTimeout(tid);
+    if (isSitesAuthFailure(res)) return;
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderSites(data);
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? 'Worker timeout — sites not loaded.' : `Load failed — ${e.message}`;
+    toast(msg, 't-a');
+    document.getElementById('sitesList').innerHTML = '<div class="field-hint">Could not load sites — try Refresh.</div>';
+  }
+}
+
+function openAddSite() {
+  _editingSiteId = null;
+  document.getElementById('siteModalTitle').textContent = '⊞ Add Site';
+  document.getElementById('siteCaption').value = '';
+  document.getElementById('siteUrl').value = '';
+  hideAlert('siteModalAlert');
+  document.getElementById('siteSaveBtn').querySelector('.btn-label').textContent = 'Add';
+  openModal('siteModal');
+}
+
+function openEditSite(id) {
+  const site = _sitesCache.find(s => String(s.id) === String(id));
+  if (!site) { toast('Site not found — refresh and try again.', 't-a'); return; }
+  _editingSiteId = site.id;
+  document.getElementById('siteModalTitle').textContent = '⊞ Edit Site';
+  document.getElementById('siteCaption').value = site.caption;
+  document.getElementById('siteUrl').value = site.url;
+  hideAlert('siteModalAlert');
+  document.getElementById('siteSaveBtn').querySelector('.btn-label').textContent = 'Save';
+  openModal('siteModal');
+}
+
+async function saveSite() {
+  const captionEl = document.getElementById('siteCaption');
+  const urlEl     = document.getElementById('siteUrl');
+  const caption   = captionEl.value.trim();
+  let   rawUrl    = urlEl.value.trim();
+
+  if (!caption) { showAlert('siteModalAlert', '⚠ Caption is required.', 'err'); return; }
+  if (!rawUrl)  { showAlert('siteModalAlert', '⚠ URL is required.', 'err'); return; }
+
+  if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) rawUrl = 'https://' + rawUrl;
+  try {
+    const parsed = new URL(rawUrl);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      showAlert('siteModalAlert', '⚠ URL must use http:// or https://', 'err'); return;
+    }
+  } catch (_) {
+    showAlert('siteModalAlert', '⚠ Invalid URL — please enter a valid destination.', 'err'); return;
+  }
+
+  const btn = document.getElementById('siteSaveBtn');
+  const origHTML = btn.innerHTML;
+  btn.disabled = true;
+  hideAlert('siteModalAlert');
+
+  try {
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 10_000);
+    const isEdit   = _editingSiteId !== null;
+    const endpoint = isEdit ? `${NYTHERIX_WORKER}/api/sites/${_editingSiteId}` : `${NYTHERIX_WORKER}/api/sites`;
+    const res = await fetch(endpoint, {
+      method: isEdit ? 'PUT' : 'POST',
+      credentials: 'include',
+      signal: ctrl.signal,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ caption, url: rawUrl })
+    });
+    clearTimeout(tid);
+    if (isSitesAuthFailure(res)) return;
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      closeModal('siteModal');
+      toast(isEdit ? '✓ Site updated' : '✓ Site added', 't-g');
+      await loadSites();
+    } else {
+      showAlert('siteModalAlert', `⚠ ${data.error || `HTTP ${res.status}`}`, 'err');
+    }
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? 'Request timed out.' : `Network error — ${e.message}`;
+    showAlert('siteModalAlert', `⚠ ${msg}`, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+  }
+}
+
+function confirmDeleteSite(id) {
+  const site = _sitesCache.find(s => String(s.id) === String(id));
+  _deletingSiteId = id;
+  document.getElementById('deleteSiteCaption').textContent = site ? site.caption : 'this site';
+  openModal('deleteSiteModal');
+}
+
+async function deleteSite() {
+  if (_deletingSiteId === null) return;
+  const id = _deletingSiteId;
+  _deletingSiteId = null;
+  try {
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 10_000);
+    const res  = await fetch(`${NYTHERIX_WORKER}/api/sites/${id}`, {
+      method: 'DELETE', credentials: 'include', signal: ctrl.signal
+    });
+    clearTimeout(tid);
+    if (isSitesAuthFailure(res)) return;
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      toast('✓ Site deleted', 't-g');
+      await loadSites();
+    } else {
+      toast(`⚠ ${data.error || `HTTP ${res.status}`}`, 't-a');
+    }
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? 'Request timed out.' : `Network error — ${e.message}`;
+    toast(`⚠ ${msg}`, 't-a');
+  }
+}
+
+document.getElementById('addSiteBtn').addEventListener('click', openAddSite);
+document.getElementById('siteSaveBtn').addEventListener('click', saveSite);
+document.getElementById('deleteSiteConfirmBtn').addEventListener('click', () => {
+  closeModal('deleteSiteModal');
+  deleteSite();
 });
 
 // ── BUTTON BINDINGS ────────────────────────────────────────────
@@ -970,7 +1196,7 @@ document.getElementById('nukeConfirmBtn').addEventListener('click', () => { clos
     document.getElementById('mainLayout').removeAttribute('inert');
     gate.classList.add('done');
     // Call loadSettings after gate fade completes (320ms) so toasts aren't hidden
-    setTimeout(() => { gate.classList.add('hidden'); loadSettings(); }, 320);
+    setTimeout(() => { gate.classList.add('hidden'); loadSettings(); loadSites(); }, 320);
   } else if (result === null) {
     // network error — show retry option instead of blind redirect
     gateTxt.textContent = 'CONNECTION ERROR';
