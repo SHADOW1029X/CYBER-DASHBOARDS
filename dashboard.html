@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CAPTURES // DASHBOARD</title>
   <meta name="description" content="Capture Node Telemetry Dashboard — manage, edit, query captured records.">
-  <!-- NOTE: script-src still uses 'unsafe-inline' because all JS is inline.
-       To harden further, extract <script> to dashboard.js and use:
-       script-src 'sha256-<hash-of-file>' (or a server-generated nonce).
-       The policy below tightens everything else that can be tightened now. -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://unpkg.com; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://snowy-fog-b0d1.23amtics322.workers.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
@@ -1155,6 +1151,7 @@
   <!-- ══════════════ TAB NAV ══════════════ -->
   <nav class="nav-tabs" role="tablist" aria-label="Dashboard sections">
     <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="tab-records" id="btn-records" onclick="switchTab('records')"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> RECORDS</button>
+    <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-telemetry" id="btn-telemetry" onclick="switchTab('telemetry')"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg> TELEMETRY</button>
     <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-query"   id="btn-query"   onclick="switchTab('query')"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg> QUERY</button>
   </nav>
 
@@ -1268,6 +1265,53 @@
       </div>
     </div><!-- /tab-records -->
 
+    <!-- ════════════ TELEMETRY TAB ════════════ -->
+    <div class="tab-panel" id="tab-telemetry" role="tabpanel" aria-labelledby="btn-telemetry">
+      <div class="stats-row" role="region" aria-label="Telemetry summary">
+        <div class="stat-card">
+          <div class="stat-label">// TELEMETRY TOTAL</div>
+          <div class="stat-value" id="statTelemetryTotal" aria-live="polite">—</div>
+        </div>
+      </div>
+
+      <div id="telemetryErrorBar" role="alert" aria-live="assertive" style="display:none;background:rgba(255,59,92,.07);border:1px solid var(--red-dim);border-left:3px solid var(--red);border-radius:2px;color:var(--red);font-family:'Share Tech Mono',monospace;font-size:.72rem;padding:10px 14px;margin:0 0 14px;box-shadow:0 0 20px rgba(255,59,92,.1);"></div>
+
+      <div class="toolbar" role="toolbar" aria-label="Telemetry controls">
+        <div class="search-wrap">
+          <input type="search" class="search-input" id="telemetrySearchInput"
+                 placeholder="FILTER TELEMETRY..."
+                 aria-label="Search telemetry" autocomplete="off">
+          <button class="search-clear" id="telemetrySearchClearBtn" onclick="clearTelemetrySearch()"
+                  aria-label="Clear search" title="Clear search"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg></button>
+        </div>
+        <button class="btn btn-cyan" onclick="loadTelemetry()" title="Refresh telemetry data now"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><polyline points="23,4 23,11 16,11"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 11"/></svg> REFRESH</button>
+      </div>
+
+      <div class="table-wrap">
+        <table id="telemetryTable" aria-label="Telemetry records">
+          <thead id="telemetryHead"></thead>
+          <tbody id="telemetryBody"></tbody>
+        </table>
+      </div>
+
+      <div class="footer-bar" role="navigation" aria-label="Telemetry pagination">
+        <span>SHOWING <span class="row-count" id="telemetryRowCount">0</span> / <span id="telemetryRowTotal">0</span> RECORDS</span>
+        <div class="pagination" id="telemetryPagination"></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label for="telemetryPageSizeSelect" style="font-size:.6rem;letter-spacing:.1em">ROWS/PAGE</label>
+          <select class="page-size-select" id="telemetryPageSizeSelect"
+                  onchange="changeTelemetryPageSize(this.value)" aria-label="Rows per page">
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="250">250</option>
+            <option value="500">500</option>
+            <option value="99999">ALL</option>
+          </select>
+        </div>
+      </div>
+    </div><!-- /tab-telemetry -->
+
     <!-- ════════════ QUERY TAB ════════════ -->
     <div class="tab-panel" id="tab-query" role="tabpanel" aria-labelledby="btn-query">
       <div class="query-panel-wrap">
@@ -1351,7 +1395,7 @@
   </div>
 </div>
 
-<!-- DELETE MODAL -->
+<!-- DELETE MODAL (shared for captures and telemetry) -->
 <div class="modal-overlay" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
   <div class="modal modal-sm modal-danger">
     <div class="modal-header">
@@ -1371,7 +1415,7 @@
   </div>
 </div>
 
-<!-- NAME MODAL -->
+<!-- NAME MODAL (for captures) -->
 <div class="modal-overlay" id="nameModal" role="dialog" aria-modal="true" aria-labelledby="nameModalTitle">
   <div class="modal modal-sm">
     <div class="modal-header">
@@ -1398,6 +1442,33 @@
       <button class="btn btn-violet" onclick="saveNameModal()"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ASSIGN</button>
       <button class="btn btn-red btn-sm" onclick="removeNameModal()"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg> REMOVE</button>
       <button class="btn btn-cyan" onclick="closeModal('nameModal')"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- TELEMETRY NAME MODAL -->
+<div class="modal-overlay" id="telemetryNameModal" role="dialog" aria-modal="true" aria-labelledby="telemetryNameModalTitle">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title" id="telemetryNameModalTitle" style="color:var(--amber);text-shadow:var(--glow-a)">◈ TELEMETRY NAME</span>
+      <button class="modal-close" onclick="closeModal('telemetryNameModal')" aria-label="Close"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid single">
+        <div class="field-group">
+          <label class="field-label" for="tnId">TELEMETRY ID</label>
+          <input class="field-input field-readonly" id="tnId" readonly aria-readonly="true">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="tnName">USER NAME</label>
+          <input class="field-input" id="tnName" placeholder="Assign a name to this telemetry record" maxlength="255" autocomplete="off">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-amber" onclick="saveTelemetryName()"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> SAVE</button>
+      <button class="btn btn-red btn-sm" onclick="removeTelemetryName()"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg> CLEAR</button>
+      <button class="btn btn-cyan" onclick="closeModal('telemetryNameModal')"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> CANCEL</button>
     </div>
   </div>
 </div>
@@ -1433,6 +1504,16 @@ let queryHistory     = (() => {
     return Array.isArray(v) ? v : [];
   } catch { return []; }
 })();
+
+// ── TELEMETRY STATE ──────────────────────────────────────────────────────
+let telemetryData      = [];
+let telemetryFiltered  = [];
+let telemetrySortKey   = null;
+let telemetrySortDir   = 1;
+let telemetryCurrentPage = 1;
+let telemetryPageSize  = 25;
+let telemetrySearchDebounce = null;
+let telemetryEditingId = null; // for name modal
 
 // ── NAMES (localStorage) ─────────────────────────────────────────────────
 // Cache parsed names in memory; only re-read from localStorage on mutation.
@@ -1584,7 +1665,7 @@ function toast(msg, type = 't-cyan', dur = 2800) {
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────────
-const TAB_TITLES = { records: 'Records — DASHBOARD', query: 'Query — DASHBOARD' };
+const TAB_TITLES = { records: 'Records — DASHBOARD', telemetry: 'Telemetry — DASHBOARD', query: 'Query — DASHBOARD' };
 function switchTab(id) {
   document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -1592,6 +1673,11 @@ function switchTab(id) {
   document.getElementById(`btn-${id}`).setAttribute('aria-selected','true');
   document.getElementById(`tab-${id}`).classList.add('active');
   if (TAB_TITLES[id]) document.title = TAB_TITLES[id];
+
+  // Load telemetry data if switching to that tab and data is empty
+  if (id === 'telemetry' && telemetryData.length === 0) {
+    loadTelemetry();
+  }
 }
 
 // ── HEADER & COLUMNS ──────────────────────────────────────────────────────
@@ -1882,7 +1968,7 @@ function bulkDeleteSelected() {
   confirmDelete([...selectedIds]);
 }
 
-// ── DELETE ────────────────────────────────────────────────────────────────
+// ── DELETE (shared for captures) ─────────────────────────────────────────
 function confirmDelete(ids) {
   pendingDeleteIds = ids;
   const warn = document.getElementById('deleteWarningText');
@@ -2072,7 +2158,7 @@ async function saveEdit() {
   applyFilter(); updateStats(allData);
 }
 
-// ── NAME MODAL ────────────────────────────────────────────────────────────
+// ── NAME MODAL (for captures) ────────────────────────────────────────────
 function openNameModal(id) {
   const names = getNames(); const obj = names[String(id)] || {};
   document.getElementById('nmId').value   = id;
@@ -2497,6 +2583,281 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   setTimeout(() => { window.location.replace('index.html'); }, 600);
 });
 
+// ── TELEMETRY FUNCTIONS ──────────────────────────────────────────────────
+
+// Build telemetry search index (simple concatenation of all fields)
+let _telemetrySearchIndex = [];
+
+function buildTelemetrySearchIndex() {
+  _telemetrySearchIndex = telemetryData.map(r => {
+    const fields = ['id', 'user_name', 'timestamp', 'session_id', 'public_ip', 'device_info', 'site_url', 'created_at'];
+    return fields.map(k => String(r[k] ?? '')).join(' ').toLowerCase();
+  });
+}
+
+function applyTelemetryFilter() {
+  const q = document.getElementById('telemetrySearchInput').value.toLowerCase().trim();
+  const clearBtn = document.getElementById('telemetrySearchClearBtn');
+  clearBtn.classList.toggle('visible', q.length > 0);
+  if (!q) {
+    telemetryFiltered = telemetryData.slice();
+  } else {
+    telemetryFiltered = telemetryData.filter((_, i) =>
+      _telemetrySearchIndex[i] && _telemetrySearchIndex[i].includes(q)
+    );
+  }
+  doTelemetrySort(); telemetryCurrentPage = 1; renderTelemetryTable();
+}
+
+function clearTelemetrySearch() {
+  clearTimeout(telemetrySearchDebounce);
+  document.getElementById('telemetrySearchInput').value = '';
+  applyTelemetryFilter();
+  document.getElementById('telemetrySearchInput').focus();
+}
+
+document.getElementById('telemetrySearchInput').addEventListener('input', () => {
+  clearTimeout(telemetrySearchDebounce);
+  telemetrySearchDebounce = setTimeout(applyTelemetryFilter, 300);
+});
+document.getElementById('telemetrySearchInput').addEventListener('search', () => {
+  clearTimeout(telemetrySearchDebounce);
+  applyTelemetryFilter();
+});
+
+function doTelemetrySort() {
+  if (!telemetrySortKey) return;
+  telemetryFiltered.sort((a,b) => {
+    let av = a[telemetrySortKey] ?? '', bv = b[telemetrySortKey] ?? '';
+    if (!isNaN(av) && !isNaN(bv) && av !== '' && bv !== '') { av = +av; bv = +bv; }
+    return av < bv ? -telemetrySortDir : av > bv ? telemetrySortDir : 0;
+  });
+}
+
+function changeTelemetryPageSize(val) {
+  telemetryPageSize = parseInt(val,10) || 25;
+  telemetryCurrentPage = 1;
+  renderTelemetryTable();
+}
+
+function renderTelemetryPagination() {
+  const total = Math.ceil(telemetryFiltered.length / telemetryPageSize);
+  const pg = document.getElementById('telemetryPagination');
+  pg.innerHTML = '';
+  if (total <= 1) return;
+  const mkBtn = (label, page, disabled, active) => {
+    const b = document.createElement('button');
+    b.className = 'page-btn' + (active ? ' active' : '');
+    b.textContent = label; b.disabled = disabled;
+    b.setAttribute('aria-label', typeof page === 'number' ? `Go to page ${page}` : label);
+    if (active) b.setAttribute('aria-current','page');
+    b.onclick = () => { telemetryCurrentPage = page; renderTelemetryTable(); document.querySelector('#tab-telemetry .table-wrap')?.scrollIntoView({behavior:'smooth', block:'start'}); };
+    return b;
+  };
+  pg.appendChild(mkBtn('◀', telemetryCurrentPage-1, telemetryCurrentPage<=1, false));
+  for (let i = 1; i <= total; i++) {
+    if (total > 7 && Math.abs(i-telemetryCurrentPage) > 2 && i !== 1 && i !== total) {
+      if (i === 2 || i === total-1) {
+        const e = document.createElement('span');
+        e.textContent = '…'; e.style.cssText = 'color:var(--text-dim);padding:0 3px';
+        pg.appendChild(e);
+      }
+      continue;
+    }
+    pg.appendChild(mkBtn(i, i, false, i === telemetryCurrentPage));
+  }
+  pg.appendChild(mkBtn('▶', telemetryCurrentPage+1, telemetryCurrentPage>=total, false));
+}
+
+function renderTelemetryTable() {
+  const tbody = document.getElementById('telemetryBody');
+  const start = (telemetryCurrentPage-1) * telemetryPageSize;
+  const page  = telemetryFiltered.slice(start, start+telemetryPageSize);
+  if (!page.length) {
+    const msg = telemetryData.length ? 'NO TELEMETRY RECORDS MATCH FILTER' : 'NO TELEMETRY DATA LOADED';
+    tbody.innerHTML = `<tr><td colspan="9" class="empty">${msg}</td></tr>`;
+    document.getElementById('telemetryRowCount').textContent = '0';
+    document.getElementById('telemetryRowTotal').textContent = '0';
+    document.getElementById('telemetryPagination').innerHTML = '';
+    return;
+  }
+
+  // Define columns for telemetry: ID, NAME, TIMESTAMP, SESSION ID, PUBLIC IP, DEVICE INFO, SITE URL, CREATED AT, ACTIONS
+  const cols = [
+    { key: 'id', label: 'ID', render: r => `<span class="badge badge-id">${r.id}</span>` },
+    { key: 'user_name', label: 'NAME', render: r => {
+      const name = r.user_name ? r.user_name : '';
+      if (name) {
+        return `<span class="badge badge-name" data-action="telemetry-name" role="button" tabindex="0" title="Click to edit name">${esc(name)}</span>`;
+      } else {
+        return `<button class="btn btn-amber btn-sm" style="padding:2px 8px;font-size:.5rem" data-action="telemetry-name">+ NAME</button>`;
+      }
+    }},
+    { key: 'timestamp', label: 'TIMESTAMP', render: r => r.timestamp ? `<span style="font-family:'Share Tech Mono';font-size:.72rem">${esc(r.timestamp)}</span>` : '-' },
+    { key: 'session_id', label: 'SESSION ID', render: r => r.session_id ? `<span style="font-family:'Share Tech Mono';font-size:.68rem;word-break:break-all">${esc(r.session_id)}</span>` : '<span style="color:var(--text-dim)">—</span>' },
+    { key: 'public_ip', label: 'PUBLIC IP', render: r => r.public_ip ? fmtM(r.public_ip) : '<span style="color:var(--text-dim)">—</span>' },
+    { key: 'device_info', label: 'DEVICE INFO', render: r => r.device_info ? `<span style="font-size:.72rem;word-break:break-all">${esc(r.device_info)}</span>` : '<span style="color:var(--text-dim)">—</span>' },
+    { key: 'site_url', label: 'SITE URL', render: r => r.site_url ? `<span style="font-size:.68rem;word-break:break-all;color:var(--cyan)">${esc(r.site_url)}</span>` : '<span style="color:var(--text-dim)">—</span>' },
+    { key: 'created_at', label: 'CREATED AT', render: r => r.created_at ? `<span style="font-family:'Share Tech Mono';font-size:.72rem">${esc(r.created_at)}</span>` : '-' },
+    { key: '_act', label: 'ACTIONS', render: r => `
+      <div class="row-actions">
+        <button class="btn btn-amber btn-sm" data-action="telemetry-name" title="Assign/edit name"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> NAME</button>
+        <button class="btn btn-red btn-sm" data-action="telemetry-delete" title="Delete record"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> DEL</button>
+      </div>` }
+  ];
+
+  tbody.innerHTML = page.map(r => {
+    const cells = cols.map(col => `<td>${col.render(r)}</td>`).join('');
+    return `<tr data-telemetry-id="${r.id}">${cells}</tr>`;
+  }).join('');
+
+  document.getElementById('telemetryRowCount').textContent = telemetryFiltered.length;
+  document.getElementById('telemetryRowTotal').textContent = telemetryData.length;
+  document.getElementById('statTelemetryTotal').textContent = telemetryData.length || '—';
+  renderTelemetryPagination();
+}
+
+// Telemetry event delegation
+document.getElementById('telemetryBody').addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const tr = btn.closest('tr[data-telemetry-id]');
+  const id = tr ? parseInt(tr.dataset.telemetryId, 10) : null;
+  if (id == null) return;
+
+  const action = btn.dataset.action;
+  if (action === 'telemetry-name') {
+    openTelemetryNameModal(id);
+  } else if (action === 'telemetry-delete') {
+    confirmTelemetryDelete(id);
+  }
+});
+
+function openTelemetryNameModal(id) {
+  const record = telemetryData.find(r => r.id === id);
+  if (!record) { toast('Telemetry record not found','t-red'); return; }
+  telemetryEditingId = id;
+  document.getElementById('tnId').value = id;
+  document.getElementById('tnName').value = record.user_name || '';
+  document.getElementById('telemetryNameModalTitle').textContent = `◈ TELEMETRY NAME #${id}`;
+  openModal('telemetryNameModal');
+}
+
+async function saveTelemetryName() {
+  const id = parseInt(document.getElementById('tnId').value, 10);
+  const name = document.getElementById('tnName').value.trim();
+  if (isNaN(id)) { toast('Invalid ID','t-red'); return; }
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 10000);
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'telemetry-update-name', id, user_name: name || null }),
+      signal: ctrl.signal
+    });
+    clearTimeout(tid);
+    if (!res.ok) { const err = await res.json().catch(()=>({})); throw new Error(err.error || `HTTP ${res.status}`); }
+    toast(`✓ Name ${name ? 'assigned' : 'cleared'} for telemetry #${id}`, 't-green');
+    closeModal('telemetryNameModal');
+    await loadTelemetry(); // refresh
+  } catch (e) {
+    toast(`⚠ Failed to update name: ${e.message}`, 't-red', 4000);
+  }
+}
+
+async function removeTelemetryName() {
+  const id = parseInt(document.getElementById('tnId').value, 10);
+  if (isNaN(id)) return;
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 10000);
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'telemetry-update-name', id, user_name: null }),
+      signal: ctrl.signal
+    });
+    clearTimeout(tid);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    toast(`✓ Name cleared for telemetry #${id}`, 't-amber');
+    closeModal('telemetryNameModal');
+    await loadTelemetry();
+  } catch (e) {
+    toast(`⚠ Failed to clear name: ${e.message}`, 't-red', 4000);
+  }
+}
+
+function confirmTelemetryDelete(id) {
+  pendingDeleteIds = [id]; // reuse the array
+  const warn = document.getElementById('deleteWarningText');
+  warn.innerHTML = '';
+  const strong = document.createElement('strong');
+  strong.textContent = `telemetry #${id}`;
+  warn.append('Delete ', strong, '? This is ');
+  const irr = document.createElement('strong');
+  irr.textContent = 'irreversible';
+  warn.append(irr, '.');
+  document.getElementById('deleteConfirmBtn').onclick = executeTelemetryDelete;
+  openModal('deleteModal');
+}
+
+async function executeTelemetryDelete() {
+  closeModal('deleteModal');
+  const idsToDelete = pendingDeleteIds.slice();
+  pendingDeleteIds = [];
+  if (idsToDelete.length === 0) return;
+  const id = idsToDelete[0];
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 10000);
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'telemetry-delete', id }),
+      signal: ctrl.signal
+    });
+    clearTimeout(tid);
+    if (!res.ok) { const err = await res.json().catch(()=>({})); throw new Error(err.error || `HTTP ${res.status}`); }
+    toast(`✓ Telemetry #${id} deleted`, 't-green');
+    await loadTelemetry();
+  } catch (e) {
+    toast(`⚠ Delete failed: ${e.message}`, 't-red', 4000);
+  }
+}
+
+async function loadTelemetry() {
+  const loader = document.getElementById('loader');
+  const errorBar = document.getElementById('telemetryErrorBar');
+  loader.classList.add('active');
+  errorBar.style.display = 'none';
+  try {
+    const url = WORKER_URL + 'telemetry' + (WORKER_URL.includes('?') ? '&' : '?') + cacheBust();
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 15000);
+    const res = await fetch(url, { credentials: 'include', signal: ctrl.signal });
+    clearTimeout(tid);
+    if (res.status === 401 || res.status === 403) { window.location.replace('index.html'); return; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    telemetryData = Array.isArray(data) ? data : [];
+    buildTelemetrySearchIndex();
+    applyTelemetryFilter();
+    document.getElementById('statTelemetryTotal').textContent = telemetryData.length || '—';
+  } catch (err) {
+    console.error('loadTelemetry failed:', err);
+    const msg = err.name === 'AbortError' ? 'Request timed out' : err.message;
+    errorBar.textContent = `⚠ ${msg}`;
+    errorBar.style.display = 'block';
+  } finally {
+    loader.classList.remove('active');
+  }
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────
 buildHeader();
 buildColDropdown();
@@ -2518,19 +2879,15 @@ document.addEventListener('visibilitychange', () => {
     fetch(`${AUTH_URL}/auth/me`, {credentials:'include', signal:ctrl.signal})
       .then(r => {
         clearTimeout(tid);
-        // Only treat explicit 401/403 as "not authenticated" — other errors (500, network)
-        // should NOT redirect; just leave the user on the dashboard.
         if (r.status === 401 || r.status === 403) { window.location.replace('index.html'); return null; }
         return r.ok ? r.json() : null;
       })
       .then(d => {
-        if (d === null) return; // already redirected or server error — do nothing
-        // loadData() calls startCountdown() internally — do NOT also call startCountdown()
-        // here or the interval will stack on every tab-show event.
+        if (d === null) return;
         if (d?.authenticated === true) { loadData(); }
         else { window.location.replace('index.html'); }
       })
-      .catch(() => { clearTimeout(tid); /* network error — stay on page */ });
+      .catch(() => { clearTimeout(tid); });
   } else { clearInterval(countdownTimer); }
 });
 
