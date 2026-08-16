@@ -491,93 +491,6 @@
     .gate-txt  { font-family: 'Share Tech Mono', monospace; font-size: .68rem; color: var(--text-dim); letter-spacing: .14em; margin-bottom: 20px; }
     .gate-err  { font-family: 'Share Tech Mono', monospace; font-size: .68rem; color: var(--red); letter-spacing: .1em; margin-bottom: 14px; display: none; }
     .gate-spin { width: 26px; height: 26px; margin: 0 auto; border: 2px solid rgba(0,229,255,.15); border-top-color: var(--cyan); border-radius: 50%; animation: spin .7s linear infinite; }
-
-    /* ── COLLECTION CONTROL SPECIFIC ────────────────────── */
-    .collection-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .collection-item {
-      background: rgba(2,8,16,.25);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      padding: 12px 16px;
-      transition: border-color .2s;
-    }
-    .collection-item:hover {
-      border-color: var(--border-hi);
-    }
-    .collection-item .toggle-row {
-      padding: 0;
-      background: transparent;
-      border: none;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      flex-wrap: nowrap;
-    }
-    .collection-item .toggle-info-label {
-      font-size: .62rem;
-      letter-spacing: .1em;
-    }
-    .collection-item .toggle-info-desc {
-      font-size: .55rem;
-    }
-    .collection-item .sw {
-      width: 44px;
-      height: 24px;
-      flex-shrink: 0;
-    }
-    .collection-item .sl::before {
-      width: 16px;
-      height: 16px;
-      left: 3px;
-      top: 3px;
-    }
-    .collection-item .sw input:checked + .sl::before {
-      transform: translateX(20px);
-    }
-    .collection-status-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: .55rem;
-      letter-spacing: .06em;
-      padding: 2px 8px;
-      border-radius: 2px;
-      display: inline-block;
-    }
-    .collection-status-label.on {
-      color: var(--green);
-      background: rgba(0,255,157,.06);
-      border: 1px solid var(--green-dim);
-    }
-    .collection-status-label.off {
-      color: var(--text-dim);
-      background: rgba(255,255,255,.02);
-      border: 1px solid var(--border);
-    }
-
-    @media (max-width: 540px) {
-      .collection-row {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-      .collection-item .toggle-row {
-        flex-wrap: wrap;
-      }
-      .collection-item .sw {
-        width: 52px;
-        height: 28px;
-      }
-      .collection-item .sl::before {
-        width: 18px;
-        height: 18px;
-        left: 4px;
-        top: 4px;
-      }
-      .collection-item .sw input:checked + .sl::before {
-        transform: translateX(24px);
-      }
-    }
   </style>
 </head>
 <body>
@@ -666,61 +579,6 @@
     </div>
   </div>
   </div><!-- /.panel-wrap toggle -->
-
-  <!-- ════════════════════ COLLECTION CONTROL ════════════════════ -->
-  <div class="panel-wrap glow-c">
-  <div class="panel">
-    <div class="panel-hdr">
-      <div class="panel-title">⏣ Collection Control</div>
-      <span id="collectionStatusBadge" class="status-pill off" aria-live="polite">
-        <span class="dead-dot" aria-hidden="true"></span>
-        <span>LOADING…</span>
-      </span>
-    </div>
-    <div class="panel-body">
-      <div class="field-hint field-hint--mb">
-        Control which data streams are received from the user-facing site.
-        Disabling a stream stops storage but does not affect user functionality.
-      </div>
-      <div id="collectionAlert" class="alert" role="alert" aria-live="assertive"></div>
-      <div class="collection-row">
-        <!-- CAPTURES -->
-        <div class="collection-item">
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-info-label">Captures</div>
-              <div class="toggle-info-desc">
-                <span id="capturesStatusLabel" class="collection-status-label off">● NOT RECEIVING</span>
-              </div>
-            </div>
-            <label class="sw" title="Toggle capture data collection" aria-label="Toggle capture data collection">
-              <input type="checkbox" id="capturesToggle" role="switch">
-              <span class="sl" aria-hidden="true"></span>
-            </label>
-          </div>
-        </div>
-        <!-- TELEMETRY -->
-        <div class="collection-item">
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-info-label">Telemetry</div>
-              <div class="toggle-info-desc">
-                <span id="telemetryStatusLabel" class="collection-status-label off">● NOT RECEIVING</span>
-              </div>
-            </div>
-            <label class="sw" title="Toggle telemetry data collection" aria-label="Toggle telemetry data collection">
-              <input type="checkbox" id="telemetryToggle" role="switch">
-              <span class="sl" aria-hidden="true"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-      <div class="action-row" style="margin-top: 12px; justify-content: flex-end;">
-        <button class="btn btn-cyan" id="refreshCollectionBtn" title="Reload collection settings"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="btn-label">Refresh</span></button>
-      </div>
-    </div>
-  </div>
-  </div><!-- /.panel-wrap collection -->
 
   <!-- Target URL + alert inside panel -->
   <div class="panel-wrap glow-v">
@@ -906,28 +764,6 @@
   </div>
 </div>
 
-<!-- ════ MODAL — Confirm Collection Change ════ -->
-<div class="modal-bg" id="collectionConfirmModal" role="dialog" aria-modal="true" aria-labelledby="collectionConfirmTitle">
-  <div class="modal danger">
-    <div class="modal-hdr">
-      <div class="modal-ttl r" id="collectionConfirmTitle">⚠ Confirm Change</div>
-      <button class="modal-x" data-close="collectionConfirmModal" aria-label="Cancel">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-center">
-        <div class="modal-icon" aria-hidden="true">⚡</div>
-        <p class="modal-body-text" id="collectionConfirmText">
-          Are you sure you want to change this collection setting?
-        </p>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-cyan" data-close="collectionConfirmModal"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span class="btn-label">Cancel</span></button>
-      <button class="btn btn-red" id="collectionConfirmBtn"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;display:block"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span class="btn-label">Confirm</span></button>
-    </div>
-  </div>
-</div>
-
 <script>
 'use strict';
 
@@ -939,10 +775,6 @@ const NYTHERIX_WORKER = 'https://nytherix-admin.23amtics322.workers.dev';
 let _isLoggingOut  = false;  // prevents visibilitychange re-check racing logout
 let _lastSaved     = null;   // tracks last saved {enabled, target_url} for dirty detection
 let _authCleared   = false;  // set true once gate passes — guards saveSettings pre-auth
-
-// Collection control state
-let _collectionState = { capturesEnabled: null, telemetryEnabled: null };
-let _pendingCollectionChange = null; // { target: 'captures'|'telemetry', value: boolean }
 
 // ── HELPERS ────────────────────────────────────────────────────
 function toast(msg, cls, dur = 3400) {
@@ -1040,187 +872,6 @@ function setProxyUI(enabled, targetUrl) {
   _lastSaved = { enabled: on, target_url: tgt };
   markClean();
 }
-
-// ── COLLECTION CONTROL UI ──────────────────────────────────────
-function setCollectionUI(capturesEnabled, telemetryEnabled) {
-  const cOn = !!capturesEnabled;
-  const tOn = !!telemetryEnabled;
-  _collectionState.capturesEnabled = cOn;
-  _collectionState.telemetryEnabled = tOn;
-
-  // Toggles
-  document.getElementById('capturesToggle').checked = cOn;
-  document.getElementById('telemetryToggle').checked = tOn;
-
-  // Status labels
-  const cLabel = document.getElementById('capturesStatusLabel');
-  cLabel.className = `collection-status-label ${cOn ? 'on' : 'off'}`;
-  cLabel.textContent = cOn ? '● RECEIVING' : '● NOT RECEIVING';
-
-  const tLabel = document.getElementById('telemetryStatusLabel');
-  tLabel.className = `collection-status-label ${tOn ? 'on' : 'off'}`;
-  tLabel.textContent = tOn ? '● RECEIVING' : '● NOT RECEIVING';
-
-  // Overall badge
-  const badge = document.getElementById('collectionStatusBadge');
-  const dot = badge.querySelector('.dead-dot, .pulse-dot');
-  const txt = badge.querySelector('span:last-child');
-  if (cOn || tOn) {
-    const anyOn = cOn || tOn;
-    badge.className = `status-pill ${anyOn ? 'live' : 'off'}`;
-    if (dot) {
-      dot.className = anyOn ? 'pulse-dot' : 'dead-dot';
-    }
-    const parts = [];
-    if (cOn) parts.push('CAPTURES');
-    if (tOn) parts.push('TELEMETRY');
-    txt.textContent = parts.length ? parts.join(' · ') : 'ALL OFF';
-  } else {
-    badge.className = 'status-pill off';
-    if (dot) dot.className = 'dead-dot';
-    txt.textContent = 'ALL OFF';
-  }
-}
-
-// ── LOAD COLLECTION CONTROLS ──────────────────────────────────
-async function loadCollectionControls() {
-  try {
-    const ctrl = new AbortController();
-    const tid  = setTimeout(() => ctrl.abort(), 10000);
-    const res  = await fetch(NYTHERIX_WORKER + '/api/collection-controls', {
-      credentials: 'include',
-      signal: ctrl.signal
-    });
-    clearTimeout(tid);
-    if (res.status === 401 || res.status === 403) {
-      toast('Session expired — redirecting to login…', 't-a');
-      setTimeout(() => window.location.replace('index.html'), 800);
-      return;
-    }
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    // data: { captures_enabled: boolean, telemetry_enabled: boolean }
-    setCollectionUI(
-      data.captures_enabled === true,
-      data.telemetry_enabled === true
-    );
-  } catch (e) {
-    const msg = e.name === 'AbortError' ? 'Worker timeout — collection settings not loaded.' : `Load failed — ${e.message}`;
-    toast(msg, 't-a');
-  }
-}
-
-// ── SAVE COLLECTION CONTROL ────────────────────────────────────
-async function saveCollectionControl(target, value) {
-  const field = target === 'captures' ? 'captures_enabled' : 'telemetry_enabled';
-  const payload = {};
-  payload[field] = value === true;
-
-  // Build the full state: preserve the other field's current value
-  const fullPayload = {
-    captures_enabled: target === 'captures' ? value : _collectionState.capturesEnabled,
-    telemetry_enabled: target === 'telemetry' ? value : _collectionState.telemetryEnabled
-  };
-
-  // Disable toggles during request
-  document.getElementById('capturesToggle').disabled = true;
-  document.getElementById('telemetryToggle').disabled = true;
-
-  try {
-    const ctrl = new AbortController();
-    const tid  = setTimeout(() => ctrl.abort(), 10000);
-    const res  = await fetch(NYTHERIX_WORKER + '/api/collection-controls', {
-      method: 'POST',
-      credentials: 'include',
-      signal: ctrl.signal,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(fullPayload)
-    });
-    clearTimeout(tid);
-    if (res.status === 401 || res.status === 403) {
-      toast('Session expired — redirecting to login…', 't-a');
-      setTimeout(() => window.location.replace('index.html'), 800);
-      // Revert UI to previous state
-      setCollectionUI(_collectionState.capturesEnabled, _collectionState.telemetryEnabled);
-      document.getElementById('capturesToggle').disabled = false;
-      document.getElementById('telemetryToggle').disabled = false;
-      return;
-    }
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || `HTTP ${res.status}`);
-    }
-    const data = await res.json();
-    // data: { captures_enabled: boolean, telemetry_enabled: boolean }
-    setCollectionUI(
-      data.captures_enabled === true,
-      data.telemetry_enabled === true
-    );
-    toast('✓ Collection setting updated', 't-g');
-    hideAlert('collectionAlert');
-  } catch (e) {
-    const msg = e.name === 'AbortError' ? 'Request timed out.' : `Network error — ${e.message}`;
-    showAlert('collectionAlert', `⚠ ${msg}`, 'err');
-    // Revert UI to previous state
-    setCollectionUI(_collectionState.capturesEnabled, _collectionState.telemetryEnabled);
-    toast(`⚠ ${msg}`, 't-a');
-  } finally {
-    document.getElementById('capturesToggle').disabled = false;
-    document.getElementById('telemetryToggle').disabled = false;
-  }
-}
-
-// ── COLLECTION TOGGLE HANDLERS ────────────────────────────────
-function handleCollectionToggle(target) {
-  const toggle = document.getElementById(target === 'captures' ? 'capturesToggle' : 'telemetryToggle');
-  const newValue = toggle.checked;
-  const currentValue = target === 'captures' ? _collectionState.capturesEnabled : _collectionState.telemetryEnabled;
-
-  // If the value hasn't actually changed, do nothing
-  if (newValue === currentValue) return;
-
-  // Store pending change and show confirmation
-  _pendingCollectionChange = { target, value: newValue };
-
-  const label = target === 'captures' ? 'capture data' : 'telemetry data';
-  const action = newValue ? 'enable' : 'disable';
-  document.getElementById('collectionConfirmText').textContent =
-    `Are you sure you want to ${action} ${label} collection?`;
-  openModal('collectionConfirmModal');
-}
-
-document.getElementById('collectionConfirmBtn').addEventListener('click', function() {
-  closeModal('collectionConfirmModal');
-  if (_pendingCollectionChange) {
-    const { target, value } = _pendingCollectionChange;
-    _pendingCollectionChange = null;
-    saveCollectionControl(target, value);
-  }
-});
-
-// Also handle modal close via X/backdrop — if cancelled, revert toggle
-document.querySelectorAll('[data-close="collectionConfirmModal"]').forEach(el => {
-  el.addEventListener('click', function() {
-    if (_pendingCollectionChange) {
-      const { target } = _pendingCollectionChange;
-      const toggle = document.getElementById(target === 'captures' ? 'capturesToggle' : 'telemetryToggle');
-      const currentValue = target === 'captures' ? _collectionState.capturesEnabled : _collectionState.telemetryEnabled;
-      toggle.checked = currentValue;
-      _pendingCollectionChange = null;
-    }
-  });
-});
-// Also handle backdrop click
-document.getElementById('collectionConfirmModal').addEventListener('click', function(e) {
-  if (e.target === this && _pendingCollectionChange) {
-    const { target } = _pendingCollectionChange;
-    const toggle = document.getElementById(target === 'captures' ? 'capturesToggle' : 'telemetryToggle');
-    const currentValue = target === 'captures' ? _collectionState.capturesEnabled : _collectionState.telemetryEnabled;
-    toggle.checked = currentValue;
-    _pendingCollectionChange = null;
-    closeModal('collectionConfirmModal');
-  }
-});
 
 // ── LOAD SETTINGS ──────────────────────────────────────────────
 async function loadSettings() {
@@ -1746,17 +1397,8 @@ document.getElementById('deleteAmmoSiteConfirmBtn').addEventListener('click', ()
 // ── BUTTON BINDINGS ────────────────────────────────────────────
 document.getElementById('saveBtn').addEventListener('click', saveSettings);
 document.getElementById('refreshBtn').addEventListener('click', () => { loadSettings(); toast('Refreshing…', 't-c', 1500); });
-document.getElementById('refreshCollectionBtn').addEventListener('click', () => { loadCollectionControls(); toast('Refreshing collection settings…', 't-c', 1500); });
 document.getElementById('logoutBtn').addEventListener('click', () => openModal('nukeModal'));
 document.getElementById('nukeConfirmBtn').addEventListener('click', () => { closeModal('nukeModal'); doLogout(); });
-
-// Collection toggle events
-document.getElementById('capturesToggle').addEventListener('change', function() {
-  handleCollectionToggle('captures');
-});
-document.getElementById('telemetryToggle').addEventListener('change', function() {
-  handleCollectionToggle('telemetry');
-});
 
 // ── AUTH GATE ──────────────────────────────────────────────────
 (async () => {
@@ -1801,14 +1443,8 @@ document.getElementById('telemetryToggle').addEventListener('change', function()
     _authCleared = true;
     document.getElementById('mainLayout').removeAttribute('inert');
     gate.classList.add('done');
-    // Call load functions after gate fade completes (320ms) so toasts aren't hidden
-    setTimeout(() => {
-      gate.classList.add('hidden');
-      loadSettings();
-      loadSites();
-      loadAmmoSites();
-      loadCollectionControls();
-    }, 320);
+    // Call loadSettings after gate fade completes (320ms) so toasts aren't hidden
+    setTimeout(() => { gate.classList.add('hidden'); loadSettings(); loadSites(); loadAmmoSites(); }, 320);
   } else if (result === null) {
     // network error — show retry option instead of blind redirect
     gateTxt.textContent = 'CONNECTION ERROR';
@@ -1818,7 +1454,7 @@ document.getElementById('telemetryToggle').addEventListener('change', function()
     const retryBtn = document.createElement('button');
     retryBtn.className = 'btn btn-cyan';
     retryBtn.style.marginTop = '16px';
-    retryBtn.textContent = '↻ RETRY';
+
     retryBtn.addEventListener('click', () => window.location.reload());
     gate.querySelector('.gate-inner').appendChild(retryBtn);
   } else {
