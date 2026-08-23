@@ -332,6 +332,52 @@
     .field-hint { font-family: 'Share Tech Mono', monospace; font-size: .58rem; color: var(--text-dim); line-height: 1.6; margin-top: 6px; }
     .field-hint--mb { margin-bottom: 18px; margin-top: 0; }
 
+    /* Target URL input + clear control */
+    .input-with-clear {
+      position: relative;
+      display: block;
+      width: 100%;
+    }
+    .input-with-clear input {
+      width: 100%;
+      padding-right: 40px; /* room for clear button */
+    }
+    .input-clear-btn {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      margin: 0;
+      border: 1px solid transparent;
+      border-radius: 2px;
+      background: transparent;
+      color: var(--text-dim);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: color .15s, border-color .15s, background .15s, box-shadow .15s;
+      z-index: 2;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .input-clear-btn.visible { display: inline-flex; }
+    .input-clear-btn:hover {
+      color: var(--red);
+      border-color: var(--red-dim);
+      background: rgba(255,59,92,.08);
+      box-shadow: var(--glow-r);
+    }
+    .input-clear-btn:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 1px;
+    }
+
     /* unsaved indicator on save button */
     #saveBtn.dirty { border-color: var(--amber-dim); color: var(--amber); }
     #saveBtn.dirty:hover:not(:disabled) { background: rgba(255,179,0,.08); box-shadow: var(--glow-a); }
@@ -481,6 +527,13 @@
       .sl::before         { width: 22px; height: 22px; }
       .sw input:checked + .sl::before { transform: translateX(24px); }
       .stat-card          { cursor: default; }  /* no hover lift on touch */
+      /* Target URL clear control — easy to tap without enlarging the input */
+      .input-clear-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1.15rem;
+      }
+      .input-with-clear input { padding-right: 44px; }
     }
 
     /* ── iOS input zoom prevention (font-size must be ≥16px) ── */
@@ -617,9 +670,13 @@
       <div id="proxyAlert" class="alert" role="alert" aria-live="assertive"></div>
       <div class="field">
         <label for="targetUrl">Destination</label>
-        <input type="url" id="targetUrl" placeholder="https://original-website.com"
-               autocomplete="off" spellcheck="false"
-               aria-describedby="targetUrlHint">
+        <div class="input-with-clear">
+          <input type="url" id="targetUrl" placeholder="https://original-website.com"
+                 autocomplete="off" spellcheck="false"
+                 aria-describedby="targetUrlHint">
+          <button type="button" id="targetUrlClear" class="input-clear-btn"
+                  aria-label="Clear destination URL" title="Clear">×</button>
+        </div>
         <div class="field-hint" id="targetUrlHint">
           The real site visitors will be proxied to. https:// is prepended automatically if omitted.
           Press <kbd class="kbd-hint">Ctrl+S</kbd> to save.
@@ -888,6 +945,7 @@ function setProxyUI(enabled, targetUrl) {
 
   document.getElementById('proxyToggle').checked = on;
   document.getElementById('targetUrl').value     = tgt;
+  if (typeof window.syncTargetUrlClear === 'function') window.syncTargetUrlClear();
 
   const sv = document.getElementById('svProxy');
   sv.textContent = on ? 'LIVE' : 'OFFLINE';
@@ -1007,7 +1065,59 @@ document.getElementById('proxyToggle').addEventListener('change', function () {
   checkDirty();
 });
 
-document.getElementById('targetUrl').addEventListener('input', checkDirty);
+// ── TARGET URL UX: select-all on focus + clear control ──────────
+(function initTargetUrlUX() {
+  const input = document.getElementById('targetUrl');
+  const clearBtn = document.getElementById('targetUrlClear');
+  if (!input || !clearBtn) return;
+
+  let selectOnFocus = false;
+
+  window.syncTargetUrlClear = function syncTargetUrlClear() {
+    const hasValue = !!input.value;
+    clearBtn.classList.toggle('visible', hasValue);
+    clearBtn.setAttribute('aria-hidden', hasValue ? 'false' : 'true');
+  };
+
+  // Select entire value when the field receives focus (once per focus).
+  // Does not re-select while the user is already editing inside the field.
+  input.addEventListener('focus', function () {
+    selectOnFocus = true;
+    requestAnimationFrame(() => {
+      try { this.select(); } catch (_) {}
+    });
+  });
+
+  // Keep the focus-driven selection; the focusing click's mouseup would
+  // otherwise collapse it. Subsequent mouseups (cursor placement) are normal.
+  input.addEventListener('mouseup', function (e) {
+    if (selectOnFocus) {
+      e.preventDefault();
+      selectOnFocus = false;
+    }
+  });
+
+  input.addEventListener('blur', function () {
+    selectOnFocus = false;
+  });
+
+  input.addEventListener('input', function () {
+    syncTargetUrlClear();
+    checkDirty();
+  });
+
+  clearBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    input.value = '';
+    syncTargetUrlClear();
+    checkDirty();
+    input.focus();
+  });
+
+  // Initial visibility (empty until settings load)
+  syncTargetUrlClear();
+})();
 
 // Ctrl+S / Cmd+S to save
 document.addEventListener('keydown', e => {
