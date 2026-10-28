@@ -3,15 +3,7 @@
 <head>
   <script>document.documentElement.classList.remove('no-js');</script>
   <script>
-    // Low-power device heuristic (coarse/touch pointer or few logical
-    // cores) — same test used by drone.js for its own quality scaling.
-    // Run this early, before first paint, so the cheaper glass-panel
-    // fallback (see design.css's html.low-power override) is active
-    // from the very first frame instead of flashing the expensive SVG
-    // lens filter and swapping a moment later. Wrapped in try/catch
-    // since matchMedia/hardwareConcurrency support varies — if the
-    // check itself fails for any reason, everyone just gets the normal
-    // (higher-quality) experience rather than a broken page.
+               
     try {
       var isLowPowerDevice =
         (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
